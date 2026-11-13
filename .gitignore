@@ -21,3 +21,9 @@ __pycache__/
 # OS
 Thumbs.db
 .DS_Store
+
+# Art pipeline
+tools/art/.cache/
+
+# Reference screenshots (third-party copyright, keep local only)
+brain/references/img/

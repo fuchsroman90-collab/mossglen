@@ -1,21 +1,22 @@
 extends Node
-## Sprite atlas produced by tools/art/build.py.
-## Every sprite has an anchor (ground contact point); sprites created here
-## are offset so the node origin sits on that anchor.
+## Sprite atlas pages produced by tools/art/build.py (Blender pre-renders).
+## Every frame has an anchor (ground contact point); sprites created here are
+## offset so the node origin sits on that anchor.
 
-const TEX_PATH := "res://art/generated/atlas.png"
-const DATA_PATH := "res://art/generated/atlas.json"
+const DIR := "res://art/generated/"
 
-var texture: Texture2D
+var pages: Array[Texture2D] = []
 var _frames: Dictionary = {}
 var _cache: Dictionary = {}
 
 
 func _ready() -> void:
-	texture = load(TEX_PATH)
-	var f := FileAccess.open(DATA_PATH, FileAccess.READ)
+	var f := FileAccess.open(DIR + "atlas.json", FileAccess.READ)
 	assert(f != null, "atlas.json missing - run tools/art/build.py")
-	_frames = JSON.parse_string(f.get_as_text())
+	var data: Dictionary = JSON.parse_string(f.get_as_text())
+	_frames = data["frames"]
+	for i in int(data["pages"]):
+		pages.append(load(DIR + "atlas_%d.png" % i))
 
 
 func has(sprite_name: String) -> bool:
@@ -31,15 +32,20 @@ func tex(sprite_name: String) -> AtlasTexture:
 		return _cache[sprite_name]
 	var d: Array = _frames[sprite_name]
 	var t := AtlasTexture.new()
-	t.atlas = texture
-	t.region = Rect2(d[0], d[1], d[2], d[3])
+	t.atlas = pages[int(d[0])]
+	t.region = Rect2(d[1], d[2], d[3], d[4])
 	_cache[sprite_name] = t
 	return t
 
 
 func anchor(sprite_name: String) -> Vector2:
 	var d: Array = _frames[sprite_name]
-	return Vector2(d[4], d[5])
+	return Vector2(d[5], d[6])
+
+
+func size(sprite_name: String) -> Vector2:
+	var d: Array = _frames[sprite_name]
+	return Vector2(d[3], d[4])
 
 
 func apply(s: Sprite2D, sprite_name: String) -> void:
@@ -52,3 +58,9 @@ func sprite(sprite_name: String) -> Sprite2D:
 	var s := Sprite2D.new()
 	apply(s, sprite_name)
 	return s
+
+
+## Image of one frame (for pixel-exact tap tests).
+func image_of(sprite_name: String) -> Image:
+	var d: Array = _frames[sprite_name]
+	return pages[int(d[0])].get_image()

@@ -1,77 +1,60 @@
-# Mossglen – Stil-Bibel
+# Mossglen – Stil-Bibel (Version 2, 3D-Pre-Render)
 
-Verbindlich für alle Grafiken. Die Werte stehen als Code in `tools/art/palette.py`.
-Wer ein Asset ändert, ändert zuerst die Palette oder den Baukasten, nie Einzelfarben im Asset.
+Verbindlich für alle Grafiken. Seit 13.11.2026 ersetzt diese Fassung den flachen SVG-Stil,
+den Roman abgelehnt hat (`brain/taste/rejected/m0_svg_atlas.png`).
+Maßstab sind die Referenzen in `brain/references/` (Hay-Day-Qualität, eigene Welt).
+Technik und Regeln zum Bauen: Skill `.claude/skills/mossglen-art/SKILL.md`.
 
 ## 1. Gefühl
 
-- **Warm, weich, ruhig.** Wie ein Bilderbuch an einem späten Sommernachmittag.
-- **Rund statt eckig.** Alle Ecken abgerundet, Linien mit runden Enden.
-- **Moos als Erkennungszeichen.** Dächer, Steine, Zäune tragen kleine Moospolster. Das ist der eigene Look von Mossglen und grenzt uns klar von anderen Farm-Spielen ab.
-- Keine harten Schwarztöne, kein reines Weiß, keine Neonfarben.
+- **Warm, satt, verspielt.** Sommernachmittag, alles ist rund und freundlich.
+- **Echtes Volumen.** Alles ist ein 3D-Modell, weich beleuchtet, vorgerendert.
+- **Moos als Erkennungszeichen** auf Dächern, Steinen, Zaunpfosten.
+- Keine harten Schwarztöne, keine grauen Schatten. Schatten sind farbig (grün/blau).
 
-## 2. Perspektive und Raster
+## 2. Perspektive
 
-- **Dimetrische Schrägansicht 2:1.** Eine Kachel ist eine Raute **128 × 64 px** (Basisauflösung 1x).
-- Achse X des Rasters zeigt auf dem Bildschirm nach **rechts unten** (+64, +32), Achse Y nach **links unten** (−64, +32).
-- Höhe: 1 Einheit Höhe = 1 px nach oben.
-- **Ankerpunkt** jedes Sprites ist der Bodenkontaktpunkt (Mitte der Grundfläche). Danach sortiert das Spiel die Tiefe (Y-Sort).
+- Orthografische Kamera, 30° Höhe, 45° gedreht: Kachel = Raute **256 × 128 px** (2x).
+- 1 Kachel = 1 m. Huhn ≈ 0,5 m, Baby-Dino ≈ 0,9 m, Laubbaum ≈ 2,3 m, Scheune 3 × 3 Kacheln.
+- Ankerpunkt jedes Sprites = Bodenkontakt (Ursprung des Modells).
 
-## 3. Licht und Schatten
+## 3. Licht und Material
 
-- Licht kommt von **oben links**.
-- Flächen eines Körpers: **Oberseite hell**, **linke Seite mittel**, **rechte Seite dunkel**.
-- Rundkörper (Bäume, Büsche, Tiere): radialer Verlauf, Lichtpunkt oben links, dazu 1–3 weiche Glanzflecken.
-- **Bodenschatten**: weiche Ellipse, Farbe `shadow` mit 22 % Deckkraft. Keine Echtzeitschatten.
+- Sonne von **oben links vorne**, warm (leicht gelblich), weiche Schatten (14° Sonnenwinkel).
+- Himmel als kühles Fülllicht von oben, grünes Rücklicht vom Gras von unten.
+- Materialien leicht glänzend, Silhouette dunkelt zur Eigenfarbe ab („edge“).
+- **Kontur:** 2 px, abgedunkelte Eigenfarbe, nie Schwarz. Icons 2,5 px.
+- Bodenschatten: weich, Farbe #243A12 mit 55 % (statische Objekte gebacken, Tiere Blob-Schatten).
 
-## 4. Kontur
+## 4. Farben (Richtwerte)
 
-- Farbe `outline` (#4A3A2E, warmes Dunkelbraun), nie Schwarz.
-- Stärke: **3 px** außen, **1,5 px** für Innendetails.
-- Runde Linienenden und -verbindungen.
-- Zusammengesetzte Formen (Baumkrone aus Kreisen) bekommen nur eine **Außenkontur**: erst alle Teile dick in Konturfarbe zeichnen, dann alle Füllungen darüber.
+| Bereich | Farben |
+|---|---|
+| Gras | #8FC63E Basis, #A6D64B hell, #74AE34 dunkel, Halm-Tupfer |
+| Erde/Wege | #DDB87A Basis, Kiesel hell #F0DCB2 |
+| Laub | #93CF3C hell → #2C7A2C dunkel, Herbst #FFC84A → #D9752A |
+| Tanne | #6DBE6A → #1F6A44 |
+| Scheune | Rot #D2493A, Zierleisten #FFF4E2, Schiefer #5B7184 |
+| Holz | #B07547 / #9C6539 |
+| Weizen reif | #F2C443, Halme #E3B23C |
+| Akzente | Gold #FFC93C, Smaragd #2FD487, Apfel #E83B3B |
 
-## 5. Farbpalette
+## 5. Formen
 
-| Name | Hex | Verwendung |
-|---|---|---|
-| outline | #4A3A2E | Konturen |
-| grass_light / grass / grass_dark | #B5D86A / #93C454 / #6FA43E | Wiese |
-| moss / moss_light | #6E9E3F / #9CC95A | Moospolster, Signatur |
-| soil_light / soil / soil_dark | #C98F5E / #A8714A / #7E4F33 | Ackerboden |
-| path / path_dark | #E2C690 / #C4A46C | Wege |
-| wood_light / wood / wood_dark | #D6955E / #B9774A / #8A5232 | Holz |
-| barn / barn_dark / barn_side | #E0705A / #B8503F / #C95E4B | Scheunenwände |
-| roof / roof_dark | #6F87A8 / #536A8A | Schieferdach |
-| cream / cream_dark | #FFF4DC / #EAD9B5 | Zierleisten, UI |
-| wheat / wheat_dark | #F4CB5B / #D9A23E | Reifes Getreide |
-| leaf_light / leaf / leaf_dark | #A6D364 / #7DB547 / #4F8A34 | Laub |
-| sky / water | #9FD7EC / #6FBFDD | Himmel, Wasser |
-| gold / gold_dark | #FFD45E / #E3A72F | Münzen |
-| emerald / emerald_dark | #4FD39A / #23A46F | Smaragde (Premiumwährung) |
-| shadow | #3B4A2A | Schatten (mit Transparenz) |
+- Gebäude gedrungen, Dachüberstand groß, alle Kanten mit Bevel. Details als echte Einzelteile
+  (Bretter, Schindeln, Steine, Fensterkästen), jedes mit leichter Farbstreuung.
+- Gebäude stehen auf einer Erd-/Pflasterfläche (vom Boden-Shader gemalt) mit Kleinkram daneben.
+- Tiere und Dinos: Chibi, großer Kopf, große Augen mit Glanzpunkt, die zur Kamera schauen,
+  kurze Beine, wenige klare Farbflächen. Dinos haben Moos-Flecken und rosa Wangen.
+- Pflanzen in Büscheln, Bäume aus vielen Laub-Ballen.
 
-Sättigung bleibt mittel. Akzente (Gold, Smaragd, Scheunenrot) dürfen kräftiger sein.
+## 6. Animation
 
-## 6. Formen und Proportionen
+- Tiere: Idle (Atmen + Blinzeln), Laufen, Huhn zusätzlich Picken. Blickrichtungen se/ne, gespiegelt sw/nw.
+- Wind-Shader für Bäume, Büsche, Pflanzen. Squash & Stretch bei jeder Interaktion.
 
-- Gebäude: etwas gedrungen, Dächer groß und weich überstehend (Überstand 8–12 px).
-- Tiere und Dinos: **Chibi-Proportionen**, Kopf groß, Körper rund, große Augen mit Glanzpunkt, kurze Beine.
-- Pflanzen: in Büscheln, nie einzelne Halme.
+## 7. UI
 
-## 7. Animation
-
-- Alles lebt leicht: Wind lässt Pflanzen und Bäume schwingen (Shader), Tiere wippen beim Laufen.
-- **Squash & Stretch** bei jeder Interaktion (Pflanzen, Ernten, Platzieren): 0,15–0,3 s, Easing `back`/`elastic`.
-- Nichts blinkt hektisch. Kein Bildschirmwackeln.
-
-## 8. UI
-
-- Panels: Creme (`cream`) mit Holzrahmen (`wood`), Kontur `outline`, Ecken 18 px rund.
-- Zahlen groß und gut lesbar, Icons links neben der Zahl.
-- Mindestgröße für Touch-Ziele: 44 × 44 pt.
-
-## 9. Ton (Kurzfassung)
-
-- Musik: Marimba, Zupfinstrumente, Flöte, weiche Flächen. 70–90 BPM, Dur, viel Raum.
-- Soundeffekte: kurz, rund, tonal (Töne passen zur Tonart der Musik), nie schrill.
+- Schrift **Fredoka** (SemiBold), helle Zahlen mit dicker dunkelbrauner Kontur.
+- Kapseln creme mit Glanz und dunklem Rand, runde gelbe Knöpfe mit Glanz, grüne Plus-Knöpfe.
+- Icons sind ebenfalls 3D-Renders (Münze mit Blatt-Prägung, Smaragd, Stern).

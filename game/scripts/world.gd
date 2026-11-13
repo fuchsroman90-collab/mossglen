@@ -1,39 +1,49 @@
 extends Node2D
-## M0 test farm: ground, fields, barn, nature, chickens, camera and touch input.
+## M0 test farm: lawn shader, fields, barn, nature, animals, camera and touch input.
+##
+## World units are 2x pixels: one grid cell is a 256 x 128 diamond.
+## Grid -> world: ((x - y) * 128, (x + y) * 64), cell centres on integer coords.
 ##
 ## Command line (after "--"):
-##   --smoke        run self checks headless and quit with exit code 0/1
+##   --smoke        run self checks and quit with exit code 0/1
 ##   --bench[=file] stress scene, vsync off, prints frame time stats and quits
 ##   --demo         fields start in mixed growth stages
-##   --shot=file    save a screenshot after 2.5 s and quit (implies --demo)
+##   --shot=file    save a screenshot after 3 s and quit (implies --demo)
+##   --zoom=z       start zoom (for screenshots)
 
 const HudScript := preload("res://scripts/hud.gd")
 const FieldScript := preload("res://scripts/field.gd")
-const ChickenScript := preload("res://scripts/chicken.gd")
+const AnimalScript := preload("res://scripts/animal.gd")
 const SwayShader := preload("res://shaders/sway.gdshader")
+const GroundShader := preload("res://shaders/ground.gdshader")
 
+const HALF_W := 128.0
+const HALF_H := 64.0
 const MAP_MIN := -10
 const MAP_MAX := 36
-const ZOOM_MIN := 0.45
-const ZOOM_MAX := 1.6
+const MASK_SIZE := 64
+const ZOOM_MIN := 0.2
+const ZOOM_MAX := 1.0
+const ZOOM_START := 0.52
 const TAP_SLOP := 14.0
 const BRUSH_STEP := 18.0
 
 enum Mode { NONE, PAN, PINCH, PLANT, HARVEST }
 
-var ground: TileMapLayer
+var ground: Polygon2D
 var objects: Node2D
 var fx: Node2D
 var cam: Camera2D
 var hud: Hud
 var fields: Dictionary = {}  # Vector2i -> Field
-var chickens: Array[Chicken] = []
+var animals: Array[Animal] = []
 var props: Array[Sprite2D] = []  # tappable scenery (barn, trees, bushes)
 var occupied: Dictionary = {}
 
 var _sway_crop: ShaderMaterial
 var _sway_tree: ShaderMaterial
-var _tile_index: Dictionary = {}
+var _sway_bush: ShaderMaterial
+var _mask: Image
 var _touches: Dictionary = {}
 var _mode := Mode.NONE
 var _moved := 0.0
@@ -44,26 +54,32 @@ var _combo := 0
 var _args: Dictionary = {}
 var _bench_times := PackedFloat32Array()
 var _bench_clock := 0.0
-var _atlas_image: Image
+var _page_images: Dictionary = {}
 
 
 func _ready() -> void:
 	_parse_args()
-	_sway_crop = _make_sway(2.2, 1.6, 30.0)
-	_sway_tree = _make_sway(3.0, 1.1, 200.0)
-	_build_ground()
+	_sway_crop = _make_sway(5.0, 1.6, 60.0)
+	_sway_tree = _make_sway(5.0, 1.1, 420.0)
+	_sway_bush = _make_sway(3.0, 1.4, 120.0)
+	_mask = Image.create(MASK_SIZE, MASK_SIZE, false, Image.FORMAT_RG8)
 	objects = Node2D.new()
 	objects.y_sort_enabled = true
-	add_child(objects)
 	fx = Node2D.new()
 	fx.z_index = 100
-	add_child(fx)
 	_build_farm()
+	_build_ground()
+	add_child(objects)
+	add_child(fx)
 	cam = Camera2D.new()
 	add_child(cam)
 	cam.make_current()
-	cam.position = grid_to_world(Vector2(13, 9))
-	cam.zoom = Vector2.ONE * 0.75
+	cam.position = grid_to_world(Vector2(11.5, 11.0))
+	if _args.has("at"):
+		var p: PackedStringArray = str(_args["at"]).split(",")
+		cam.position = grid_to_world(Vector2(float(p[0]), float(p[1])))
+	var z := float(_args.get("zoom", ZOOM_START))
+	cam.zoom = Vector2(z, z)
 	hud = HudScript.new()
 	add_child(hud)
 
@@ -83,11 +99,16 @@ func _ready() -> void:
 # ------------------------------------------------------------------ coords
 
 func grid_to_world(g: Vector2) -> Vector2:
-	return ground.map_to_local(Vector2i.ZERO) + Vector2((g.x - g.y) * 64.0, (g.x + g.y) * 32.0)
+	return Vector2((g.x - g.y) * HALF_W, (g.x + g.y) * HALF_H)
+
+
+func world_to_grid(w: Vector2) -> Vector2:
+	return Vector2(w.x / (2.0 * HALF_W) + w.y / (2.0 * HALF_H), w.y / (2.0 * HALF_H) - w.x / (2.0 * HALF_W))
 
 
 func cell_at(world: Vector2) -> Vector2i:
-	return ground.local_to_map(world)
+	var g := world_to_grid(world)
+	return Vector2i(roundi(g.x), roundi(g.y))
 
 
 func screen_to_world(p: Vector2) -> Vector2:
@@ -105,36 +126,43 @@ func _make_sway(strength: float, speed: float, height: float) -> ShaderMaterial:
 	return m
 
 
+func _dirt(cell: Vector2i, amount := 1.0) -> void:
+	var p := cell - Vector2i(MAP_MIN, MAP_MIN)
+	if p.x < 0 or p.y < 0 or p.x >= MASK_SIZE or p.y >= MASK_SIZE:
+		return
+	var cur := _mask.get_pixelv(p)
+	_mask.set_pixelv(p, Color(maxf(cur.r, amount), cur.g, 0))
+
+
+func _water(cell: Vector2i, amount := 1.0) -> void:
+	var p := cell - Vector2i(MAP_MIN, MAP_MIN)
+	var cur := _mask.get_pixelv(p)
+	_mask.set_pixelv(p, Color(cur.r, maxf(cur.g, amount), 0))
+	occupied[cell] = true
+
+
+func _dirt_rect(r: Rect2i, amount := 1.0) -> void:
+	for x in range(r.position.x, r.end.x):
+		for y in range(r.position.y, r.end.y):
+			_dirt(Vector2i(x, y), amount)
+
+
 func _build_ground() -> void:
-	var info: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://art/generated/ground.json"))
-	var names: Array = info["tiles"]
-	var ts := TileSet.new()
-	ts.tile_shape = TileSet.TILE_SHAPE_ISOMETRIC
-	ts.tile_layout = TileSet.TILE_LAYOUT_DIAMOND_DOWN
-	ts.tile_size = Vector2i(128, 64)
-	var src := TileSetAtlasSource.new()
-	src.texture = load("res://art/generated/ground.png")
-	src.texture_region_size = Vector2i(int(info["cell"][0]), int(info["cell"][1]))
-	for i in names.size():
-		src.create_tile(Vector2i(i, 0))
-		_tile_index[names[i]] = i
-	ts.add_source(src, 0)
-	ground = TileMapLayer.new()
-	ground.tile_set = ts
+	ground = Polygon2D.new()
+	var a := grid_to_world(Vector2(MAP_MIN - 8, MAP_MIN - 8))
+	var b := grid_to_world(Vector2(MAP_MAX + 8, MAP_MIN - 8))
+	var c := grid_to_world(Vector2(MAP_MAX + 8, MAP_MAX + 8))
+	var d := grid_to_world(Vector2(MAP_MIN - 8, MAP_MAX + 8))
+	ground.polygon = PackedVector2Array([a, b, c, d])
+	var m := ShaderMaterial.new()
+	m.shader = GroundShader
+	m.set_shader_parameter("grass_tex", load("res://art/generated/ground_grass.png"))
+	m.set_shader_parameter("dirt_tex", load("res://art/generated/ground_dirt.png"))
+	m.set_shader_parameter("mask_tex", ImageTexture.create_from_image(_mask))
+	m.set_shader_parameter("mask_origin", Vector2(MAP_MIN, MAP_MIN))
+	m.set_shader_parameter("mask_size", float(MASK_SIZE))
+	ground.material = m
 	add_child(ground)
-	for x in range(MAP_MIN, MAP_MAX):
-		for y in range(MAP_MIN, MAP_MAX):
-			_set_ground(Vector2i(x, y), "grass")
-
-
-func _set_ground(cell: Vector2i, kind: String) -> void:
-	var h := absi(hash(cell)) % 100
-	var tile_name: String
-	if kind == "path":
-		tile_name = "path_1" if h < 30 else "path_0"
-	else:
-		tile_name = "grass_0" if h < 50 else "grass_1" if h < 75 else "grass_2" if h < 87 else "grass_3"
-	ground.set_cell(cell, 0, Vector2i(_tile_index[tile_name], 0))
 
 
 func _build_farm() -> void:
@@ -142,63 +170,141 @@ func _build_farm() -> void:
 	rng.seed = 42
 
 	# paths
-	for x in range(3, 23):
-		_set_ground(Vector2i(x, 9), "path")
+	for x in range(2, 24):
+		_dirt(Vector2i(x, 9))
 		occupied[Vector2i(x, 9)] = true
-	for y in range(10, 21):
-		_set_ground(Vector2i(9, y), "path")
+	for y in range(10, 22):
+		_dirt(Vector2i(9, y))
 		occupied[Vector2i(9, y)] = true
+	for y in range(5, 9):
+		_dirt(Vector2i(20, y))
+		occupied[Vector2i(20, y)] = true
 
 	# fields 4 x 3
 	for x in range(11, 15):
 		for y in range(11, 14):
 			_add_field(Vector2i(x, y))
 
-	# barn (footprint ~3x3 around grid 16,5)
+	# barn on a dirt pad, hay and barrels are part of the sprite
+	_dirt_rect(Rect2i(14, 3, 6, 5))
+	_dirt(Vector2i(13, 4), 0.6)
 	var barn := _add_prop("barn", Vector2(16, 5), null)
-	for x in range(14, 19):
+	barn.set_meta("squash", 0.04)
+	barn.set_meta("sound", "whoosh")
+	for x in range(14, 20):
 		for y in range(3, 8):
 			occupied[Vector2i(x, y)] = true
-	barn.set_meta("squash", 0.05)
 
-	# chicken pen with fences and a gate
+	# chicken pen: dirt floor, fence, trough
 	var pen := Rect2i(3, 12, 4, 4)
-	for x in range(pen.position.x, pen.end.x):
-		for y in range(pen.position.y, pen.end.y):
-			occupied[Vector2i(x, y)] = true
-		_add_fence("fence_x", Vector2(x, pen.position.y - 0.5))
-		if x != pen.position.x + 1:
-			_add_fence("fence_x", Vector2(x, pen.end.y - 0.5))
-	for y in range(pen.position.y, pen.end.y):
-		_add_fence("fence_y", Vector2(pen.position.x - 0.5, y))
-		_add_fence("fence_y", Vector2(pen.end.x - 0.5, y))
-	for i in 4:
-		_add_chicken(pen, rng)
+	_dirt_rect(pen, 0.85)
+	_fence_rect(pen, Vector2i(pen.position.x + 1, pen.end.y))
+	_add_static("trough", Vector2(4.6, 12.4))
+	_add_static("hay", Vector2(6.2, 12.3))
+	for i in 5:
+		_add_animal("chicken", pen, rng)
 
-	# trees and scenery around the farm
-	var inner := Rect2i(1, 2, 22, 20)
+	# dino meadow (grass floor, a rock, a lazy baby dino)
+	var meadow := Rect2i(16, 11, 4, 4)
+	_fence_rect(meadow, Vector2i(meadow.position.x, meadow.end.y))
+	_add_prop("rock", Vector2(18.9, 11.6), null)
+	_add_prop("bush", Vector2(16.2, 11.3), _sway_bush)
+	for i in 2:
+		_add_animal("dino", Rect2i(meadow.position + Vector2i(0, 1), meadow.size - Vector2i(1, 1)), rng,
+				Vector2(16.4 + i * 2.0, 12.2 + i * 1.6))
+
+	# flower borders along the main path
+	var kinds := ["flowers_lavender", "flowers_sun", "flowers_rose", "flowers_white"]
+	for x in range(3, 23, 2):
+		for y in [8, 10]:
+			var cell := Vector2i(x, y)
+			if occupied.has(cell) or (x >= 10 and x <= 15 and y == 10) or (x >= 14 and y == 8):
+				continue
+			if rng.randf() < 0.55:
+				_add_prop(kinds[rng.randi() % kinds.size()], Vector2(cell), _sway_bush)
+				occupied[cell] = true
+
+	# decoration near the barn and fields
+	for spot in [Vector2(21.3, 4.2), Vector2(21.6, 5.6)]:
+		_add_static("barrel" if spot.y < 5 else "crate", spot)
+	for spot in [Vector2(10.4, 14.6), Vector2(15.4, 10.4)]:
+		_add_prop("bush_berry", spot, _sway_bush)
+
+	# pond in the south-west with stones, reeds and flowers on the shore
+	var pond := {Vector2i(3, 18): 1.0, Vector2i(4, 18): 1.0, Vector2i(5, 18): 0.9, Vector2i(3, 19): 1.0,
+		Vector2i(4, 19): 1.0, Vector2i(5, 19): 1.0, Vector2i(6, 19): 0.7, Vector2i(4, 20): 1.0,
+		Vector2i(5, 20): 0.9, Vector2i(2, 19): 0.6, Vector2i(4, 17): 0.6, Vector2i(3, 20): 0.6}
+	for c: Vector2i in pond:
+		_water(c, pond[c])
+	for spot in [Vector2(6.3, 18.1), Vector2(2.2, 17.8), Vector2(6.1, 20.4)]:
+		_add_prop("rock_small", spot, null)
+	for spot in [Vector2(2.0, 20.6), Vector2(6.9, 19.3), Vector2(4.4, 21.3)]:
+		_add_prop("flowers_lavender", spot, _sway_bush)
+	_add_prop("bush", Vector2(1.8, 18.9), _sway_bush)
+	_add_prop("tree_oak_b", Vector2(1.2, 16.6), _sway_tree)
+	for x in range(1, 9):
+		for y in range(16, 23):
+			occupied[Vector2i(x, y)] = true
+
+	# extra flowers and bushes so the farm feels lived in
+	for spot in [Vector2(10.3, 10.5), Vector2(15.6, 14.3), Vector2(13.2, 14.6), Vector2(19.3, 16.4),
+			Vector2(8.2, 12.2), Vector2(8.3, 16.4), Vector2(12.6, 7.7), Vector2(21.4, 10.6),
+			Vector2(17.6, 8.2), Vector2(10.4, 17.5), Vector2(14.5, 16.6), Vector2(7.8, 10.5)]:
+		var cell := Vector2i(spot.round())
+		if occupied.has(cell):
+			continue
+		_add_prop(kinds[rng.randi() % kinds.size()], spot, _sway_bush)
+		occupied[cell] = true
+	for spot in [Vector2(2.3, 11.4), Vector2(7.6, 15.6), Vector2(20.6, 13.0), Vector2(15.4, 17.2)]:
+		var cell := Vector2i(spot.round())
+		if not occupied.has(cell):
+			_add_prop("bush" if rng.randf() < 0.5 else "bush_berry", spot, _sway_bush)
+			occupied[cell] = true
+
+	# trees and scenery around the farm, denser towards the edge
+	var inner := Rect2i(0, 1, 24, 22)
+	var trees := ["tree_oak", "tree_oak", "tree_oak_b", "tree_pine", "tree_pine_b", "tree_pine", "tree_autumn"]
 	var tries := 0
 	var placed := 0
-	while placed < 90 and tries < 2000:
+	while placed < 150 and tries < 4000:
 		tries += 1
-		var cell := Vector2i(rng.randi_range(MAP_MIN + 2, MAP_MAX - 3), rng.randi_range(MAP_MIN + 2, MAP_MAX - 3))
+		var cell := Vector2i(rng.randi_range(MAP_MIN + 1, MAP_MAX - 2), rng.randi_range(MAP_MIN + 1, MAP_MAX - 2))
 		if inner.has_point(cell) or occupied.has(cell):
 			continue
 		var r := rng.randf()
-		var kind := "tree_oak" if r < 0.45 else "tree_pine" if r < 0.8 else "tree_apple" if r < 0.88 else "bush"
-		_add_prop(kind, Vector2(cell) + Vector2(rng.randf_range(-0.2, 0.2), rng.randf_range(-0.2, 0.2)), _sway_tree)
+		var off := Vector2(rng.randf_range(-0.25, 0.25), rng.randf_range(-0.25, 0.25))
+		if r < 0.78:
+			_add_prop(trees[rng.randi() % trees.size()], Vector2(cell) + off, _sway_tree)
+		elif r < 0.9:
+			_add_prop("bush" if rng.randf() < 0.6 else "bush_berry", Vector2(cell) + off, _sway_bush)
+		else:
+			_add_prop("rock" if rng.randf() < 0.5 else "rock_small", Vector2(cell) + off, null)
 		occupied[cell] = true
 		placed += 1
-	for spot in [Vector2(20, 4), Vector2(12, 4), Vector2(19, 15), Vector2(21, 18)]:
+	for spot in [Vector2(12, 3.5), Vector2(22, 15), Vector2(21.5, 18.5), Vector2(1.5, 5.5)]:
 		_add_prop("tree_apple", spot, _sway_tree)
 		occupied[Vector2i(spot)] = true
-	for i in 14:
+	for i in 16:
 		var cell := Vector2i(rng.randi_range(2, 22), rng.randi_range(3, 21))
-		if occupied.has(cell):
+		if occupied.has(cell) or cell.y >= 11 and cell.y <= 16 and cell.x >= 2 and cell.x <= 20:
 			continue
-		var kind: String = ["bush", "bush_berry", "rock"][rng.randi() % 3]
-		_add_prop(kind, Vector2(cell), _sway_crop if kind != "rock" else null)
+		var kind: String = ["bush", "rock_small", "flowers_white", "flowers_lavender"][rng.randi() % 4]
+		_add_prop(kind, Vector2(cell), null if kind.begins_with("rock") else _sway_bush)
 		occupied[cell] = true
+
+
+func _fence_rect(r: Rect2i, gate: Vector2i) -> void:
+	for x in range(r.position.x, r.end.x):
+		for y in range(r.position.y, r.end.y):
+			occupied[Vector2i(x, y)] = true
+	# fence_x runs along grid x, placed on the cell border (y - 0.5)
+	for x in range(r.position.x, r.end.x):
+		_add_static("fence_x", Vector2(x, r.position.y - 0.5))
+		if Vector2i(x, r.end.y) != gate:
+			_add_static("fence_x", Vector2(x, r.end.y - 0.5))
+	for y in range(r.position.y, r.end.y):
+		_add_static("fence_y", Vector2(r.position.x - 0.5, y))
+		_add_static("fence_y", Vector2(r.end.x - 0.5, y))
 
 
 func _add_field(cell: Vector2i) -> Field:
@@ -213,30 +319,35 @@ func _add_field(cell: Vector2i) -> Field:
 
 
 func _add_prop(sprite_name: String, g: Vector2, mat: Material) -> Sprite2D:
-	var s := Atlas.sprite(sprite_name)
-	s.position = grid_to_world(g)
+	var s := _add_static(sprite_name, g)
 	s.material = mat
 	s.set_meta("squash", 0.1)
-	objects.add_child(s)
 	props.append(s)
 	return s
 
 
-func _add_fence(sprite_name: String, g: Vector2) -> void:
+func _add_static(sprite_name: String, g: Vector2) -> Sprite2D:
 	var s := Atlas.sprite(sprite_name)
 	s.position = grid_to_world(g)
+	s.set_meta("sprite", sprite_name)
 	objects.add_child(s)
+	return s
 
 
-func _add_chicken(pen: Rect2i, rng: RandomNumberGenerator) -> void:
-	var c: Chicken = ChickenScript.new()
+func _add_animal(kind: String, pen: Rect2i, rng: RandomNumberGenerator, start := Vector2(-999, -999)) -> Animal:
+	var a: Animal = AnimalScript.new()
+	a.kind = kind
 	var pick := func() -> Vector2:
-		return grid_to_world(Vector2(randf_range(pen.position.x - 0.25, pen.end.x - 0.75),
-				randf_range(pen.position.y - 0.25, pen.end.y - 0.75)))
-	c.random_point = pick
-	c.position = grid_to_world(Vector2(pen.position) + Vector2(rng.randf_range(0, 3), rng.randf_range(0, 3)))
-	objects.add_child(c)
-	chickens.append(c)
+		return grid_to_world(Vector2(randf_range(pen.position.x - 0.2, pen.end.x - 0.8),
+				randf_range(pen.position.y - 0.2, pen.end.y - 0.8)))
+	a.random_point = pick
+	a.position = grid_to_world(Vector2(pen.position) + Vector2(rng.randf_range(0, pen.size.x - 1),
+			rng.randf_range(0, pen.size.y - 1)))
+	if start.x > -999.0:
+		a.position = grid_to_world(start)
+	objects.add_child(a)
+	animals.append(a)
+	return a
 
 
 # ------------------------------------------------------------------ input
@@ -326,14 +437,14 @@ func _brush_at(screen_pos: Vector2) -> void:
 	elif _mode == Mode.PLANT and f.plant():
 		Audio.play("plant", 1.0 + 0.05 * mini(_combo, 8))
 		_combo += 1
-		_puff(f.position + Vector2(0, -8), "fx_leaf", 3)
+		_puff(f.position + Vector2(0, -20), "fx_leaf", 3)
 		hud.hide_hint()
 
 
 func _tap(world: Vector2) -> void:
-	for c in chickens:
-		if world.distance_to(c.position + Vector2(0, -22)) < 28.0:
-			c.poke()
+	for a in animals:
+		if world.distance_to(a.tap_point()) < 60.0:
+			a.poke()
 			return
 	# topmost (front-most) prop first
 	var best: Sprite2D = null
@@ -343,20 +454,23 @@ func _tap(world: Vector2) -> void:
 				best = s
 	if best != null:
 		Field.squash(best, best.get_meta("squash", 0.1))
-		Audio.play("pop" if best.texture != Atlas.tex("barn") else "whoosh", 1.0, 0.1)
-		if best.texture != Atlas.tex("barn") and best.texture != Atlas.tex("rock"):
-			_puff(best.position + Vector2(0, -60), "fx_leaf", 4)
+		Audio.play(best.get_meta("sound", "pop"), 1.0, 0.1)
+		var n: String = best.get_meta("sprite", "")
+		if n.begins_with("tree") or n.begins_with("bush") or n.begins_with("flowers"):
+			_puff(best.position + Vector2(0, -Atlas.anchor(n).y * 0.6), "fx_leaf", 5)
 
 
 func _opaque_at(s: Sprite2D, world: Vector2) -> bool:
 	var at: AtlasTexture = s.texture
-	var img := at.atlas.get_image() if _atlas_image == null else _atlas_image
-	_atlas_image = img
+	var img: Image = _page_images.get(at.atlas)
+	if img == null:
+		img = at.atlas.get_image()
+		_page_images[at.atlas] = img
 	var local := s.to_local(world) - s.offset
 	var px := Vector2i(at.region.position + local)
 	if not Rect2i(Vector2i(at.region.position), Vector2i(at.region.size)).has_point(px):
 		return false
-	return img.get_pixelv(px).a > 0.3
+	return img.get_pixelv(px).a > 0.5
 
 
 func zoom_at(screen_pos: Vector2, factor: float) -> void:
@@ -369,7 +483,7 @@ func zoom_at(screen_pos: Vector2, factor: float) -> void:
 
 func _clamp_cam() -> void:
 	var c := grid_to_world(Vector2(13, 13))
-	cam.position = cam.position.clamp(c - Vector2(1300, 750), c + Vector2(1300, 750))
+	cam.position = cam.position.clamp(c - Vector2(2800, 1700), c + Vector2(2800, 1700))
 
 
 # ------------------------------------------------------------------ juice
@@ -380,8 +494,9 @@ func _on_harvested(f: Field) -> void:
 	Audio.play("harvest", pitch, 0.02)
 	get_tree().create_timer(0.12).timeout.connect(func() -> void: Audio.play("coin", pitch, 0.0, -5.0))
 	Game.add_coins(Field.REWARD)
-	_puff(f.position + Vector2(0, -16), "fx_grain", 5)
-	_float_reward(f.position + Vector2(0, -36), Field.REWARD)
+	Game.add_xp(1)
+	_puff(f.position + Vector2(0, -40), "fx_grain", 6)
+	_float_reward(f.position + Vector2(0, -90), Field.REWARD)
 	hud.hide_hint()
 
 
@@ -391,7 +506,7 @@ func _puff(pos: Vector2, sprite_name: String, n: int) -> void:
 		s.position = pos
 		s.rotation = randf_range(-PI, PI)
 		fx.add_child(s)
-		var dir := Vector2(randf_range(-1.0, 1.0), randf_range(-1.6, -0.5)) * randf_range(25.0, 55.0)
+		var dir := Vector2(randf_range(-1.0, 1.0), randf_range(-1.6, -0.5)) * randf_range(50.0, 110.0)
 		var tw := s.create_tween().set_parallel(true)
 		tw.tween_property(s, "position", pos + dir, 0.55).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tw.tween_property(s, "rotation", s.rotation + randf_range(-3.0, 3.0), 0.55)
@@ -403,23 +518,25 @@ func _float_reward(pos: Vector2, amount: int) -> void:
 	var n := Node2D.new()
 	n.position = pos
 	fx.add_child(n)
-	var icon := Sprite2D.new()
-	icon.texture = Atlas.tex("icon_coin")
-	icon.scale = Vector2(0.55, 0.55)
-	icon.position = Vector2(-14, 0)
+	var icon := Atlas.sprite("icon_coin")
+	icon.centered = true
+	icon.offset = Vector2.ZERO
+	icon.scale = Vector2(0.42, 0.42)
+	icon.position = Vector2(-34, 0)
 	n.add_child(icon)
 	var l := Label.new()
 	l.text = "+%d" % amount
-	l.position = Vector2(-1, -18)
-	l.add_theme_font_size_override("font_size", 26)
-	l.add_theme_color_override("font_color", Color("FFF4DC"))
-	l.add_theme_color_override("font_outline_color", Color("4A3A2E"))
-	l.add_theme_constant_override("outline_size", 8)
+	l.position = Vector2(-4, -34)
+	l.add_theme_font_override("font", Game.font_bold)
+	l.add_theme_font_size_override("font_size", 52)
+	l.add_theme_color_override("font_color", Color("FFF8E6"))
+	l.add_theme_color_override("font_outline_color", Color("4A3222"))
+	l.add_theme_constant_override("outline_size", 16)
 	n.add_child(l)
 	n.scale = Vector2(0.4, 0.4)
 	var tw := n.create_tween()
 	tw.tween_property(n, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_property(n, "position:y", pos.y - 50.0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(n, "position:y", pos.y - 100.0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(n, "modulate:a", 0.0, 0.35).set_delay(0.6)
 	tw.tween_callback(n.queue_free)
 
@@ -435,12 +552,12 @@ func _parse_args() -> void:
 func _demo_state() -> void:
 	var i := 0
 	for f: Field in fields.values():
-		f.plant(Field.now() - Field.GROW_TIME * float(i % 5) / 3.5)
+		f.plant(Field.now() - Field.GROW_TIME * float((i * 7) % 5) / 3.2)
 		i += 1
 
 
 func _take_shot(path: String) -> void:
-	await get_tree().create_timer(2.5).timeout
+	await get_tree().create_timer(3.0).timeout
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(path)
 	print("screenshot saved: ", path)
@@ -449,15 +566,16 @@ func _take_shot(path: String) -> void:
 
 func _run_smoke() -> void:
 	var errors: Array[String] = []
-	for n in ["field", "wheat_0", "wheat_3", "barn", "chicken_0", "chicken_1", "tree_oak", "fence_x", "icon_coin"]:
+	for n in ["field", "wheat_0", "wheat_3", "barn", "chicken_walk_se_0", "chicken_peck_ne_5", "dino_idle_se_0",
+			"tree_oak", "tree_pine", "fence_x", "fence_y", "icon_coin", "icon_emerald", "icon_star", "shadow_blob"]:
 		if not Atlas.has(n):
 			errors.append("missing sprite " + n)
-	var step := ground.map_to_local(Vector2i(1, 0)) - ground.map_to_local(Vector2i.ZERO)
-	if not step.is_equal_approx(Vector2(64, 32)):
-		errors.append("unexpected iso step %s" % step)
+	for g in [Vector2i(0, 0), Vector2i(5, -3), Vector2i(12, 7)]:
+		if cell_at(grid_to_world(Vector2(g)) + Vector2(30, 10)) != g:
+			errors.append("cell_at mismatch at %s" % g)
 	var f: Field = fields.values()[0]
 	if cell_at(f.position) != f.cell:
-		errors.append("cell_at mismatch")
+		errors.append("field cell mismatch")
 	if not f.plant(Field.now() - 100.0) or f.state != Field.State.RIPE:
 		errors.append("plant/ripen failed")
 	var before := Game.coins
@@ -470,7 +588,8 @@ func _run_smoke() -> void:
 	if tr("HINT_START") == "HINT_START":
 		errors.append("translations not loaded")
 	if errors.is_empty():
-		print("SMOKE OK (%d fields, %d props, %d chickens)" % [fields.size(), props.size(), chickens.size()])
+		print("SMOKE OK (%d fields, %d props, %d animals, %d atlas pages)" % [
+			fields.size(), props.size(), animals.size(), Atlas.pages.size()])
 		get_tree().quit(0)
 	else:
 		for e in errors:
@@ -483,9 +602,8 @@ func _setup_bench() -> void:
 	Engine.max_fps = 0
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
-	var count := 0
 	for x in range(-4, 26):
-		for y in range(14, 30):
+		for y in range(17, 32):
 			var cell := Vector2i(x, y)
 			if occupied.has(cell):
 				continue
@@ -494,13 +612,14 @@ func _setup_bench() -> void:
 				occupied[cell] = true
 			else:
 				_add_field(cell).plant(Field.now() - 100.0)
-			count += 1
-	var pen := Rect2i(0, 22, 20, 6)
+	var pen := Rect2i(0, 24, 20, 6)
 	for i in 40:
-		_add_chicken(pen, rng)
-	cam.position = grid_to_world(Vector2(11, 20))
+		_add_animal("chicken", pen, rng)
+	for i in 6:
+		_add_animal("dino", pen, rng)
+	cam.position = grid_to_world(Vector2(11, 22))
 	cam.zoom = Vector2.ONE * ZOOM_MIN
-	print("bench: %d fields, %d props, %d chickens" % [fields.size(), props.size(), chickens.size()])
+	print("bench: %d fields, %d props, %d animals" % [fields.size(), props.size(), animals.size()])
 
 
 func _process(delta: float) -> void:

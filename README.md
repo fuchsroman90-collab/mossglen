@@ -1,30 +1,36 @@
 # Mossglen
 
 A cozy 2.5D farm valley game for Windows, Android and iOS, built with Godot 4.
-All graphics, music and sound are generated from code in `tools/`.
+All graphics are 3D models built in code with Blender and pre-rendered to sprites;
+music and sound are generated from code too.
 
-See [PLAN.md](PLAN.md) for the roadmap and [docs/STYLE_BIBLE.md](docs/STYLE_BIBLE.md) for the art rules.
+- Plan and status: [brain/GOAL.md](brain/GOAL.md)
+- Art rules: [docs/STYLE_BIBLE.md](docs/STYLE_BIBLE.md)
+- Working notes for Claude Code: [CLAUDE.md](CLAUDE.md) and `brain/`
 
 ## Layout
 
 | Folder | Content |
 |---|---|
-| `game/` | Godot project (scripts, shaders, generated assets) |
-| `tools/art/` | SVG asset code → `game/art/generated/` (atlas + ground tiles + UI) |
-| `tools/audio/` | Music composition and sound synthesis → `game/audio/generated/` |
+| `game/` | Godot project (scripts, shaders, generated assets, fonts) |
+| `tools/art/` | Blender models (`blender/`), render cache, post-processing, atlas packing |
+| `tools/audio/` | Music composition and sound synthesis |
+| `brain/` | Goal/plan, log, decisions, taste notes, reference analysis |
+| `.claude/skills/` | Project skills for Claude Code |
 | `docs/` | Style bible, licenses |
-| `.github/workflows/` | CI: regenerate assets, smoke test, Windows + Android builds |
 
 ## Requirements
 
 - Godot 4.7.2 (standard, not .NET)
-- Python 3.12 with `numpy scipy pillow resvg-py`
+- Art: Python 3.13 with `bpy==5.3.0 numpy pillow` (`pip install bpy` = Blender as a module)
+- Audio: Python with `numpy scipy`
 
 ## Commands
 
 ```bash
-python tools/art/build.py          # rebuild all graphics
-python tools/audio/build.py        # rebuild music and sounds (~1 min)
+python tools/art/build.py          # render changed 3D assets, pack atlas, ground, UI
+python tools/art/build.py --pack   # only re-pack (no Blender)
+python tools/audio/build.py        # rebuild music and sounds
 godot --headless --path game --import
 godot --path game                  # play
 godot --headless --path game -- --smoke   # self test, exit code 0/1
@@ -37,8 +43,9 @@ godot --path game -- --demo        # fields start in mixed growth stages
 - Tap/click an empty field to sow, swipe across fields to sow many.
 - Swipe across ripe wheat to harvest.
 - Drag to move the camera, mouse wheel or pinch to zoom.
-- Tap chickens, trees and the barn.
+- Tap animals, trees and the barn.
 
 ## License
 
-All rights reserved. See [LICENSE](LICENSE).
+Code and assets: all rights reserved. See [LICENSE](LICENSE).
+Font Fredoka: SIL Open Font License (`game/fonts/OFL.txt`). See [docs/LICENSES.md](docs/LICENSES.md).

@@ -16,15 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Generate art and audio from code
+      # Art (Blender pre-renders) and audio are generated locally and committed.
+      # CI only checks that the generated files are present.
+      - name: Check generated assets
         run: |
-          pip install numpy scipy pillow resvg-py
-          python tools/art/build.py
-          python tools/audio/build.py
+          test -f game/art/generated/atlas.json
+          test -f game/art/generated/atlas_0.png
+          test -f game/art/generated/ground_grass.png
+          test -f game/audio/generated/music_meadow.wav
 
       - name: Install Godot
         run: |
