@@ -1573,6 +1573,7 @@ func _run_smoke() -> void:
 	if can_place(Vector2i(2, 20)):
 		errors.append("could place on locked land")
 	# clear an obstacle with its tool (and fail without it)
+	Game.finds_enabled = false
 	var obst: Sprite2D = null
 	for key in farm.obstacles:
 		var o: Sprite2D = farm.obstacles[key]
@@ -1607,6 +1608,7 @@ func _run_smoke() -> void:
 		Game.add_item(o.get_meta("tool"), 1, true)
 		farm.clear_obstacle(o)
 	farm._place_signs()
+	Game.finds_enabled = true
 	# silo and barn are separate stores with their own capacity and upgrades
 	if not Game.in_silo("wheat") or Game.in_silo("egg") or Game.capacity(true) != Game.STORE_BASE:
 		errors.append("store split wrong")

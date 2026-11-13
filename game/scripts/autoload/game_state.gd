@@ -438,8 +438,11 @@ func upgrade_store(which: String) -> bool:
 
 
 ## Rolls a random find (tool or material) with the given chance; returns the item id or "".
+var finds_enabled := true  ## smoke tests switch random finds off to stay deterministic
+
+
 func roll_find(chance: float) -> String:
-	if randf() >= chance:
+	if not finds_enabled or randf() >= chance:
 		return ""
 	var total := 0
 	for k in DROPS:
