@@ -67,136 +67,91 @@ CHICKEN_WHITE = "#FFF8EC"
 HEN_PIVOT = 0.24
 
 
-def feather_mat(name, light="#FFFFFF", dark="#E4DACB", scale=55.0, bump=0.25, stretch=(1.0, 1.0, 2.2)):
-    """Feathery surface: soft scale pattern in colour and bump, a little greyer towards the belly."""
-    import bpy
-    key = ("feather", name)
-    if key in kit._mats:
-        return kit._mats[key]
-    m = bpy.data.materials.new(name)
-    nt = m.node_tree
-    bsdf = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
-    tc = nt.nodes.new("ShaderNodeTexCoord")
-    mp = nt.nodes.new("ShaderNodeMapping")
-    mp.inputs["Scale"].default_value = stretch
-    nt.links.new(tc.outputs["Object"], mp.inputs["Vector"])
-    vor = nt.nodes.new("ShaderNodeTexVoronoi")
-    vor.feature = "F1"
-    vor.inputs["Scale"].default_value = scale
-    nt.links.new(mp.outputs["Vector"], vor.inputs["Vector"])
-    ramp = nt.nodes.new("ShaderNodeValToRGB")
-    ramp.color_ramp.elements[0].position = 0.15
-    ramp.color_ramp.elements[0].color = kit.lin(light)
-    ramp.color_ramp.elements[1].position = 0.9
-    ramp.color_ramp.elements[1].color = kit.lin(dark)
-    nt.links.new(vor.outputs["Distance"], ramp.inputs["Fac"])
-    nt.links.new(ramp.outputs["Color"], bsdf.inputs["Base Color"])
-    bp = nt.nodes.new("ShaderNodeBump")
-    bp.inputs["Strength"].default_value = bump
-    bp.inputs["Distance"].default_value = 0.02
-    nt.links.new(vor.outputs["Distance"], bp.inputs["Height"])
-    nt.links.new(bp.outputs["Normal"], bsdf.inputs["Normal"])
-    bsdf.inputs["Roughness"].default_value = 0.7
-    bsdf.inputs["Specular IOR Level"].default_value = 0.25
-    bsdf.inputs["Subsurface Weight"].default_value = 0.05
-    kit._mats[key] = m
-    return m
-
-
 def chicken(yaw: float, body_z=0.0, body_pitch=0.0, head=(0.0, 0.0), legs=(0.0, 0.0),
             wing=0.0, blink=0.0, squash=0.0):
-    """Hen, rebuilt after Roman's feedback ("schrecklich", then "besser aber noch unnatürlich", 2026-11-13):
-    natural bird proportions - egg-shaped body, slim neck with hackle feathers, small head with side eyes and an
-    orange iris, curved beak, layered wing and sickle tail feathers, scaly legs with claws; feathery surface.
+    """Hen, rebuilt after Roman's "schrecklich" (2026-11-13): upright proud body, S-neck, big head with a
+    four-lobed comb, wide two-part beak, wattles, layered wing and tail feathers, sturdy legs.
     Local +X is forward. head: (forward, down) offset; legs: swing angles (right, left)."""
     kit.character_light()
     root = kit.empty("chicken", rot=(0, 0, math.radians(yaw)))
     pz = HEN_PIVOT
     body = kit.empty("body", loc=(0, 0, pz + body_z), rot=(0, math.radians(body_pitch), 0), parent=root)
     s = 1.0 + squash
-    plume = feather_mat("hen_plume")
-    quill = feather_mat("hen_quill", "#FCF8F1", "#D9CCB8", scale=28.0, bump=0.35, stretch=(3.0, 1.0, 1.0))
+    white = mat("hen", "#FFFFFF", rough=0.62, spec=0.25, edge=0.6, edge_color="#B8A58E", sss=0.06)
+    feather = mat("hen_feather", "#FBF6EE", rough=0.6, spec=0.2, edge=0.65, edge_color="#A8927A")
     hx, hd = head
-    head_c = Vector((0.21 + hx, 0.0, 0.53 - hd - pz))
-    neck = kit.chain([(0.09, 0, 0.3 - pz), (0.17 + hx * 0.4, 0, 0.39 - hd * 0.4 - pz),
-                      (0.2 + hx * 0.85, 0, 0.47 - hd * 0.85 - pz)], [0.105, 0.075, 0.08], steps=6, stiff=2.0)
+    head_c = Vector((0.2 + hx, 0.0, 0.52 - hd - pz))
+    neck = kit.chain([(0.08, 0, 0.3 - pz), (0.16 + hx * 0.4, 0, 0.38 - hd * 0.4 - pz),
+                      (0.19 + hx * 0.8, 0, 0.46 - hd * 0.8 - pz)], [0.12, 0.1, 0.11], steps=5, stiff=2.0)
     hen = kit.to_mesh(kit.blob([
-        # egg-shaped body: deep breast, back rising to the tail
-        {"co": (-0.02, 0.0, 0.24 * s - pz), "r": 0.21, "type": "ELLIPSOID", "size": (1.3, 0.92, 0.88 / s),
+        # round, slightly forward-leaning body with a full breast and raised rump
+        {"co": (-0.02, 0.0, 0.24 * s - pz), "r": 0.22, "type": "ELLIPSOID", "size": (1.25, 0.95, 0.9 / s),
          "stiff": 1.8},
-        {"co": (0.1, 0.0, 0.25 - pz), "r": 0.14, "stiff": 1.8},
-        {"co": (-0.16, 0.0, 0.31 - pz), "r": 0.11, "stiff": 1.8},
-        {"co": tuple(head_c), "r": 0.1, "type": "ELLIPSOID", "size": (1.25, 0.9, 0.95), "stiff": 2.2},
-    ] + neck, plume, name="hen", res=0.009, parent=body))
+        {"co": (0.1, 0.0, 0.27 - pz), "r": 0.15, "stiff": 1.8},
+        {"co": (-0.17, 0.0, 0.3 - pz), "r": 0.12, "stiff": 1.8},
+        {"co": tuple(head_c), "r": 0.13, "type": "ELLIPSOID", "size": (1.1, 0.95, 1.05), "stiff": 2.2},
+    ] + neck, white, name="hen", res=0.01, parent=body))
     surf = kit.Surface([hen])
 
-    # hackles: pointed neck feathers flowing down over the shoulders
-    rng = random.Random(11)
-    for i in range(14):
-        a = -2.3 + i * (4.6 / 13)
-        base = Vector((0.13 + hx * 0.5, 0, 0.36 - hd * 0.5 - pz)) + Vector((math.cos(a) * 0.035, math.sin(a) * 0.07, 0))
-        fe = kit.empty("hk", loc=base, rot=(math.sin(a) * 0.6, math.radians(-120 + rng.uniform(-8, 8)), 0),
-                       parent=body)
-        kit.sphere(0.04, quill, loc=(0, 0, 0.05), scale=(0.55, 0.32, 1.8), seg=12, parent=fe)
-
-    # tail: sickle feathers of different lengths, curving up and back
-    for rl, pt, ln in [(-18, -22, 0.85), (-9, -15, 1.0), (0, -8, 1.15), (9, -15, 1.0), (18, -22, 0.85)]:
-        f = kit.empty("tf", loc=(-0.21, 0, 0.33 - pz), rot=(math.radians(rl), math.radians(pt), 0), parent=body)
-        kit.sphere(0.05, quill, loc=(0, 0, 0.08 * ln), scale=(0.75, 0.22, 1.7 * ln), seg=16, parent=f)
-        tip = kit.empty("tip", loc=(0, 0, 0.15 * ln), rot=(0, math.radians(-35), 0), parent=f)
-        kit.sphere(0.04, quill, loc=(0, 0, 0.05 * ln), scale=(0.7, 0.2, 1.5 * ln), seg=14, parent=tip)
-
-    # wings: rounded covert + four primaries layered towards the back
+    # tail: a fan of five pointed feathers, standing up and back
+    for i, (rl, pt, ln) in enumerate([(-22, -38, 0.9), (-10, -30, 1.0), (0, -24, 1.08), (10, -30, 1.0),
+                                      (22, -38, 0.9)]):
+        f = kit.empty("tf", loc=(-0.2, 0, 0.34 - pz), rot=(math.radians(rl), math.radians(pt), 0), parent=body)
+        kit.sphere(0.07, feather, loc=(0, 0, 0.1 * ln), scale=(0.6, 0.3, 1.55 * ln), seg=16, parent=f)
+    # wings: a shaped oval with three overlapping primary feathers at the back
     for side in (-1, 1):
-        wg = kit.empty("wing", loc=(0.0, side * 0.165, 0.27 - pz),
-                       rot=(math.radians(side * (5 + wing * 35)), math.radians(-10), 0), parent=body)
-        kit.sphere(0.13, plume, loc=(0.02, 0, 0.0), scale=(0.95, 0.24, 0.6), seg=24, parent=wg)
-        for k in range(4):
-            kit.sphere(0.05, quill, loc=(-0.07 - k * 0.025, side * (0.004 + k * 0.003), -0.02 + k * 0.018),
-                       scale=(1.5, 0.16, 0.42), rot=(0, math.radians(-12 - k * 4), 0), seg=14, parent=wg)
+        wg = kit.empty("wing", loc=(-0.02, side * 0.17, 0.245 - pz),
+                       rot=(math.radians(side * (6 + wing * 35)), math.radians(-32), 0), parent=body)
+        # teardrop wing: round at the shoulder, tapering to a point that tucks up at the back
+        kit.sphere(0.14, feather, loc=(0.02, 0, 0.0), scale=(0.95, 0.26, 0.66), seg=24, parent=wg)
+        kit.sphere(0.09, feather, loc=(-0.1, side * -0.01, 0.03), scale=(1.05, 0.22, 0.42),
+                   rot=(math.radians(side * -8), math.radians(18), 0), seg=20, parent=wg)
 
-    # comb (a single serrated blade), wattles, curved beak
-    red = mat("comb", "#E63A2C", rough=0.45, spec=0.35, coat=0.15, edge=0.45, edge_color="#8A1A10", sss=0.15)
-    for dx, dz, r in [(0.06, 0.075, 0.03), (0.03, 0.095, 0.036), (-0.005, 0.1, 0.038), (-0.04, 0.09, 0.034),
-                      (-0.07, 0.07, 0.026)]:
-        kit.sphere(r, red, loc=head_c + Vector((dx, 0, dz)), scale=(0.8, 0.38, 1.15), seg=16, parent=body)
-    kit.sphere(0.05, red, loc=head_c + Vector((0.0, 0, 0.065)), scale=(1.6, 0.35, 0.5), seg=16, parent=body)
-    for side in (-1, 1):
-        kit.sphere(0.026, red, loc=head_c + Vector((0.085, side * 0.016, -0.075)), scale=(0.7, 0.5, 1.4), seg=14,
+    # comb (four lobes, front ones smaller), wattles and a wide two-part beak
+    red = mat("comb", "#F0402F", rough=0.38, spec=0.45, coat=0.25, edge=0.45, edge_color="#8A1A10", sss=0.1)
+    # comb: lobes standing on the head surface along its curve (each one points out along the normal),
+    # joined by a ridge that hugs the skull
+    hr_top = 0.13 * 1.02
+    for deg, r in [(42, 0.034), (20, 0.046), (-2, 0.052), (-24, 0.048), (-46, 0.036)]:
+        t = math.radians(deg)
+        nrm = Vector((math.sin(t), 0, math.cos(t)))
+        kit.sphere(r, red, loc=head_c + nrm * (hr_top + r * 0.55), scale=(0.75, 0.48, 1.15), rot=(0, t, 0), seg=18,
                    parent=body)
-        kit.sphere(0.018, red, loc=head_c + Vector((0.0, side * 0.075, -0.02)), scale=(0.6, 0.4, 1.0), seg=10,
-                   parent=body)  # ear lobe
-    beak = mat("beak", "#F7B43A", rough=0.35, spec=0.45, coat=0.2, edge=0.5, edge_color="#A0601A")
-    kit.cyl(0.03, 0.075, beak, r2=0.003, loc=head_c + Vector((0.105, 0, 0.0)), rot=(0, math.radians(104), 0),
-            bevel=0.0, verts=18, parent=body, scale=(1.0, 0.9, 1.0))
-    kit.cyl(0.02, 0.05, beak, r2=0.003, loc=head_c + Vector((0.1, 0, -0.022)), rot=(0, math.radians(82), 0),
-            bevel=0.0, verts=14, parent=body)
+    for k in range(9):
+        t = math.radians(48 - k * 12)
+        kit.sphere(0.03, red, loc=head_c + Vector((math.sin(t), 0, math.cos(t))) * (hr_top - 0.008),
+                   scale=(1.0, 0.55, 0.8), rot=(0, t, 0), seg=12, parent=body)
+    for side in (-1, 1):
+        kit.sphere(0.034, red, loc=head_c + Vector((0.11, side * 0.022, -0.1)), scale=(0.75, 0.6, 1.35), seg=14,
+                   parent=body)
+    beak = mat("beak", "#FFC23A", rough=0.3, spec=0.5, coat=0.3, edge=0.45, edge_color="#B06A10")
+    # the beak grows out of the head: its base sits well inside the head sphere
+    kit.cyl(0.05, 0.135, beak, r2=0.004, loc=head_c + Vector((0.08, 0, -0.008)), rot=(0, math.radians(97), 0),
+            bevel=0.0, verts=24, parent=body, scale=(1.0, 1.2, 1.0))
+    kit.cyl(0.032, 0.095, beak, r2=0.004, loc=head_c + Vector((0.085, 0, -0.038)), rot=(0, math.radians(80), 0),
+            bevel=0.0, verts=18, parent=body, scale=(1.0, 1.1, 1.0))
 
-    # bird eyes on the sides of the head: orange iris, black pupil, a soft lid
+    # eyes on the head surface, with a lid and a little brow for character
     look = _rotz(kit.TO_CAM, -yaw)
     hw = kit.world(body, head_c)
     for side in (-1, 1):
-        dl = Vector((0.35, side * 0.9, 0.22))
+        dl = Vector((0.55, side * 0.75, 0.3))
         p, n = surf.toward(hw, kit.world(root, dl) - kit.world(root, (0, 0, 0)))
-        hr = (body.matrix_world.inverted() @ p - head_c).length if p is not None else 0.1
-        eye(head_c, hr, dl, 0.03, body, look=look, lid=blink, lid_color="#F4EEE6", droop=0.1,
-            sclera="#F59A2E", pupil="#14100C")
+        hr = (body.matrix_world.inverted() @ p - head_c).length if p is not None else 0.13
+        eye(head_c, hr, dl, 0.052, body, look=look, lid=blink, lid_color="#FFFFFF", droop=0.18)
 
-    # legs: yellow, scaly, with a feather "trouser", three long toes with claws and a spur
-    leg = feather_mat("hen_leg", "#F7B23A", "#D98A20", scale=70.0, bump=0.3, stretch=(1.0, 1.0, 3.0))
-    claw = mat("claw", "#5A4A3A", rough=0.4, spec=0.4)
+    # legs: orange, with a little feather "trouser", scaly shin and three toes + spur
+    leg = mat("leg", "#FFA63A", rough=0.4, spec=0.35, edge=0.45, edge_color="#B05A10")
     for side, ang in ((-1, legs[0]), (1, legs[1])):
-        hip = kit.empty("hip", loc=(0.01, side * 0.075, 0.13 + body_z * 0.5), rot=(0, math.radians(ang), 0),
+        hip = kit.empty("hip", loc=(0.01, side * 0.08, 0.13 + body_z * 0.5), rot=(0, math.radians(ang), 0),
                         parent=root)
-        kit.sphere(0.055, plume, loc=(0, 0, 0.03), scale=(1.1, 0.85, 1.0), seg=16, parent=hip)
-        kit.cyl(0.017, 0.12, leg, r2=0.014, loc=(0, 0, -0.125), bevel=0.0, verts=12, parent=hip)
-        for toe in (-32, 0, 32):
+        kit.sphere(0.06, feather, loc=(0, 0, 0.03), scale=(1.0, 0.9, 0.9), seg=14, parent=hip)
+        kit.cyl(0.024, 0.12, leg, r2=0.02, loc=(0, 0, -0.125), bevel=0.0, verts=12, parent=hip)
+        for toe in (-35, 0, 35):
             a = math.radians(toe)
-            kit.sphere(0.016, leg, loc=(0.05 * math.cos(a), 0.05 * math.sin(a), -0.12),
-                       scale=(3.2, 0.75, 0.6), rot=(0, 0, a), seg=12, parent=hip)
-            kit.sphere(0.008, claw, loc=(0.1 * math.cos(a), 0.1 * math.sin(a), -0.122), scale=(1.6, 0.8, 0.7),
-                       rot=(0, 0, a), seg=8, parent=hip)
-        kit.sphere(0.012, leg, loc=(-0.04, 0, -0.118), scale=(2.0, 0.8, 0.6), seg=10, parent=hip)
+            kit.sphere(0.024, leg, loc=(0.045 * math.cos(a), 0.045 * math.sin(a), -0.12),
+                       scale=(2.2, 0.75, 0.6), rot=(0, 0, a), seg=12, parent=hip)
+        kit.sphere(0.016, leg, loc=(-0.035, 0, -0.115), scale=(1.6, 0.8, 0.6), seg=10, parent=hip)
     return root
 
 

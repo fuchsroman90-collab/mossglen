@@ -2,6 +2,8 @@
 
 Neueste oben. Format: Datum – Entscheidung – Begründung – wer.
 
+- **2026-11-13 – Tierstil: Cartoon wie Huhn-Prototyp 1** (große Augen mit Lid, glatte Formen, Kontrastlicht),
+  nicht die „natürliche“ Federstruktur-Version. Teile müssen sauber am Körper sitzen (Schnabel, Kamm). – Roman
 - **2026-11-13 – Item-Icons werden in Blender gerendert** (3D wie die Welt), UI-Rahmen/Knöpfe bleiben 2D. – Roman
 - **2026-11-13 – Antworten zu M9.5:** – Roman
   - Reihenfolge: zuerst **Spielgefühl + Progression**, dann Tiere, Terrain, UI.

@@ -2,6 +2,11 @@
 
 Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 
+- **2026-11-13 – Huhn-Prototyp 1 (Cartoon) ist besser als die „natürliche“ Version 2** (Bild:
+  `taste/hen_v1_preferred.png`): „Dass huhn davor war besser“. Also: Cartoon-Stil mit großen Augen + Lid bleibt.
+  Korrekturen: Flügel in **tieferem Winkel** (mehr nach unten), **Schnabel richtig mit dem Kopf verbunden**,
+  **roter Kamm folgt der Rundung des Kopfes** (sitzt auf dem Kopf auf, nicht als Kugeln darüber).
+
 - **2026-11-13 – So müssen Item-Icons aussehen** (Bild: `references/img/hd_item_icons_3d.png`): „So müssen icons
   aussehen“. Werkzeuge/Waren als **gerenderte 3D-Objekte** (Axt, Säge, Schaufel, Dynamit, Spitzhacke, Honigtopf,
   Kuchen …) mit weichem Licht, Glanz und dunkler Kontur, leicht schräg liegend; daneben **große weiße Zahl mit
