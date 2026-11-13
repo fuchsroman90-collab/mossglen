@@ -38,6 +38,9 @@ Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
   4-lappiger Kamm, zweiteiliger Schnabel, Kehllappen, Feder-Schwanzfächer, Tropfen-Flügel, Federhosen, Zehen +
   Sporn) und **Kontrastlicht für Figuren** (`kit.character_light()`: Sonne 4.6, Himmel 0.55; `render.py` setzt
   vor jedem Frame `kit.set_light()` zurück). Wartet auf Romans OK, bevor alle Tiere so neu gebaut werden.
+- Roman: „besser aber noch unnatürlich“ → Prototyp 2: `feather_mat()` (Voronoi-Federstruktur in Farbe + Relief),
+  Vogelaugen seitlich mit oranger Iris, kleinerer Kopf, gebogener Schnabel, Halsfedern, Sichel-Schwanzfedern,
+  geschichtete Schwungfedern, schuppige Beine mit Krallen, Ohrläppchen.
 - M9.5c Bedienung: Hover am PC (aufhellen, kleiner Hüpfer, Hand-Cursor) für alles Antippbare, Druck-Feedback
   beim Drücken, **Saat aus dem Saat-Kreis gedrückt halten und über Felder ziehen** (Hay-Day-Art), Saat-/Sichel-
   Symbol folgt dem Finger beim Säen/Ernten, Blasen über Tieren stehen ruhig (kein Wippen mehr).

@@ -5,6 +5,10 @@ Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 - **2026-11-13 (23:20) – Tiere nach Durchgang 1 (Augenlider, neues Schwein/Schaf): „Die tiere sehen schrecklich aus“.**
   Bild: `rejected/m95_animals_pass1.png`. Knetmassen-Look aus Metaball-Klumpen, Zylinder-Beine, keine klaren Formen.
   **Folge:** Tiere werden von Grund auf neu gebaut, ein Tier als Prototyp zuerst (Huhn), erst nach Romans OK alle.
+- **2026-11-13 (23:23) – Prototyp-Huhn 1: „sieht besser aus aber noch unnatürlich“.** Bild: `rejected/m95_hen_proto1.png`.
+  Glatte Plastik-Oberfläche, Kulleraugen vorne, dicker Schlauch-Hals, gleich geformte Schwanz-Blobs.
+  **Folge:** natürlicher – Federstruktur, Vogelaugen seitlich mit oranger Iris, schlankerer Hals mit Halsfedern,
+  geschichtete Flügel- und Sichel-Schwanzfedern, schuppige Beine mit Krallen.
 
 - **2026-11-13 (Abend, erster eigener Test am PC) – großes Feedback:**
   - **Tiere sehen „extrem schlecht“ aus** (Bild: `rejected/m9_dinos_pen.png`). Sie müssen mindestens die Stufe
