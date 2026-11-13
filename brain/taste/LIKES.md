@@ -2,6 +2,10 @@
 
 Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 
+- **2026-11-13 (23:28) – Huhn freigegeben: „Ja so ist richtig gut dass gefällt mir“.** Bild: `taste/hen_approved.png`
+  (Cartoon-Huhn V1 + tiefere Flügel, Schnabel aus dem Kopf, Kamm per Raycast auf dem Kopf, Kontrastlicht).
+  **Das ist der Maßstab für alle weiteren Tiere.**
+
 - **2026-11-13 – Huhn-Prototyp 1 (Cartoon) ist besser als die „natürliche“ Version 2** (Bild:
   `taste/hen_v1_preferred.png`): „Dass huhn davor war besser“. Also: Cartoon-Stil mit großen Augen + Lid bleibt.
   Korrekturen: Flügel in **tieferem Winkel** (mehr nach unten), **Schnabel richtig mit dem Kopf verbunden**,
