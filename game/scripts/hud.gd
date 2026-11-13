@@ -6,6 +6,7 @@ extends CanvasLayer
 ## Authored in 2x units inside a root control scaled by 0.5.
 
 signal shop_pressed
+signal seed_drag(crop: String)
 signal seed_chosen(crop: String)
 signal buy_field
 signal place_confirm
@@ -314,6 +315,8 @@ func show_seed_picker(screen_pos: Vector2, selected: String) -> void:
 				Audio.play("click")
 				seed_chosen.emit(crop)
 				hide_seed_picker())
+			# Hay Day style: press a seed and drag it over the fields to sow them all
+			b.button_down.connect(func() -> void: seed_drag.emit(crop))
 		else:
 			icon.modulate = Color(0.35, 0.35, 0.35, 0.8)
 			var lock := _tex("lock.png")

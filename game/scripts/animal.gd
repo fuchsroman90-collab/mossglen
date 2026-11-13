@@ -147,7 +147,7 @@ func _process(delta: float) -> void:
 		if not _bubble.visible and is_ready():
 			_update_bubble()
 		if _bubble.visible:
-			_bubble.position.y = -_cfg["tap_height"] * 2.1 + sin(Time.get_ticks_msec() * 0.004 + position.x) * 6.0
+			pass  # the bubble stays still above the animal (Roman: bouncing icons look restless)
 	if _anim == "walk":
 		var to := _target - position
 		var step: float = _cfg["speed"] * delta

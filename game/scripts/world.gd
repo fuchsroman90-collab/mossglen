@@ -90,6 +90,11 @@ var _daylight: CanvasModulate
 var _sky: Gradient
 var _day_t := 0.0
 var weather: Weather
+var _drag_icon: Sprite2D  ## seed or sickle under the finger while sowing/harvesting
+var _seed_drag := false
+var _seed_drag_start := Vector2.ZERO
+var _hovered: Node2D
+var _hover_mod := Color.WHITE
 var _sway_base: Dictionary = {}  ## material -> strength, to restore after "reduce motion"
 var farm: Farm
 var pens: Dictionary = {}  ## animal kind -> {"rect": Rect2i, "p": entry in Game.placed}
@@ -135,6 +140,12 @@ func _ready() -> void:
 	hud.land.world = self
 	hud.shop_pressed.connect(hud.open_shop)
 	hud.seed_chosen.connect(_on_seed_chosen)
+	hud.seed_drag.connect(_on_seed_drag)
+	_drag_icon = Sprite2D.new()
+	_drag_icon.z_index = 200
+	_drag_icon.visible = false
+	_drag_icon.scale = Vector2(1.6, 1.6)
+	fx.add_child(_drag_icon)
 	hud.buy_field.connect(_on_buy_field)
 	hud.place_confirm.connect(_on_place_confirm)
 	hud.place_cancel.connect(_on_place_cancel)
@@ -576,7 +587,94 @@ func _add_animal(kind: String, pen: Rect2i, rng: RandomNumberGenerator, start :=
 
 # ------------------------------------------------------------------ input
 
+## Seed dragging starts on a HUD button, so its motion and release arrive here, not in _unhandled_input.
+func _input(event: InputEvent) -> void:
+	if not _seed_drag:
+		return
+	if event is InputEventScreenDrag:
+		if _mode != Mode.PLANT and event.position.distance_to(_seed_drag_start) > TAP_SLOP:
+			hud.hide_seed_picker()
+			_mode = Mode.PLANT
+			_combo = 0
+			_stroke_cells.clear()
+			_no_seed_warned = false
+			_brush_last = event.position
+			_picker_field = null
+		if _mode == Mode.PLANT:
+			_show_drag_icon(event.position, "item_%s.png" % selected_crop)
+			_brush_stroke(event.position)
+			get_viewport().set_input_as_handled()
+	elif event is InputEventScreenTouch and not event.pressed:
+		var planted := _mode == Mode.PLANT
+		_seed_drag = false
+		_drag_icon.visible = false
+		_touches.erase(event.index)
+		if planted:
+			_mode = Mode.NONE
+			get_viewport().set_input_as_handled()
+
+
+func _on_seed_drag(crop: String) -> void:
+	selected_crop = crop
+	_seed_drag = true
+	_seed_drag_start = get_viewport().get_mouse_position()
+	_mode = Mode.NONE
+
+
+func _show_drag_icon(screen_pos: Vector2, icon: String) -> void:
+	if _drag_icon.texture == null or _drag_icon.get_meta("icon", "") != icon:
+		_drag_icon.texture = load("res://art/generated/ui/" + icon)
+		_drag_icon.set_meta("icon", icon)
+	_drag_icon.visible = true
+	_drag_icon.position = screen_to_world(screen_pos) + Vector2(30, -80) / cam.zoom.x
+	_drag_icon.scale = Vector2.ONE * (0.9 / cam.zoom.x)
+
+
+# ------------------------------------------------------------------ hover + press feedback
+
+## The thing under the pointer that a tap would act on (fields, animals, buildings, props, truck).
+func _pick(world: Vector2) -> Node2D:
+	if farm.truck and farm.truck.visible and farm.truck.get_rect().has_point(farm.truck.to_local(world)):
+		return farm.truck
+	for a in animals:
+		if world.distance_to(a.tap_point()) < 70.0:
+			return a
+	var hit: Node2D = null
+	for b: ProductionBuilding in production.values():
+		if b.sprite.get_rect().has_point(b.sprite.to_local(world)) and _opaque_at(b.sprite, world):
+			if hit == null or b.position.y > hit.position.y:
+				hit = b
+	if hit:
+		return hit
+	var best: Sprite2D = null
+	for s in props:
+		if s.get_rect().has_point(s.to_local(world)) and _opaque_at(s, world):
+			if best == null or s.position.y > best.position.y:
+				best = s
+	if best:
+		return best
+	return fields.get(cell_at(world))
+
+
+func _set_hover(n: Node2D) -> void:
+	if n == _hovered:
+		return
+	if is_instance_valid(_hovered):
+		_hovered.modulate = _hover_mod
+	_hovered = n
+	if n == null:
+		Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+		return
+	_hover_mod = n.modulate
+	n.modulate = Color(_hover_mod.r * 1.18, _hover_mod.g * 1.18, _hover_mod.b * 1.12, _hover_mod.a)
+	Input.set_default_cursor_shape(Input.CURSOR_POINTING_HAND)
+	var target: Node2D = n.sprite if n is ProductionBuilding else n
+	Field.squash(target, 0.03)
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and event.button_mask == 0 and _touches.is_empty():
+		_set_hover(_pick(screen_to_world(event.position)) if _place_kind == "" and _placing == null else null)
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoom_at(event.position, 1.1)
@@ -611,6 +709,9 @@ func _on_press(pos: Vector2) -> void:
 		_move_ghost(pos)
 		return
 	hud.hide_seed_picker()
+	var pressed := _pick(screen_to_world(pos))
+	if pressed != null and not pressed is Field:
+		Field.squash(pressed.sprite if pressed is ProductionBuilding else pressed, 0.05)
 	var f: Field = fields.get(cell_at(screen_to_world(pos)))
 	_press_field = f
 	if f == null:
@@ -650,6 +751,7 @@ func _on_drag(event: InputEventScreenDrag) -> void:
 			if _moved > TAP_SLOP:
 				_mode = Mode.PAN
 		Mode.PLANT, Mode.HARVEST:
+			_show_drag_icon(event.position, "ico_sickle.png" if _mode == Mode.HARVEST else "item_%s.png" % selected_crop)
 			_brush_stroke(event.position)
 
 
@@ -663,6 +765,7 @@ func _brush_stroke(to: Vector2) -> void:
 
 
 func _on_release(pos: Vector2) -> void:
+	_drag_icon.visible = false
 	if _mode == Mode.PINCH:
 		_mode = Mode.NONE if _touches.size() < 2 else Mode.PINCH
 		return
@@ -1548,6 +1651,24 @@ func _run_smoke() -> void:
 	_on_place_confirm()
 	if not fields.has(to) or fields.has(free):
 		errors.append("moving a field failed")
+	# Hay Day sowing: press a seed in the picker and drag it over empty fields
+	for ff: Field in fields.values():
+		if ff.state != Field.State.EMPTY:
+			ff.harvest() if ff.state == Field.State.RIPE else null
+	var empties: Array = fields.values().filter(func(x: Field) -> bool: return x.state == Field.State.EMPTY)
+	Game.add_item("wheat", 10, true)
+	_on_seed_drag("wheat")
+	_seed_drag_start = Vector2(-500, -500)
+	for ff: Field in empties.slice(0, 2):
+		var ev := InputEventScreenDrag.new()
+		ev.position = get_viewport().get_canvas_transform() * ff.position
+		_input(ev)
+	var up := InputEventScreenTouch.new()
+	up.pressed = false
+	_input(up)
+	var sown := empties.slice(0, 2).filter(func(x: Field) -> bool: return x.state == Field.State.GROWING).size()
+	if empties.size() >= 2 and sown != 2:
+		errors.append("seed drag sowed %d of 2 fields" % sown)
 	# save data round trip
 	var data: Dictionary = JSON.parse_string(JSON.stringify(_save_world()))
 	if data["fields"].size() != fields.size():

@@ -1026,6 +1026,15 @@ def tab(icon_svg: str, size=(150, 136)):
                   f'<g transform="translate({w / 2 - 44} {h / 2 - 48}) scale(0.8)">{icon_svg}</g>', w, h)
 
 
+def sickle(size=128):
+    o = _o2(6)
+    return _item(f'<path d="M30 104 L54 70" stroke="{OUT}" stroke-width="16" stroke-linecap="round"/>'
+                 f'<path d="M30 104 L54 70" stroke="#C48D58" stroke-width="9" stroke-linecap="round"/>'
+                 f'<path d="M50 74 C40 40 64 10 100 14 C80 24 70 44 74 70 Z" fill="#C9D3DA" {o}/>'
+                 f'<path d="M62 54 C62 36 76 24 92 20" stroke="#FFFFFF" stroke-width="4" fill="none" '
+                 f'stroke-linecap="round"/>', size)
+
+
 def m95_images() -> dict:
     o = _o2()
     field_svg = (f'<path d="M56 30 L104 56 L56 82 L8 56 Z" fill="#9A6236" {o}/>'
@@ -1044,7 +1053,7 @@ def m95_images() -> dict:
         "item_shovel": item_shovel(), "item_stake": item_stake(), "item_land_map": item_land_map(),
         "item_tape": item_tape(), "item_rivet": item_rivet(), "item_plank": item_plank(), "item_rope": item_rope(),
         "item_nail": item_nail(), "item_hinge": item_hinge(), "item_paint": item_paint(),
-        "ico_silo": silo_glyph(), "ico_truck": truck_glyph(), "ico_build": hammer_glyph(), "ico_lock": lock(96),
+        "ico_sickle": sickle(), "ico_silo": silo_glyph(), "ico_truck": truck_glyph(), "ico_build": hammer_glyph(), "ico_lock": lock(96),
         "tab_fields": tab(field_svg), "tab_buildings": tab(house_svg), "tab_animals": tab(hen_svg),
     }
 

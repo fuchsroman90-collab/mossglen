@@ -25,6 +25,9 @@ Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
   Baustelle groß/klein, Land-Schild. 2D-Icons für Werkzeuge/Material (werden noch 3D, s. u.).
 - Roman: **Item-Icons müssen 3D-gerendert sein** (`hd_item_icons_3d.png`), Ausbau-Dialog-Vorbild `hd_upgrade_dialog.png`.
 - Figma-Connector ist verbunden.
+- M9.5c Bedienung: Hover am PC (aufhellen, kleiner Hüpfer, Hand-Cursor) für alles Antippbare, Druck-Feedback
+  beim Drücken, **Saat aus dem Saat-Kreis gedrückt halten und über Felder ziehen** (Hay-Day-Art), Saat-/Sichel-
+  Symbol folgt dem Finger beim Säen/Ernten, Blasen über Tieren stehen ruhig (kein Wippen mehr).
 
 ## 2026-11-13 – PC-Sitzung: M9 Teil 1 (Jahreszeiten, Erfolge, Musik, Einstellungen, Anleitung, VRAM)
 
