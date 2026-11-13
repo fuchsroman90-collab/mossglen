@@ -129,6 +129,17 @@ def reset(samples: int = 48) -> None:
     sc.collection.objects.link(g)
 
 
+def set_light(sun_energy: float = 3.6, sky: float = 1.0) -> None:
+    """Default world light is soft (buildings, nature). Characters use more contrast (Hay-Day-like form)."""
+    sc = bpy.context.scene
+    bpy.data.objects["sun"].data.energy = sun_energy
+    sc.world.node_tree.nodes["Background"].inputs["Strength"].default_value = sky
+
+
+def character_light() -> None:
+    set_light(4.6, 0.55)
+
+
 def stage() -> bpy.types.Collection:
     return bpy.data.collections[STAGE]
 

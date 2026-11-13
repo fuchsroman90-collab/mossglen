@@ -83,6 +83,7 @@ def main(argv: list[str]) -> int:
                 kit.reset(samples=samples)
                 current = samples
             kit.clear_stage()
+            kit.set_light()
             build()
             floating = name in NO_SHADOW or name.startswith("npc_")
             sh = CACHE / f"{name}_shadow.png" if shadow and not floating else None
