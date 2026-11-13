@@ -28,7 +28,7 @@ def main(argv):
         import render
         render.main([a for a in argv if a != "--pack"])
 
-    extra = {"shadow_blob": (ground.blob_shadow(), 60, 28)}
+    extra = {"shadow_blob": (ground.blob_shadow(), 60, 28), "fx_smoke": (ground.smoke_puff(), 36, 36)}
     pack.build(OUT, extra)
 
     ground.grass().save(OUT / "ground_grass.png", optimize=True)

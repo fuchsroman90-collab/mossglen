@@ -341,6 +341,95 @@ def item_field(size=112):
                  f'stroke-linecap="round"/>', size)
 
 
+def _o(w=5):
+    return f'stroke="{OUT}" stroke-width="{w}" stroke-linejoin="round"'
+
+
+def item_feed(label="#FFCF3A", grain="#F2B21E", size=112):
+    o = _o()
+    sack = ('M30 34 C24 50 22 80 30 96 C44 102 68 102 82 96 C90 80 88 50 82 34 '
+            'C74 30 38 30 30 34 Z')
+    dots = "".join(f'<ellipse cx="{x}" cy="{y}" rx="3.5" ry="5" fill="{grain}" stroke="{OUT}" stroke-width="2"/>'
+                   for x, y in [(44, 22), (52, 18), (60, 21), (68, 19), (56, 26)])
+    return _item(f'<path d="{sack}" fill="#E9D3A4" {o}/>{dots}'
+                 f'<path d="M34 34 C44 26 68 26 78 34" fill="none" stroke="{OUT}" stroke-width="5"/>'
+                 f'<rect x="36" y="56" width="40" height="28" rx="8" fill="{label}" {o}/>'
+                 f'<circle cx="56" cy="70" r="6" fill="#FFFFFF" opacity="0.8"/>', size)
+
+
+def item_egg(size=112):
+    return _item(f'<path d="M56 16 C78 16 90 52 88 70 C86 90 72 100 56 100 C40 100 26 90 24 70 C22 52 34 16 56 16 Z" '
+                 f'fill="#FFF3DC" {_o()}/>'
+                 f'<ellipse cx="44" cy="44" rx="8" ry="14" fill="#FFFFFF" transform="rotate(20 44 44)"/>', size)
+
+
+def item_milk(size=112):
+    o = _o()
+    return _item(f'<path d="M40 34 L40 24 L72 24 L72 34 C82 42 84 50 84 58 L84 96 C84 100 80 102 76 102 L36 102 '
+                 f'C32 102 28 100 28 96 L28 58 C28 50 30 42 40 34 Z" fill="#FFFFFF" {o}/>'
+                 f'<rect x="38" y="12" width="36" height="14" rx="5" fill="#3D8FE0" {o}/>'
+                 f'<rect x="30" y="62" width="52" height="24" rx="4" fill="#9ED2F5" {o}/>'
+                 f'<circle cx="56" cy="74" r="7" fill="#FFFFFF"/>'
+                 f'<path d="M36 46 L36 90" stroke="#E6EEF5" stroke-width="5" stroke-linecap="round"/>', size)
+
+
+def item_bread(size=112):
+    o = _o()
+    return _item(f'<path d="M14 72 C12 48 36 34 58 34 C82 34 102 48 98 72 C96 84 88 88 56 88 C24 88 16 84 14 72 Z" '
+                 f'fill="#E3A048" {o}/>'
+                 f'<path d="M14 72 C16 84 24 88 56 88 C88 88 96 84 98 72 C92 80 84 82 56 82 C28 82 20 80 14 72 Z" '
+                 f'fill="#B9752E"/>'
+                 + "".join(f'<path d="M{x} 46 C{x + 6} 52 {x + 8} 60 {x + 6} 66" stroke="#F7D08C" stroke-width="5" '
+                           f'fill="none" stroke-linecap="round"/>' for x in (36, 52, 68))
+                 + '<ellipse cx="40" cy="44" rx="10" ry="4" fill="#FFFFFF" opacity="0.4"/>', size)
+
+
+def item_corn_bread(size=112):
+    o = _o()
+    return _item(f'<path d="M18 50 L58 34 L96 50 L96 74 L56 92 L18 74 Z" fill="#F2BE3A" {o}/>'
+                 f'<path d="M18 50 L58 34 L96 50 L56 66 Z" fill="#FFD65C" {o}/>'
+                 f'<path d="M56 66 L56 92" stroke="{OUT}" stroke-width="4"/>'
+                 + "".join(f'<circle cx="{x}" cy="{y}" r="3" fill="#E89A1E"/>' for x, y in
+                           [(46, 48), (58, 44), (70, 50), (52, 56), (64, 56), (38, 52)]), size)
+
+
+def item_carrot_cake(size=112):
+    o = _o()
+    return _item(f'<path d="M16 60 L66 36 L96 58 L96 84 L46 104 L16 84 Z" fill="#E9A15A" {o}/>'
+                 f'<path d="M16 72 L46 92 L96 70" stroke="#FFF6E6" stroke-width="7" fill="none"/>'
+                 f'<path d="M16 60 L66 36 L96 58 L46 80 Z" fill="#FFF6E6" {o}/>'
+                 f'<path d="M46 80 L46 104" stroke="{OUT}" stroke-width="4"/>'
+                 f'<path d="M58 52 L70 46 L66 58 Z" fill="#FF8A2B" stroke="{OUT}" stroke-width="3"/>'
+                 f'<path d="M70 46 L76 40 M70 46 L78 46" stroke="#5DB33C" stroke-width="3.5" stroke-linecap="round"/>', size)
+
+
+def item_cream(size=112):
+    o = _o()
+    return _item(f'<path d="M24 54 L88 54 L82 92 C80 98 76 100 70 100 L42 100 C36 100 32 98 30 92 Z" '
+                 f'fill="#8EC3E6" {o}/>'
+                 f'<path d="M22 54 C24 34 40 30 48 36 C52 22 72 22 74 36 C84 32 92 42 90 54 Z" fill="#FFFDF5" {o}/>'
+                 f'<path d="M44 44 C50 40 58 42 60 48" stroke="#E6DFCF" stroke-width="4" fill="none" stroke-linecap="round"/>'
+                 f'<rect x="34" y="66" width="44" height="14" rx="6" fill="#FFFFFF" opacity="0.7"/>', size)
+
+
+def item_butter(size=112):
+    o = _o()
+    return _item(f'<ellipse cx="56" cy="80" rx="44" ry="16" fill="#FFFFFF" {o}/>'
+                 f'<path d="M26 66 L60 52 L88 64 L88 76 L54 90 L26 78 Z" fill="#F7D34A" {o}/>'
+                 f'<path d="M26 66 L60 52 L88 64 L54 78 Z" fill="#FFE57A" {o}/>'
+                 f'<path d="M54 78 L54 90" stroke="{OUT}" stroke-width="4"/>'
+                 f'<path d="M40 64 L62 56" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity="0.8"/>', size)
+
+
+def item_cheese(size=112):
+    o = _o()
+    holes = "".join(f'<ellipse cx="{x}" cy="{y}" rx="{r}" ry="{r * 0.8}" fill="#E8A92A"/>'
+                    for x, y, r in [(40, 74, 6), (62, 82, 5), (74, 70, 4), (50, 60, 3.5)])
+    return _item(f'<path d="M14 66 L84 36 L98 52 L98 82 L28 98 L14 84 Z" fill="#FFCB3A" {o}/>'
+                 f'<path d="M14 66 L84 36 L98 52 L28 82 Z" fill="#FFE07A" {o}/>'
+                 f'<path d="M28 82 L28 98" stroke="{OUT}" stroke-width="4"/>{holes}', size)
+
+
 def slot(size=128):
     """Round cream slot for item icons in menus."""
     c = size / 2
@@ -382,6 +471,16 @@ def ui_images() -> dict:
         "item_tomato": item_tomato(),
         "item_strawberry": item_strawberry(),
         "item_field": item_field(),
+        "item_feed_chicken": item_feed("#FFCF3A", "#F2B21E"),
+        "item_feed_cow": item_feed("#7CCB4A", "#E8B53A"),
+        "item_egg": item_egg(),
+        "item_milk": item_milk(),
+        "item_bread": item_bread(),
+        "item_corn_bread": item_corn_bread(),
+        "item_carrot_cake": item_carrot_cake(),
+        "item_cream": item_cream(),
+        "item_butter": item_butter(),
+        "item_cheese": item_cheese(),
         "pill_green": pill(),
         "lock": lock(),
     }

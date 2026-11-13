@@ -1,0 +1,28 @@
+{
+	"feed_mill": {
+		"slots": 3,
+		"fx": {"sails": [0, -187]},
+		"recipes": [
+			{"out": "feed_chicken", "n": 3, "in": {"wheat": 2}, "time": 30, "xp": 1, "unlock": 1},
+			{"out": "feed_cow", "n": 3, "in": {"corn": 2, "carrot": 1}, "time": 45, "xp": 2, "unlock": 3}
+		]
+	},
+	"bakery": {
+		"slots": 3,
+		"fx": {"smoke": [-19, -345]},
+		"recipes": [
+			{"out": "bread", "n": 1, "in": {"wheat": 3}, "time": 45, "xp": 2, "unlock": 1},
+			{"out": "corn_bread", "n": 1, "in": {"corn": 2, "egg": 2}, "time": 90, "xp": 4, "unlock": 3},
+			{"out": "carrot_cake", "n": 1, "in": {"carrot": 2, "egg": 1, "milk": 1}, "time": 150, "xp": 6, "unlock": 4}
+		]
+	},
+	"dairy": {
+		"slots": 3,
+		"fx": {},
+		"recipes": [
+			{"out": "cream", "n": 1, "in": {"milk": 1}, "time": 40, "xp": 2, "unlock": 3},
+			{"out": "butter", "n": 1, "in": {"milk": 2}, "time": 75, "xp": 3, "unlock": 4},
+			{"out": "cheese", "n": 1, "in": {"milk": 3}, "time": 120, "xp": 5, "unlock": 5}
+		]
+	}
+}

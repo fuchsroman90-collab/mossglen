@@ -14,6 +14,7 @@ extends Node2D
 const HudScript := preload("res://scripts/hud.gd")
 const FieldScript := preload("res://scripts/field.gd")
 const AnimalScript := preload("res://scripts/animal.gd")
+const ProductionScript := preload("res://scripts/production.gd")
 const SwayShader := preload("res://shaders/sway.gdshader")
 const GroundShader := preload("res://shaders/ground.gdshader")
 
@@ -40,6 +41,7 @@ var cam: Camera2D
 var hud: Hud
 var fields: Dictionary = {}  # Vector2i -> Field
 var animals: Array[Animal] = []
+var production: Dictionary = {}  # building id -> ProductionBuilding
 var props: Array[Sprite2D] = []  # tappable scenery (barn, trees, bushes)
 var occupied: Dictionary = {}
 
@@ -85,6 +87,7 @@ func _ready() -> void:
 	fx.z_index = 100
 	_build_farm()
 	_build_ground()
+	_load_world_state.call_deferred()
 	add_child(objects)
 	add_child(fx)
 	cam = Camera2D.new()
@@ -249,6 +252,25 @@ func _build_farm() -> void:
 		_add_animal("dino", Rect2i(meadow.position + Vector2i(0, 1), meadow.size - Vector2i(1, 1)), rng,
 				Vector2(16.4 + i * 2.0, 12.2 + i * 1.6))
 
+	# production buildings on dirt pads
+	_add_building("feed_mill", Vector2i(5, 5))
+	_add_building("bakery", Vector2i(11, 5))
+	_add_building("dairy", Vector2i(17, 17))
+
+	# cow pasture below the fields
+	var cows := Rect2i(11, 16, 4, 3)
+	_dirt_rect(cows, 0.7)
+	_fence_rect(cows, Vector2i(cows.position.x + 2, cows.position.y - 1), true)
+	_add_static("trough", Vector2(13.6, 16.3))
+	for i in 2:
+		_add_animal("cow", cows, rng, Vector2(11.6 + i * 1.6, 17.0 + i * 0.6))
+
+	# order board at the crossroads
+	var board := _add_prop("order_board", Vector2(7.6, 7.7), null)
+	board.set_meta("squash", 0.06)
+	for c in [Vector2i(7, 7), Vector2i(8, 7), Vector2i(8, 8)]:
+		occupied[c] = true
+
 	# flower borders along the main path
 	var kinds := ["flowers_lavender", "flowers_sun", "flowers_rose", "flowers_white"]
 	for x in range(3, 23, 2):
@@ -329,18 +351,32 @@ func _build_farm() -> void:
 		occupied[cell] = true
 
 
-func _fence_rect(r: Rect2i, gate: Vector2i) -> void:
+func _fence_rect(r: Rect2i, gate: Vector2i, gate_on_top := false) -> void:
 	for x in range(r.position.x, r.end.x):
 		for y in range(r.position.y, r.end.y):
 			occupied[Vector2i(x, y)] = true
 	# fence_x runs along grid x, placed on the cell border (y - 0.5)
 	for x in range(r.position.x, r.end.x):
-		_add_static("fence_x", Vector2(x, r.position.y - 0.5))
-		if Vector2i(x, r.end.y) != gate:
+		if not (gate_on_top and Vector2i(x, r.position.y - 1) == gate):
+			_add_static("fence_x", Vector2(x, r.position.y - 0.5))
+		if gate_on_top or Vector2i(x, r.end.y) != gate:
 			_add_static("fence_x", Vector2(x, r.end.y - 0.5))
 	for y in range(r.position.y, r.end.y):
 		_add_static("fence_y", Vector2(r.position.x - 0.5, y))
 		_add_static("fence_y", Vector2(r.end.x - 0.5, y))
+
+
+func _add_building(id: String, cell: Vector2i) -> ProductionBuilding:
+	var b: ProductionBuilding = ProductionScript.new()
+	b.setup(id)
+	b.position = grid_to_world(Vector2(cell))
+	objects.add_child(b)
+	production[id] = b
+	_dirt_rect(Rect2i(cell - Vector2i(1, 1), Vector2i(3, 3)), 0.75)
+	for x in range(cell.x - 1, cell.x + 2):
+		for y in range(cell.y - 1, cell.y + 2):
+			occupied[Vector2i(x, y)] = true
+	return b
 
 
 func _add_field(cell: Vector2i) -> Field:
@@ -377,6 +413,7 @@ func _add_animal(kind: String, pen: Rect2i, rng: RandomNumberGenerator, start :=
 		return grid_to_world(Vector2(randf_range(pen.position.x - 0.2, pen.end.x - 0.8),
 				randf_range(pen.position.y - 0.2, pen.end.y - 0.8)))
 	a.random_point = pick
+	a.pen_id = kind
 	a.position = grid_to_world(Vector2(pen.position) + Vector2(rng.randf_range(0, pen.size.x - 1),
 			rng.randf_range(0, pen.size.y - 1)))
 	if start.x > -999.0:
@@ -555,6 +592,50 @@ func _harvest(f: Field) -> void:
 	hud.hide_hint()
 
 
+## Tapping one animal handles its whole pen: collect what is ready, else feed the hungry ones.
+func _animal_tap(a: Animal) -> void:
+	var pen: Array[Animal] = []
+	for x in animals:
+		if x.pen_id == a.pen_id:
+			pen.append(x)
+	var ready := pen.filter(func(x: Animal) -> bool: return x.is_ready())
+	if not ready.is_empty():
+		var got := 0
+		for x: Animal in ready:
+			if Game.space() < 1:
+				Game.toast.emit(tr("BARN_FULL"), "ico_barn.png")
+				break
+			var item := x.collect()
+			Game.add_item(item, 1)
+			Game.add_xp(int(x.def()["xp"]))
+			_float_reward(x.position + Vector2(0, -120), 1, "item_%s.png" % item)
+			got += 1
+		if got > 0:
+			Audio.play("harvest", 1.15)
+		return
+	var hungry := pen.filter(func(x: Animal) -> bool: return x.is_hungry())
+	if not hungry.is_empty():
+		var feed: String = a.def()["feed"]
+		var fed := 0
+		for x: Animal in hungry:
+			if not Game.take_item(feed):
+				break
+			x.feed()
+			fed += 1
+		if fed == 0:
+			Game.toast.emit(tr("NEED_FEED"), "item_%s.png" % feed)
+		else:
+			_puff(a.position + Vector2(0, -40), "fx_grain", 4)
+		return
+	var soonest := a
+	for x in pen:
+		if x.seconds_left() < soonest.seconds_left():
+			soonest = x
+	a.poke()
+	hud.show_field_info(get_viewport().get_canvas_transform() * a.position, a.def()["product"],
+			soonest.seconds_left(), soonest.progress())
+
+
 func _on_seed_chosen(crop: String) -> void:
 	selected_crop = crop
 	if _picker_field != null and _picker_field.state == Field.State.EMPTY:
@@ -567,9 +648,30 @@ func _on_seed_chosen(crop: String) -> void:
 
 func _tap(world: Vector2) -> void:
 	for a in animals:
-		if world.distance_to(a.tap_point()) < 60.0:
-			a.poke()
+		if world.distance_to(a.tap_point()) < 70.0:
+			if a.produces():
+				_animal_tap(a)
+			else:
+				a.poke()
 			return
+	# production buildings (front-most first)
+	var hit: ProductionBuilding = null
+	for b: ProductionBuilding in production.values():
+		if b.sprite.get_rect().has_point(b.sprite.to_local(world)) and _opaque_at(b.sprite, world):
+			if hit == null or b.position.y > hit.position.y:
+				hit = b
+	if hit != null:
+		Field.squash(hit.sprite, 0.05)
+		if not hit.done.is_empty():
+			var got := hit.collect()
+			if got.is_empty():
+				Game.toast.emit(tr("BARN_FULL"), "ico_barn.png")
+			for g in got:
+				Audio.play("harvest", 1.1)
+				_float_reward(hit.position + Vector2(0, -Atlas.anchor(hit.id).y * 0.6), g[1], "item_%s.png" % g[0])
+		else:
+			hud.open_production(hit)
+		return
 	# topmost (front-most) prop first
 	var best: Sprite2D = null
 	for s in props:
@@ -581,6 +683,9 @@ func _tap(world: Vector2) -> void:
 		var n: String = best.get_meta("sprite", "")
 		if n == "barn":
 			hud.open_barn()
+			return
+		if n == "order_board":
+			hud.open_orders()
 			return
 		Audio.play(best.get_meta("sound", "pop"), 1.0, 0.1)
 		if n.begins_with("tree") or n.begins_with("bush") or n.begins_with("flowers"):
@@ -735,7 +840,34 @@ func _save_world() -> Dictionary:
 		d["x"] = _place_from.x
 		d["y"] = _place_from.y
 		out.append(d)
-	return {"fields": out}
+	var b := {}
+	for id in production:
+		b[id] = production[id].to_save()
+	var pens := {}
+	for a in animals:
+		if a.produces():
+			if not pens.has(a.pen_id):
+				pens[a.pen_id] = []
+			pens[a.pen_id].append(a.fed_at)
+	return {"fields": out, "buildings": b, "pens": pens}
+
+
+func _load_world_state() -> void:
+	var w: Dictionary = Game.saved_world
+	for id in w.get("buildings", {}):
+		if production.has(id):
+			production[id].load_save(w["buildings"][id])
+	var pens: Dictionary = w.get("pens", {})
+	var idx := {}
+	for a in animals:
+		if not a.produces() or not pens.has(a.pen_id):
+			continue
+		var i: int = idx.get(a.pen_id, 0)
+		if i < pens[a.pen_id].size():
+			var t := float(pens[a.pen_id][i])
+			if t > 0.0:
+				a.feed(t)
+		idx[a.pen_id] = i + 1
 
 
 # ------------------------------------------------------------------ juice
@@ -745,7 +877,7 @@ func _on_level_up(level: int, unlocked: Array) -> void:
 	Game.toast.emit(tr("LEVEL_UP") % level, "star.png")
 	for c in unlocked:
 		get_tree().create_timer(1.2).timeout.connect(func() -> void:
-			Game.toast.emit(tr("NEW_CROP") % tr("CROP_" + c), "item_%s.png" % c))
+			Game.toast.emit(tr("NEW_CROP") % tr("ITEM_" + c), "item_%s.png" % c))
 
 
 func _puff(pos: Vector2, sprite_name: String, n: int) -> void:
@@ -797,6 +929,16 @@ func _parse_args() -> void:
 
 
 func _demo_state() -> void:
+	var now := Time.get_unix_time_from_system()
+	var k := 0
+	for a in animals:
+		if a.produces():
+			a.feed(now - float(a.def()["time"]) * (1.2 if k % 2 == 0 else 0.4))
+			k += 1
+	Game.add_item("wheat", 12, true)
+	production["bakery"].start(0)
+	production["bakery"].queue[0]["end"] = now - 1.0
+	production["feed_mill"].start(0)
 	var i := 0
 	for f: Field in fields.values():
 		var crop: String = Game.crop_order[i % Game.crop_order.size()]
@@ -821,6 +963,14 @@ func _debug_ui(which: String) -> void:
 			hud.open_barn()
 		"shop":
 			hud.open_shop()
+		"prod":
+			Game.add_item("egg", 3, true)
+			hud.open_production(production["bakery"])
+		"orders":
+			Game.add_item("egg", 3, true)
+			Game.add_item("wheat", 8, true)
+			Game.discard(5)
+			hud.open_orders()
 		"place":
 			Game.add_coins(100)
 			_on_buy_field()
@@ -896,7 +1046,45 @@ func _run_smoke() -> void:
 		errors.append("save world mismatch")
 	_update_daylight()
 	TranslationServer.set_locale("de")
-	if tr("HINT_START") == "HINT_START" or tr("CROP_corn") != "Mais":
+	# production: bread from wheat, then collect
+	Game.add_item("wheat", 6, true)
+	var bakery: ProductionBuilding = production["bakery"]
+	if not bakery.start(0):
+		errors.append("bakery could not start bread")
+	bakery.queue[0]["end"] = Time.get_unix_time_from_system() - 1.0
+	bakery.tick()
+	var bread_before := Game.count("bread")
+	bakery.collect()
+	if Game.count("bread") != bread_before + 1:
+		errors.append("bakery did not produce bread")
+	# animals: feed chickens, ripen, collect eggs via a tap on the pen
+	Game.add_item("feed_chicken", 10, true)
+	var hen: Animal = null
+	for a in animals:
+		if a.kind == "chicken":
+			hen = a
+			break
+	_animal_tap(hen)
+	if hen.is_hungry():
+		errors.append("chicken was not fed")
+	for a in animals:
+		if a.kind == "chicken" and a.fed_at > 0.0:
+			a.fed_at -= 1000.0
+	var eggs := Game.count("egg")
+	_animal_tap(hen)
+	if Game.count("egg") <= eggs:
+		errors.append("no eggs collected")
+	# orders: deliver a fully stocked order
+	Game.ensure_orders()
+	for k in Game.orders[0]["need"]:
+		Game.add_item(k, int(Game.orders[0]["need"][k]), true)
+	var c0 := Game.coins
+	if not Game.deliver(0) or Game.coins <= c0:
+		errors.append("order delivery failed")
+	var ws := _save_world()
+	if not ws.has("buildings") or not ws["pens"].has("chicken"):
+		errors.append("production state not saved")
+	if tr("HINT_START") == "HINT_START" or tr("ITEM_corn") != "Mais":
 		errors.append("translations not loaded")
 	if errors.is_empty():
 		print("SMOKE OK (%d fields, %d props, %d animals, %d atlas pages, level %d)" % [

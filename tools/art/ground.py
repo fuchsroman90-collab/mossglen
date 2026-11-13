@@ -116,3 +116,13 @@ def blob_shadow(w=120, h=56) -> np.ndarray:
     a = np.clip(1.0 - r, 0, 1) ** 1.2 * 0.5
     rgb = np.broadcast_to(np.array([36, 58, 18], np.float32) / 255.0, (h, w, 3))
     return np.concatenate([rgb, a[..., None]], -1)
+
+
+def smoke_puff(size=72) -> np.ndarray:
+    """Soft white smoke puff (float RGBA) for chimneys."""
+    yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
+    c = size / 2
+    r = np.sqrt((xx - c) ** 2 + (yy - c) ** 2) / c
+    a = np.clip(1.0 - r, 0, 1) ** 1.5 * 0.85
+    rgb = np.ones((size, size, 3), np.float32) * np.array([0.97, 0.96, 0.94], np.float32)
+    return np.concatenate([rgb, a[..., None]], -1)

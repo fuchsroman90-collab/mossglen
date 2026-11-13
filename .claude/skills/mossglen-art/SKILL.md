@@ -61,6 +61,11 @@ python tools/art/build.py --force      # re-render everything
 - Materials: `kit.mat(..., edge=, edge_color=)` darkens towards the silhouette; post.py adds a
   2 px outline in the darkened edge colour. Never pure black outlines.
 
+- **Moving parts as separate camera-facing sprites**: mill sails are modelled in a plane facing
+  `kit.TO_CAM` and rotated in Godot (2D rotation is then exact). Offset = (hub·R·PPM, -hub·U·PPM).
+- Round windows in pairs on a cylinder read as a face. Avoid two symmetric round openings.
+- Use `kit.Surface` + `place_on` for spots on animals; keep them thin (scale z ≈ 0.12) or they bulge.
+
 ## Review loop (mandatory)
 
 1. Render the changed frames (test sheet: compose them on grass colour, look at them with Read).

@@ -26,6 +26,7 @@ REGISTRY = [
     ("farm", "farm_frames", True, 48),
     ("animals", "chicken_frames", False, 40),
     ("animals", "dino_frames", False, 40),
+    ("animals", "cow_frames", False, 40),
     ("icons", "icon_frames", False, 48),
 ]
 

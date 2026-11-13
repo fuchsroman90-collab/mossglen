@@ -36,6 +36,13 @@ var _place_bar: Control
 var _info: Control
 var _info_t := 0.0
 var _toasts: Control
+var _prod: Control
+var _prod_b: ProductionBuilding
+var _prod_body: Control
+var _prod_progress: Array = []  ## [fill NinePatchRect, time Label]
+var _orders: Control
+var _orders_body: Control
+var _refresh_t := 0.0
 
 ## Level star at STAR_POS; its right tip (in star.png pixels) defines where the XP bar starts.
 const STAR_POS := Vector2(14, 4)
@@ -98,6 +105,15 @@ func _ready() -> void:
 	_build_barn()
 	_build_shop()
 	_build_place_bar()
+	_prod = _panel_window(Vector2(1180, 600), "")[0]
+	_prod_body = Control.new()
+	_prod.add_child(_prod_body)
+	_orders = _panel_window(Vector2(1320, 900), "ORDERS")[0]
+	_orders_body = Control.new()
+	_orders.add_child(_orders_body)
+	Game.orders_changed.connect(func() -> void:
+		if _orders.visible:
+			_fill_orders())
 	_toasts = Control.new()
 	_toasts.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_toasts.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -106,7 +122,11 @@ func _ready() -> void:
 	Game.toast.connect(toast)
 	Game.inventory_changed.connect(func(_i: String, _c: int) -> void:
 		if _barn.visible:
-			_fill_barn())
+			_fill_barn()
+		if _prod.visible:
+			_fill_prod()
+		if _orders.visible:
+			_fill_orders())
 
 	_hint = _label("HINT_START", 42)
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -143,14 +163,37 @@ func _process(delta: float) -> void:
 		_info_t -= delta
 		if _info_t <= 0.0:
 			_info.hide()
+	_refresh_t += delta
+	if _refresh_t >= 0.25:
+		_refresh_t = 0.0
+		if _prod.visible and _prod_b != null and not _prod_progress.is_empty():
+			var pr := _prod_b.current_progress()
+			(_prod_progress[0] as Control).size.x = 22.0 + 64.0 * pr.y
+			(_prod_progress[1] as Label).text = _fmt_time(int(ceil(pr.x)))
+		if _orders.visible:
+			for c in _orders_body.get_children():
+				if c.has_meta("wait_label"):
+					var i: int = c.get_meta("index")
+					var left := int(ceil(float(Game.orders[i]["wait_until"]) - Time.get_unix_time_from_system()))
+					if left <= 0:
+						_fill_orders()
+						break
+					(c.get_meta("wait_label") as Label).text = _fmt_time(left)
 
 
 func any_menu_open() -> bool:
-	return _barn.visible or _shop.visible or _settings.visible
+	return _barn.visible or _shop.visible or _settings.visible or _prod.visible or _orders.visible
+
+
+static func _fmt_time(sec: int) -> String:
+	sec = maxi(0, sec)
+	if sec >= 3600:
+		return "%d:%02d:%02d" % [sec / 3600, (sec / 60) % 60, sec % 60]
+	return "%d:%02d" % [sec / 60, sec % 60]
 
 
 func close_menus() -> void:
-	for m in [_barn, _shop, _settings]:
+	for m in [_barn, _shop, _settings, _prod, _orders]:
 		m.hide()
 	hide_seed_picker()
 
@@ -290,7 +333,7 @@ func show_field_info(screen_pos: Vector2, crop: String, seconds: int, progress: 
 		t.size = Vector2(280, 62)
 		t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_info.add_child(t)
-	(_info.get_node("Name") as Label).text = "CROP_" + crop
+	(_info.get_node("Name") as Label).text = "ITEM_" + crop
 	(_info.get_node("Fill") as Control).size.x = maxf(38.0, 256.0 * progress)
 	(_info.get_node("Time") as Label).text = "%d:%02d" % [seconds / 60, seconds % 60] if seconds > 0 else tr("READY")
 	_info.position = screen_pos * 2.0 - Vector2(170, 260)
@@ -386,11 +429,28 @@ func _fill_barn() -> void:
 	for c in _barn_rows.get_children():
 		c.queue_free()
 	var y := 0.0
-	for crop in Game.crop_order:
-		if not Game.is_unlocked(crop) and Game.count(crop) == 0:
+	var col := 0
+	var shown := 0
+	for crop in Game.item_order():
+		if Game.count(crop) > 0 or (Game.crops.has(crop) and Game.is_unlocked(crop)):
+			shown += 1
+	var two := shown > 5
+	_barn.size.x = 1900.0 if two else 980.0
+	_barn.offset_left = -_barn.size.x / 2
+	_barn.offset_right = _barn.size.x / 2
+	(_barn.get_child(0) as Control).size.x = _barn.size.x
+	(_barn.get_child(1) as Control).position.x = _barn.size.x - 70
+	var idx := 0
+	for crop in Game.item_order():
+		if Game.count(crop) == 0 and (not Game.crops.has(crop) or not Game.is_unlocked(crop)):
 			continue
 		var row := Control.new()
-		row.position = Vector2(0, y)
+		if two:
+			col = idx % 2
+			row.position = Vector2(col * 920.0, float(idx / 2) * 140.0)
+		else:
+			row.position = Vector2(0, y)
+		idx += 1
 		_barn_rows.add_child(row)
 		var slot := _tex("slot.png")
 		slot.scale = Vector2(0.95, 0.95)
@@ -399,7 +459,7 @@ func _fill_barn() -> void:
 		icon.scale = Vector2(0.82, 0.82)
 		icon.position = Vector2(14, 10)
 		row.add_child(icon)
-		var name_l := _dark(_label("CROP_" + crop, 40))
+		var name_l := _dark(_label("ITEM_" + crop, 40))
 		name_l.position = Vector2(140, 6)
 		name_l.size = Vector2(300, 60)
 		row.add_child(name_l)
@@ -411,7 +471,7 @@ func _fill_barn() -> void:
 		coin.scale = Vector2(0.5, 0.5)
 		coin.position = Vector2(300, 64)
 		row.add_child(coin)
-		var price := _dark(_label(str(int(Game.crops[crop]["sell"])), 36))
+		var price := _dark(_label(str(Game.price(crop)), 36))
 		price.position = Vector2(360, 58)
 		price.size = Vector2(80, 56)
 		row.add_child(price)
@@ -423,7 +483,7 @@ func _fill_barn() -> void:
 		all.pressed.connect(func() -> void: _sell(crop, Game.count(crop)))
 		y += 140.0
 	# fit the window to its rows
-	var h := 150.0 + y
+	var h: float = 150.0 + (ceilf(idx / 2.0) * 140.0 if two else y)
 	_barn.offset_top = -h / 2
 	_barn.offset_bottom = h / 2
 	_barn.size.y = h
@@ -498,6 +558,217 @@ func open_shop() -> void:
 		_shop.hide()
 		buy_field.emit())
 	_open(_shop)
+
+
+# ------------------------------------------------------------------ production
+
+func open_production(b: ProductionBuilding) -> void:
+	if _prod_b != null and _prod_b.changed.is_connected(_fill_prod):
+		_prod_b.changed.disconnect(_fill_prod)
+	_prod_b = b
+	b.changed.connect(_fill_prod)
+	_fill_prod()
+	_open(_prod)
+	Audio.play("whoosh")
+
+
+func _fill_prod() -> void:
+	var b := _prod_b
+	for c in _prod_body.get_children():
+		c.queue_free()
+	_prod_progress = []
+	(_prod.get_child(0) as Label).text = "BUILDING_" + b.id
+	# queue strip
+	var strip := Control.new()
+	strip.position = Vector2(60, 110)
+	_prod_body.add_child(strip)
+	var items: Array = []
+	for d in b.done:
+		items.append([int(d), "done"])
+	for i in b.queue.size():
+		items.append([int(b.queue[i]["r"]), "run" if i == 0 else "wait"])
+	for i in b.slots():
+		var sl := _tex("slot.png")
+		sl.position = Vector2(i * 140, 0)
+		strip.add_child(sl)
+		if i >= items.size():
+			sl.modulate.a = 0.55
+			continue
+		var rec: Dictionary = b.recipes()[items[i][0]]
+		var ic := _tex("item_%s.png" % rec["out"])
+		ic.scale = Vector2(0.86, 0.86)
+		ic.position = Vector2(14, 10)
+		sl.add_child(ic)
+		match items[i][1]:
+			"done":
+				var ck := _tex("ico_check.png")
+				ck.position = Vector2(70, 70)
+				sl.add_child(ck)
+			"wait":
+				ic.modulate.a = 0.5
+			"run":
+				var back := _patch("bar_back.png", 20, 18)
+				back.position = Vector2(8, 126)
+				back.size = Vector2(112, 40)
+				sl.add_child(back)
+				var fill := _patch("bar_fill.png", 10, 10)
+				fill.position = Vector2(16, 133)
+				fill.size = Vector2(22, 26)
+				sl.add_child(fill)
+				var t := _label("", 26)
+				t.position = Vector2(0, 160)
+				t.size = Vector2(128, 40)
+				t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				sl.add_child(t)
+				_prod_progress = [fill, t]
+	var hint := _dark(_label("QUEUE", 32))
+	hint.position = Vector2(b.slots() * 140 + 90, 140)
+	hint.size = Vector2(500, 60)
+	_prod_body.add_child(hint)
+	# recipes
+	var y := 330.0
+	for r in b.recipes().size():
+		var rec: Dictionary = b.recipes()[r]
+		var row := Control.new()
+		row.position = Vector2(60, y)
+		_prod_body.add_child(row)
+		var sl := _tex("slot.png")
+		row.add_child(sl)
+		var ic := _tex("item_%s.png" % rec["out"])
+		ic.scale = Vector2(0.86, 0.86)
+		ic.position = Vector2(14, 10)
+		row.add_child(ic)
+		var nm := _dark(_label("ITEM_" + str(rec["out"]), 38))
+		nm.position = Vector2(150, 0)
+		nm.size = Vector2(340, 56)
+		row.add_child(nm)
+		var tm := _dark(_label("%s  •  +%d XP" % [_fmt_time(int(rec["time"])), int(rec["xp"])], 28))
+		tm.position = Vector2(150, 56)
+		tm.size = Vector2(340, 50)
+		row.add_child(tm)
+		var x := 500.0
+		for k in rec["in"]:
+			var need := int(rec["in"][k])
+			var ii := _tex("item_%s.png" % k)
+			ii.scale = Vector2(0.6, 0.6)
+			ii.position = Vector2(x, 8)
+			row.add_child(ii)
+			var cnt := _label("%d/%d" % [Game.count(k), need], 30)
+			cnt.position = Vector2(x - 6, 70)
+			cnt.size = Vector2(80, 44)
+			cnt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			if Game.count(k) < need:
+				cnt.add_theme_color_override("font_color", Color("FF8A80"))
+			row.add_child(cnt)
+			x += 96.0
+		if Game.level < int(rec["unlock"]):
+			var lk := _tex("lock.png")
+			lk.position = Vector2(850, 18)
+			row.add_child(lk)
+			var lv := _dark(_label(tr("FROM_LEVEL") % int(rec["unlock"]), 34))
+			lv.position = Vector2(930, 18)
+			lv.size = Vector2(160, 64)
+			row.add_child(lv)
+		else:
+			var make := _pill("MAKE", Vector2(820, 12), 270, b.can_start(r))
+			make.pressed.connect(func() -> void:
+				if b.start(r):
+					Audio.play("plant", 1.1))
+			row.add_child(make)
+		y += 150.0
+	var h := y + 30.0
+	_prod.size.y = h
+	_prod.offset_top = -h / 2
+	_prod.offset_bottom = h / 2
+
+
+# ------------------------------------------------------------------ orders
+
+func open_orders() -> void:
+	_fill_orders()
+	_open(_orders)
+	Audio.play("whoosh")
+
+
+func _fill_orders() -> void:
+	for c in _orders_body.get_children():
+		c.queue_free()
+	for i in Game.orders.size():
+		var o: Dictionary = Game.orders[i]
+		var card := _patch("panel.png", 44, 44)
+		card.mouse_filter = Control.MOUSE_FILTER_PASS
+		card.position = Vector2(50 + (i % 3) * 410, 110 + (i / 3) * 385)
+		card.size = Vector2(390, 370)
+		card.set_meta("index", i)
+		_orders_body.add_child(card)
+		if not Game.order_ready(i):
+			var wl := _dark(_label("NEXT_ORDER", 32))
+			wl.position = Vector2(0, 110)
+			wl.size = Vector2(390, 60)
+			wl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			card.add_child(wl)
+			var t := _dark(_label("", 44))
+			t.position = Vector2(0, 170)
+			t.size = Vector2(390, 70)
+			t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			card.add_child(t)
+			card.set_meta("wait_label", t)
+			card.modulate.a = 0.75
+			continue
+		var need: Dictionary = o["need"]
+		var n := need.size()
+		var x := 195.0 - n * 58.0
+		for k in need:
+			var ii := _tex("item_%s.png" % k)
+			ii.scale = Vector2(0.92, 0.92)
+			ii.position = Vector2(x + 6, 34)
+			card.add_child(ii)
+			var cnt := _label("%d/%d" % [Game.count(k), int(need[k])], 32)
+			cnt.position = Vector2(x, 132)
+			cnt.size = Vector2(116, 44)
+			cnt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			if Game.count(k) < int(need[k]):
+				cnt.add_theme_color_override("font_color", Color("FF8A80"))
+			card.add_child(cnt)
+			x += 116.0
+		var coin := _tex("coin.png")
+		coin.scale = Vector2(0.55, 0.55)
+		coin.position = Vector2(40, 192)
+		card.add_child(coin)
+		var cl := _dark(_label(str(int(o["coins"])), 36))
+		cl.position = Vector2(104, 186)
+		cl.size = Vector2(110, 64)
+		card.add_child(cl)
+		var st := _tex("star.png")
+		st.scale = Vector2(0.38, 0.38)
+		st.position = Vector2(210, 186)
+		card.add_child(st)
+		var xl := _dark(_label(str(int(o["xp"])), 36))
+		xl.position = Vector2(276, 186)
+		xl.size = Vector2(90, 64)
+		card.add_child(xl)
+		var go := _pill("DELIVER", Vector2(30, 258), 230, Game.has_all(need))
+		go.pressed.connect(func() -> void:
+			if Game.deliver(i):
+				Audio.play("coin", 1.2)
+				Game.toast.emit(tr("ORDER_DONE"), "coin.png"))
+		card.add_child(go)
+		var bin := TextureButton.new()
+		bin.texture_normal = load(UI + "btn_round.png")
+		bin.ignore_texture_size = true
+		bin.stretch_mode = TextureButton.STRETCH_SCALE
+		bin.position = Vector2(276, 258)
+		bin.size = Vector2(84, 89)
+		bin.focus_mode = Control.FOCUS_NONE
+		_press_feedback(bin)
+		bin.pressed.connect(func() -> void:
+			Audio.play("click")
+			Game.discard(i))
+		card.add_child(bin)
+		var xi := _tex("ico_close.png")
+		xi.scale = Vector2(0.8, 0.8)
+		xi.position = Vector2(16, 16)
+		bin.add_child(xi)
 
 
 # ------------------------------------------------------------------ placement bar

@@ -8,6 +8,7 @@ signal xp_changed(xp: int, needed: int, level: int)
 signal inventory_changed(item: String, count: int)
 signal leveled_up(level: int, unlocked: Array)
 signal toast(text: String, icon: String)
+signal orders_changed
 
 const I18N_PATH := "res://i18n/strings.txt"
 const SAVE_PATH := "user://save.json"
@@ -17,11 +18,17 @@ const AUTOSAVE_SECONDS := 5.0
 
 var crops: Dictionary = {}  ## crop id -> {grow, sell, xp, unlock, yield}
 var crop_order: Array = []
+var items: Dictionary = {}  ## product id -> {sell}
+var buildings: Dictionary = {}  ## building id -> {slots, fx, recipes[]}
+var animal_defs: Dictionary = {}  ## animal kind -> {feed, product, time, xp, unlock}
+var orders: Array = []  ## [{need: {item: n}, coins, xp, wait_until}]
+const ORDER_SLOTS := 6
+const ORDER_WAIT := 20.0
 var coins := 60
 var emeralds := 5
 var xp := 0
 var level := 1
-var inventory: Dictionary = {"wheat": 6}
+var inventory: Dictionary = {"wheat": 6, "feed_chicken": 3}
 var barn_capacity := 50
 var extra_fields := 0
 var font_bold: FontVariation
@@ -39,6 +46,9 @@ func _ready() -> void:
 	font_bold = _font(600)
 	font_regular = _font(500)
 	_load_crops()
+	items = _json("res://data/items.json")
+	buildings = _json("res://data/buildings.json")
+	animal_defs = _json("res://data/animals.json")
 	_load_translations()
 	var lang := OS.get_locale_language()
 	TranslationServer.set_locale(lang if lang in LOCALES else "en")
@@ -47,6 +57,7 @@ func _ready() -> void:
 			persist = false
 	if persist:
 		load_game()
+	ensure_orders()
 
 
 func _process(delta: float) -> void:
@@ -147,18 +158,109 @@ func take_item(item: String, n := 1) -> bool:
 	return true
 
 
+func price(item: String) -> int:
+	if crops.has(item):
+		return int(crops[item]["sell"])
+	return int(items.get(item, {}).get("sell", 1))
+
+
+## Items in barn display order: crops, then products in data order.
+func item_order() -> Array:
+	return crop_order + items.keys()
+
+
 func sell(item: String, n := 1) -> int:
 	n = mini(n, count(item))
-	if n <= 0 or not crops.has(item):
+	if n <= 0:
 		return 0
 	take_item(item, n)
-	var earned: int = n * int(crops[item]["sell"])
+	var earned: int = n * price(item)
 	add_coins(earned)
 	return earned
 
 
 func is_unlocked(crop: String) -> bool:
 	return level >= int(crops[crop]["unlock"])
+
+
+func has_all(need: Dictionary) -> bool:
+	for k in need:
+		if count(k) < int(need[k]):
+			return false
+	return true
+
+
+func take_all(need: Dictionary) -> bool:
+	if not has_all(need):
+		return false
+	for k in need:
+		take_item(k, int(need[k]))
+	return true
+
+
+# ------------------------------------------------------------------ orders
+
+## Items the player can currently make or grow (order candidates). Feeds are excluded.
+func orderable_items() -> Array:
+	var out: Array = []
+	for c in crop_order:
+		if is_unlocked(c):
+			out.append(c)
+	for a in animal_defs:
+		if level >= int(animal_defs[a]["unlock"]):
+			out.append(animal_defs[a]["product"])
+	for b in buildings:
+		for r in buildings[b]["recipes"]:
+			if level >= int(r["unlock"]) and not str(r["out"]).begins_with("feed_"):
+				out.append(r["out"])
+	return out
+
+
+func make_order() -> Dictionary:
+	var pool := orderable_items()
+	pool.shuffle()
+	var kinds := mini(pool.size(), 1 + randi() % 3)
+	var need := {}
+	var value := 0
+	for i in kinds:
+		var it: String = pool[i]
+		var p := price(it)
+		var qty := clampi(int(round(randf_range(2.0, 6.0) * 10.0 / float(p + 6))) + 1, 1, 6)
+		need[it] = qty
+		value += qty * p
+	return {"need": need, "coins": int(ceil(value * 1.4)), "xp": maxi(2, int(round(value / 5.0))), "wait_until": 0.0}
+
+
+func ensure_orders() -> void:
+	while orders.size() < ORDER_SLOTS:
+		orders.append(make_order())
+
+
+func order_ready(i: int) -> bool:
+	return orders[i]["wait_until"] <= Time.get_unix_time_from_system()
+
+
+func deliver(i: int) -> bool:
+	var o: Dictionary = orders[i]
+	if not order_ready(i) or not take_all(o["need"]):
+		return false
+	add_coins(int(o["coins"]))
+	add_xp(int(o["xp"]))
+	var fresh := make_order()
+	fresh["wait_until"] = Time.get_unix_time_from_system() + 4.0  # a short pause before the next truck arrives
+	orders[i] = fresh
+	orders_changed.emit()
+	mark_dirty()
+	return true
+
+
+## Throw an order away; a new one arrives after a short wait. No penalty (cozy).
+func discard(i: int) -> void:
+	var fresh := make_order()
+	fresh["wait_until"] = Time.get_unix_time_from_system() + ORDER_WAIT
+	orders[i] = fresh
+	orders_changed.emit()
+	mark_dirty()
 
 
 func max_fields() -> int:
@@ -180,7 +282,7 @@ func save_game() -> void:
 		"version": SAVE_VERSION,
 		"saved_at": Time.get_unix_time_from_system(),
 		"coins": coins, "emeralds": emeralds, "xp": xp, "level": level,
-		"inventory": inventory, "extra_fields": extra_fields,
+		"inventory": inventory, "extra_fields": extra_fields, "orders": orders,
 		"locale": TranslationServer.get_locale().substr(0, 2),
 		"music": Audio.music_enabled,
 		"world": world_saver.call() if world_saver.is_valid() else {},
@@ -215,6 +317,13 @@ func load_game() -> bool:
 	if parsed.has("music"):
 		Audio.set_music_enabled.call_deferred(bool(parsed["music"]))
 	saved_world = parsed.get("world", {})
+	orders = []
+	for o in parsed.get("orders", []):
+		var need := {}
+		for k in o["need"]:
+			need[k] = int(o["need"][k])
+		orders.append({"need": need, "coins": int(o["coins"]), "xp": int(o["xp"]),
+			"wait_until": float(o.get("wait_until", 0.0))})
 	return true
 
 
@@ -235,6 +344,10 @@ func _load_crops() -> void:
 	crops = JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json"))
 	crop_order = crops.keys()
 	crop_order.sort_custom(func(a, b) -> bool: return int(crops[a]["unlock"]) < int(crops[b]["unlock"]))
+
+
+func _json(path: String) -> Dictionary:
+	return JSON.parse_string(FileAccess.get_file_as_string(path))
 
 
 func _font(weight: int) -> FontVariation:

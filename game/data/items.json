@@ -1,0 +1,12 @@
+{
+	"feed_chicken": {"sell": 4},
+	"feed_cow": {"sell": 7},
+	"egg": {"sell": 8},
+	"milk": {"sell": 14},
+	"bread": {"sell": 14},
+	"corn_bread": {"sell": 40},
+	"carrot_cake": {"sell": 55},
+	"cream": {"sell": 22},
+	"butter": {"sell": 38},
+	"cheese": {"sell": 56}
+}

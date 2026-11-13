@@ -9,6 +9,10 @@ const CONFIG := {
 		"speed": 72.0, "anims": {"idle": [6, 6.0], "walk": [8, 13.0], "peck": [6, 10.0]},
 		"shadow": Vector2(0.75, 0.8), "tap_height": 50.0, "sound": "cluck",
 	},
+	"cow": {
+		"speed": 46.0, "anims": {"idle": [6, 6.0], "walk": [8, 9.0], "eat": [6, 6.0]},
+		"shadow": Vector2(1.7, 1.6), "tap_height": 75.0, "sound": "pop",
+	},
 	"dino": {
 		"speed": 58.0, "anims": {"idle": [8, 7.0], "walk": [8, 9.0]},
 		"shadow": Vector2(1.45, 1.4), "tap_height": 80.0, "sound": "pop",
@@ -27,6 +31,10 @@ var _t := 0.0
 var _frame := -1
 var _target := Vector2.ZERO
 var _wait := 0.0
+var fed_at := 0.0  ## unix time of the last feeding, 0 = hungry
+var pen_id := ""
+var _bubble: Node2D
+var _bubble_icon: Sprite2D
 
 
 func _ready() -> void:
@@ -43,21 +51,107 @@ func _ready() -> void:
 	_flip = randf() < 0.5
 	_t = randf() * 3.0
 	_show()
+	if Game.animal_defs.has(kind):
+		_bubble = Node2D.new()
+		_bubble.position = Vector2(0, -_cfg["tap_height"] * 2.1)
+		add_child(_bubble)
+		var back := Sprite2D.new()
+		back.texture = load("res://art/generated/ui/slot.png")
+		back.scale = Vector2(0.62, 0.62)
+		_bubble.add_child(back)
+		_bubble_icon = Sprite2D.new()
+		_bubble_icon.scale = Vector2(0.55, 0.55)
+		_bubble.add_child(_bubble_icon)
+		_update_bubble()
+
+
+# ------------------------------------------------------------------ production
+
+func def() -> Dictionary:
+	return Game.animal_defs.get(kind, {})
+
+
+func produces() -> bool:
+	return Game.animal_defs.has(kind)
+
+
+func is_hungry() -> bool:
+	return produces() and fed_at <= 0.0
+
+
+func is_ready() -> bool:
+	return produces() and fed_at > 0.0 and Time.get_unix_time_from_system() - fed_at >= float(def()["time"])
+
+
+func seconds_left() -> int:
+	if fed_at <= 0.0:
+		return 0
+	return maxi(0, ceili(float(def()["time"]) - (Time.get_unix_time_from_system() - fed_at)))
+
+
+func progress() -> float:
+	if fed_at <= 0.0:
+		return 0.0
+	return clampf((Time.get_unix_time_from_system() - fed_at) / float(def()["time"]), 0.0, 1.0)
+
+
+func feed(at := -1.0) -> void:
+	fed_at = Time.get_unix_time_from_system() if at < 0.0 else at
+	if at < 0.0:
+		var eat := "peck" if _cfg["anims"].has("peck") else "eat"
+		if _cfg["anims"].has(eat):
+			_play(eat)
+		Audio.play(_cfg["sound"], 1.1, 0.1)
+	_update_bubble()
+
+
+func collect() -> String:
+	if not is_ready():
+		return ""
+	fed_at = 0.0
+	_update_bubble()
+	poke()
+	return def()["product"]
+
+
+func _update_bubble() -> void:
+	if _bubble == null:
+		return
+	if is_ready():
+		_bubble.visible = true
+		_bubble.modulate.a = 1.0
+		_bubble_icon.texture = load("res://art/generated/ui/item_%s.png" % def()["product"])
+	elif is_hungry():
+		_bubble.visible = true
+		_bubble.modulate.a = 0.55
+		_bubble_icon.texture = load("res://art/generated/ui/item_%s.png" % def()["feed"])
+	else:
+		_bubble.visible = false
 
 
 func _process(delta: float) -> void:
 	_t += delta
+	if _bubble != null:
+		if not _bubble.visible and is_ready():
+			_update_bubble()
+		if _bubble.visible:
+			_bubble.position.y = -_cfg["tap_height"] * 2.1 + sin(Time.get_ticks_msec() * 0.004 + position.x) * 6.0
 	if _anim == "walk":
 		var to := _target - position
 		var step: float = _cfg["speed"] * delta
 		if to.length() <= step:
 			position = _target
 			_wait = randf_range(1.2, 4.0)
-			_play("peck" if _cfg["anims"].has("peck") and randf() < 0.55 else "idle")
+			if _cfg["anims"].has("peck") and randf() < 0.55:
+				_play("peck")
+			elif _cfg["anims"].has("eat") and randf() < 0.35:
+				_play("eat")
+			else:
+				_play("idle")
 		else:
 			position += to.normalized() * step
-	elif _anim == "peck":
-		if _t * _cfg["anims"]["peck"][1] >= _cfg["anims"]["peck"][0] * 2:
+	elif _anim == "peck" or _anim == "eat":
+		if _t * _cfg["anims"][_anim][1] >= _cfg["anims"][_anim][0] * 2:
 			_play("idle")
 	else:
 		_wait -= delta

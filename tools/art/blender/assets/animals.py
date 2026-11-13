@@ -256,3 +256,108 @@ def dino_frames():
                 yaw, neck=4 * sw, legs=(22 * sw, -22 * sw), body_z=0.018 * abs(math.cos(t * 2 * math.pi)),
                 tail=-0.8 * sw))
     return out
+
+
+# ---------------------------------------------------------------- cow
+
+COW_WHITE = "#FFF7EE"
+COW_SPOT = "#6E4A33"
+
+
+def cow(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), tail=0.0, blink=0.0, squash=0.0, chew=0.0):
+    """Chibi dairy cow, ~0.8 m tall. head: (forward, down) offset."""
+    root = kit.empty("cow", rot=(0, 0, math.radians(yaw)))
+    body = kit.empty("body", loc=(0, 0, body_z), parent=root)
+    s = 1.0 + squash
+    hide = mat("cow_hide", COW_WHITE, rough=0.6, spec=0.2, edge=0.55, edge_color="#B7A58E", sss=0.04)
+    hx, hd = head
+    head_c = Vector((0.43 + hx, 0.0, 0.6 - hd))
+    bo = kit.to_mesh(kit.blob(
+        kit.chain([(-0.36, 0, 0.42), (-0.1, 0, 0.45 * s), (0.18, 0, 0.45), (0.3 + hx * 0.5, 0, 0.5 - hd * 0.5)],
+                  [0.26, 0.33, 0.3, 0.2], steps=6)
+        + [{"co": tuple(head_c), "r": 0.25, "type": "ELLIPSOID", "size": (1.0, 1.0, 0.95), "stiff": 2.0}],
+        hide, name="cow", parent=body))
+    surf = kit.Surface([bo])
+    look = _rotz(kit.TO_CAM, -yaw)
+
+    # brown patches projected onto the hide
+    spot = mat("cow_spot", COW_SPOT, rough=0.55, spec=0.2, edge=0.4)
+    rng = __import__("random").Random(8)
+    for x, side, z in [(-0.25, -1, 0.55), (0.05, -1, 0.6), (-0.15, 1, 0.62), (0.15, 1, 0.5), (-0.38, -1, 0.4),
+                       (-0.05, 0, 0.78)]:
+        d = kit.world(root, (x * 0.3, side * 1.0, 0.6 if side else 1.0)) - kit.world(root, (0, 0, 0))
+        p, n = surf.toward(kit.world(body, (x, 0, 0.45)), d)
+        if p is not None:
+            o = kit.sphere(rng.uniform(0.09, 0.13), spot, scale=(1.3, 1.0, 0.12), seg=18)
+            kit.place_on(o, p - n * 0.008, n)
+            o.parent = body
+            o.matrix_parent_inverse = body.matrix_world.inverted()
+    # muzzle, nostrils
+    pink = mat("cow_muzzle", "#FFB9AE", rough=0.5, spec=0.25, edge=0.45, edge_color="#B9706A")
+    mz = head_c + Vector((0.16, 0, -0.08))
+    kit.sphere(0.16, pink, loc=mz, scale=(0.75, 1.15, 0.8), seg=24, parent=body)
+    nos = mat("cow_nostril", "#8A4A44", rough=0.6, edge=0.0)
+    for side in (-1, 1):
+        kit.sphere(0.022, nos, loc=mz + Vector((0.11, side * 0.06, 0.02)), scale=(0.6, 1, 1.3), seg=10, parent=body)
+    # mouth chew: tiny lower lip bob
+    kit.sphere(0.06, pink, loc=mz + Vector((0.05, 0, -0.1 - 0.015 * chew)), scale=(1.0, 1.4, 0.5), seg=14, parent=body)
+    # eyes
+    hw = kit.world(body, head_c)
+    for side in (-1, 1):
+        dl = Vector((0.6, side * 0.62, 0.42))
+        p, n = surf.toward(hw, kit.world(root, dl) - kit.world(root, (0, 0, 0)))
+        if p is not None:
+            hr = (body.matrix_world.inverted() @ p - head_c).length
+            eye(head_c, hr, dl, 0.065, body, look=look, lid=blink, lid_color=COW_WHITE)
+    # ears and horns
+    for side in (-1, 1):
+        kit.sphere(0.07, hide, loc=head_c + Vector((-0.05, side * 0.2, 0.05)), scale=(0.7, 1.25, 0.45),
+                   rot=(side * 0.35, 0, 0), seg=16, parent=body)
+        kit.sphere(0.04, pink, loc=head_c + Vector((-0.04, side * 0.22, 0.05)), scale=(0.6, 1.0, 0.3),
+                   rot=(side * 0.35, 0, 0), seg=12, parent=body)
+        kit.cyl(0.028, 0.08, mat("horn", "#F4E6C4", rough=0.4, edge=0.35), r2=0.012,
+                loc=head_c + Vector((-0.04, side * 0.1, 0.13)), rot=(side * -0.45, -0.2, 0), bevel=0.0, verts=10,
+                parent=body)
+    # bell
+    gold = mat("bell", "#F6C23A", rough=0.25, metal=0.8, spec=0.6, edge=0.4)
+    bell_p = Vector((0.36, 0, 0.36))
+    kit.sphere(0.035, mat("collar", "#C0392B", rough=0.6, edge=0.3), loc=bell_p + Vector((0, 0, 0.06)), seg=12,
+               parent=body)
+    kit.cyl(0.05, 0.07, gold, r2=0.03, loc=bell_p - Vector((0, 0, 0.03)), bevel=0.01, verts=14, parent=body)
+    # udder
+    kit.sphere(0.08, pink, loc=(-0.12, 0, 0.17), scale=(1.1, 1.0, 0.7), seg=16, parent=body)
+    # tail with tuft
+    tail_m = hide
+    a = math.radians(25 * tail)
+    tp = Vector((-0.6, 0.12 * math.sin(a), 0.3))
+    kit.curve_tube([(-0.5, 0, 0.55), (-0.6, 0.05 * math.sin(a), 0.45), tuple(tp)], r=0.018, m=tail_m, parent=body)
+    kit.sphere(0.04, spot, loc=tp, scale=(1, 1, 1.4), seg=12, parent=body)
+    # legs
+    hoof = mat("hoof", "#4A3426", rough=0.5, edge=0.3)
+    for (lx, ly, ang) in ((0.2, -0.15, legs[0]), (0.2, 0.15, legs[1]), (-0.28, -0.15, legs[1]),
+                          (-0.28, 0.15, legs[0])):
+        hip = kit.empty("hip", loc=(lx, ly, 0.3), rot=(0, math.radians(ang), 0), parent=root)
+        kit.blob(kit.chain([(0, 0, 0.0), (0, 0, -0.18), (0, 0, -0.24)], [0.1, 0.085, 0.085], steps=5),
+                 hide, name="leg", parent=hip)
+        kit.cyl(0.07, 0.06, hoof, loc=(0, 0, -0.3), bevel=0.015, verts=14, parent=hip)
+    return root
+
+
+def cow_frames():
+    out = {}
+    for facing, yaw in (("se", 0.0), ("ne", 90.0)):
+        for i in range(6):
+            t = i / 6.0
+            w = math.sin(t * 2 * math.pi)
+            out[f"cow_idle_{facing}_{i}"] = (lambda w=w, i=i, yaw=yaw: cow(
+                yaw, squash=0.012 * w, tail=w, head=(0.0, 0.01 * w), blink=1.0 if i == 4 else 0.0))
+        for i in range(8):
+            t = i / 8.0
+            sw = math.sin(t * 2 * math.pi)
+            out[f"cow_walk_{facing}_{i}"] = (lambda sw=sw, t=t, yaw=yaw: cow(
+                yaw, legs=(20 * sw, -20 * sw), body_z=0.015 * abs(math.cos(t * 2 * math.pi)), tail=-0.6 * sw,
+                head=(0.0, 0.015 * abs(sw))))
+        for i, (fw, dn, ch) in enumerate([(0.03, 0.1, 0), (0.06, 0.22, 0), (0.07, 0.3, 1), (0.07, 0.3, 0),
+                                          (0.07, 0.3, 1), (0.03, 0.12, 0)]):
+            out[f"cow_eat_{facing}_{i}"] = (lambda fw=fw, dn=dn, ch=ch, yaw=yaw: cow(yaw, head=(fw, dn), chew=ch))
+    return out

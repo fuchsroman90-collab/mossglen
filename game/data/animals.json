@@ -1,0 +1,4 @@
+{
+	"chicken": {"feed": "feed_chicken", "product": "egg", "time": 60, "xp": 1, "unlock": 1},
+	"cow": {"feed": "feed_cow", "product": "milk", "time": 120, "xp": 2, "unlock": 3}
+}

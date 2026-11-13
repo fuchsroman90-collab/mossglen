@@ -21,8 +21,28 @@ HINT_SWIPE	Wische über leere Beete zum Säen	Swipe over empty fields to sow
 PLACE_HINT	Ziehe das Feld an einen freien Platz	Drag the field to a free spot
 FROM_LEVEL	Ab Lv %d	Lv %d
 READY	Fertig!	Ready!
-CROP_wheat	Weizen	Wheat
-CROP_corn	Mais	Corn
-CROP_carrot	Karotte	Carrot
-CROP_tomato	Tomate	Tomato
-CROP_strawberry	Erdbeere	Strawberry
+ITEM_wheat	Weizen	Wheat
+ITEM_corn	Mais	Corn
+ITEM_carrot	Karotte	Carrot
+ITEM_tomato	Tomate	Tomato
+ITEM_strawberry	Erdbeere	Strawberry
+ITEM_feed_chicken	Hühnerfutter	Chicken feed
+ITEM_feed_cow	Kuhfutter	Cow feed
+ITEM_egg	Ei	Egg
+ITEM_milk	Milch	Milk
+ITEM_bread	Brot	Bread
+ITEM_corn_bread	Maisbrot	Corn bread
+ITEM_carrot_cake	Karottenkuchen	Carrot cake
+ITEM_cream	Sahne	Cream
+ITEM_butter	Butter	Butter
+ITEM_cheese	Käse	Cheese
+BUILDING_feed_mill	Futtermühle	Feed Mill
+BUILDING_bakery	Bäckerei	Bakery
+BUILDING_dairy	Molkerei	Dairy
+ORDERS	Aufträge	Orders
+MAKE	Herstellen	Make
+QUEUE	Warteschlange	Queue
+DELIVER	Liefern	Deliver
+NEXT_ORDER	Nächster Auftrag in	Next order in
+ORDER_DONE	Auftrag geliefert!	Order delivered!
+NEED_FEED	Kein Futter: stelle es in der Futtermühle her.	No feed: make some at the Feed Mill.

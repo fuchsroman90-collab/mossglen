@@ -2,6 +2,26 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-13 – PC-Sitzung: XP-Leiste + M2a (Wirtschaftsschleife)
+
+- Roman: XP-Leiste muss an der rechten Sternspitze hängen („in einem“) → `taste/LIKES.md`, Soll-Bild
+  `taste/xp_bar_soll.png`. Umsetzung: fester Leistenrahmen `xp_frame.png` (kein 9-Slice), Position aus der Sternspitze.
+- 3D neu: Kuh (Idle/Laufen/Fressen, se/ne), Futtermühle (+ drehende Flügel als eigenes Sprite), Bäckerei mit
+  Kuppelofen (Rauch aus dem Schornstein), Molkerei, Auftragstafel.
+  Korrekturen: Mühlendach-Schindeln standen stachelig ab → Ziegelringe; zwei Rundfenster wirkten wie ein Gesicht;
+  Tafel zeigte die Rückseite; Kuh-Halsband stand ab.
+- 2D-Icons: Hühner-/Kuhfutter, Ei, Milch, Brot, Maisbrot, Karottenkuchen, Sahne, Butter, Käse.
+- Daten: `items.json`, `buildings.json` (Rezepte, Slots, Effekte), `animals.json`.
+- Systeme: `production.gd` (Warteschlange auf Echtzeit, läuft offline weiter, Abholen per Antippen, Blase mit
+  Produkt), Tiere füttern/abholen (ein Tipp bedient das ganze Gehege), Aufträge (6 Karten, Liefern, Verwerfen ohne
+  Strafe, neuer Auftrag nach kurzer Wartezeit), alles im Spielstand gespeichert.
+- HUD: Produktionsfenster (Warteschlange mit Fortschritt, Rezepte mit Zutaten habe/brauche), Auftragsfenster,
+  Scheune zweispaltig bei vielen Waren.
+- Selbsttest erweitert (Brot backen, Hühner füttern + Eier holen, Auftrag liefern, Speichern).
+
+Offen für M2b: Schaf, Schwein (Trüffel statt Speck, cozy), Bienen; 5 weitere Gebäude (Marmeladenküche, Webstuhl,
+Popcorn, Saucenküche, Honig/Kerzen). Danach M2 fertig.
+
 ## 2026-11-13 – PC-Sitzung: M1 Vertical Slice
 
 - 4 neue Pflanzen in 3D (Mais, Karotte, Tomate, Erdbeere, je 4 Stufen). Karotte erst „Salat-Look“ → fedriges Kraut.
