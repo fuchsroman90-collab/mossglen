@@ -290,6 +290,56 @@ def flowers(kind="lavender", seed=5, count=26, spread=0.42):
     return root
 
 
+def fern_frond(base, length, yaw, droop, m, parent, width=0.05):
+    """Curved fern frond: a bent tube with leaflet pairs."""
+    pts = []
+    for k in range(5):
+        t = k / 4
+        r = length * t
+        z = length * (0.9 * t - droop * t * t)
+        pts.append((base[0] + math.cos(yaw) * r, base[1] + math.sin(yaw) * r, base[2] + z))
+    kit.curve_tube(pts, r=0.01, m=m, parent=parent)
+    n = 8
+    for k in range(1, n + 1):
+        t = k / (n + 0.5)
+        r = length * t
+        z = length * (0.9 * t - droop * t * t)
+        c = Vector((base[0] + math.cos(yaw) * r, base[1] + math.sin(yaw) * r, base[2] + z))
+        wl = width * (1.5 - t * 0.9)
+        for side in (-1, 1):
+            a = yaw + side * 1.15
+            kit.sphere(wl, m, loc=c + Vector((math.cos(a), math.sin(a), 0)) * wl * 0.9,
+                       scale=(1.9, 0.75, 0.3), rot=(0, 0, a), seg=10, parent=parent)
+
+
+def fern(seed=91, scale=1.0, n=9):
+    rng = random.Random(seed)
+    root = kit.empty("fern")
+    m = mat("fern", "#5DB33C", rough=0.6, spec=0.2, edge=0.45, var=0.08, sss=0.1)
+    for k in range(n):
+        yaw = k / n * 2 * math.pi + rng.uniform(-0.2, 0.2)
+        fern_frond((0, 0, 0.02), rng.uniform(0.45, 0.6) * scale, yaw + 0.0, rng.uniform(0.35, 0.6), m, root,
+                   width=0.05 * scale)
+    for k in range(4):
+        yaw = k / 4 * 2 * math.pi + 0.4
+        fern_frond((0, 0, 0.02), 0.4 * scale, yaw, 0.15, m, root, width=0.045 * scale)
+    return root
+
+
+def cycad(seed=92, height=0.9):
+    rng = random.Random(seed)
+    root = kit.empty("cycad")
+    bark = mat("cycad_bark", "#8A6A4A", rough=0.85, edge=0.5, var=0.06)
+    for k in range(7):
+        kit.cyl(0.16 - k * 0.008, height / 7 + 0.02, bark, loc=(0, 0, k * height / 7), bevel=0.02, verts=14,
+                parent=root, rot=(0, 0, k * 0.4))
+    m = mat("cycad_leaf", "#4E9E3A", rough=0.6, spec=0.2, edge=0.45, var=0.08)
+    for k in range(10):
+        yaw = k / 10 * 2 * math.pi + rng.uniform(-0.15, 0.15)
+        fern_frond((0, 0, height), rng.uniform(0.6, 0.8), yaw, 0.9, m, root, width=0.055)
+    return root
+
+
 def nature_frames():
     return {
         "tree_oak": lambda: oak(seed=11),
@@ -306,4 +356,7 @@ def nature_frames():
         "flowers_sun": lambda: flowers("sun", seed=52, count=20),
         "flowers_rose": lambda: flowers("rose", seed=53, count=20),
         "flowers_white": lambda: flowers("white", seed=54, count=22),
+        "fern_big": lambda: fern(91, 1.4, 11),
+        "cycad": lambda: cycad(92),
+        "cycad_b": lambda: cycad(93, 1.25),
     }

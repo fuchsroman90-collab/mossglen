@@ -638,6 +638,76 @@ def fish_icons() -> dict:
     return {f"fish_{f['id']}": fish_icon(f) for f in data}
 
 
+def item_fern(size=112):
+    o = _o(4)
+    b = ""
+    for ang in (-40, -15, 15, 40):
+        g = f'transform="rotate({ang} 56 100)"'
+        b += f'<path d="M56 100 L56 26" stroke="{OUT}" stroke-width="8" stroke-linecap="round" {g}/>'
+        b += f'<path d="M56 100 L56 26" stroke="#4E9E3A" stroke-width="3" stroke-linecap="round" {g}/>'
+        for i in range(5):
+            y = 36 + i * 12
+            w = 16 - i * 1.5
+            for sd in (-1, 1):
+                b += (f'<ellipse cx="{56 + sd * w * 0.6}" cy="{y}" rx="{w * 0.6}" ry="4.5" fill="#6CC04A" {o} '
+                      f'{g}/>')
+    return _item(b, size)
+
+
+def item_fossil(size=112):
+    o = _o(5)
+    return _item(f'<ellipse cx="56" cy="70" rx="44" ry="30" fill="#C8B49A" {o}/>'
+                 f'<path d="M30 64 C40 54 50 76 60 62 C68 52 78 70 84 60" stroke="#F6EEDC" stroke-width="9" fill="none" '
+                 f'stroke-linecap="round"/>'
+                 + "".join(f'<path d="M{x} {y} l -6 12" stroke="#F6EEDC" stroke-width="5" stroke-linecap="round"/>'
+                           for x, y in [(40, 62), (52, 70), (64, 62), (76, 64)])
+                 + f'<circle cx="28" cy="62" r="8" fill="#F6EEDC" {_o(3)}/><circle cx="25" cy="60" r="2" fill="{OUT}"/>',
+                 size)
+
+
+def item_amber(size=112):
+    o = _o(5)
+    return _item(f'<path d="M56 14 L88 40 L80 90 L36 98 L22 52 Z" fill="#F2A023" {o}/>'
+                 f'<path d="M56 14 L88 40 L60 50 L22 52 Z" fill="#FFC24A"/>'
+                 f'<path d="M56 14 L88 40 L80 90 L36 98 L22 52 Z" fill="none" {o}/>'
+                 f'<path d="M48 64 l6 -4 l6 4 l-6 4 Z M54 60 l0 -8 M54 68 l0 8" stroke="#8A4A10" stroke-width="3" '
+                 f'fill="#8A4A10" opacity="0.7"/>'
+                 f'<ellipse cx="44" cy="40" rx="8" ry="4" fill="#FFFFFF" opacity="0.6" transform="rotate(-30 44 40)"/>',
+                 size)
+
+
+def item_big_egg(base="#F4EAD8", spot="#7FCF8E", size=112):
+    import random as _r
+    rng = _r.Random(base + spot)
+    spots = "".join(f'<ellipse cx="{rng.uniform(34, 78):.1f}" cy="{rng.uniform(34, 92):.1f}" rx="{rng.uniform(4, 8):.1f}" '
+                    f'ry="{rng.uniform(3, 6):.1f}" fill="{spot}"/>' for _ in range(8))
+    egg = "M56 10 C82 10 94 54 92 72 C90 94 74 104 56 104 C38 104 22 94 20 72 C18 54 30 10 56 10 Z"
+    return _item(f'<defs><clipPath id="eg"><path d="{egg}"/></clipPath></defs>'
+                 f'<path d="{egg}" fill="{base}" {_o()}/><g clip-path="url(#eg)">{spots}</g>'
+                 f'<path d="{egg}" fill="none" {_o()}/>'
+                 f'<ellipse cx="42" cy="38" rx="7" ry="13" fill="#FFFFFF" opacity="0.6" transform="rotate(20 42 38)"/>',
+                 size)
+
+
+def item_pancake(size=112):
+    o = _o(5)
+    b = f'<ellipse cx="56" cy="88" rx="46" ry="12" fill="#FFFFFF" {o}/>'
+    for i in range(4):
+        y = 80 - i * 13
+        b += f'<ellipse cx="56" cy="{y}" rx="38" ry="12" fill="#E9A85A" {o}/>'
+        b += f'<ellipse cx="56" cy="{y - 2}" rx="34" ry="8" fill="#F5C47A"/>'
+    b += (f'<path d="M34 38 C40 30 72 30 78 38 C76 44 70 42 66 50 C62 44 50 46 46 52 C42 44 36 44 34 38 Z" '
+          f'fill="#F2A923" {_o(3)}/><rect x="48" y="24" width="16" height="10" rx="3" fill="#FFE57A" {_o(3)}/>')
+    return _item(b, size)
+
+
+def dino_glyph(size=96):
+    o = _o(6)
+    return _glyph(f'<ellipse cx="48" cy="60" rx="20" ry="24" fill="#7FCF8E" {o}/>'
+                  + "".join(f'<ellipse cx="{x}" cy="{y}" rx="7" ry="10" fill="#7FCF8E" {o} transform="rotate({r} {x} {y})"/>'
+                            for x, y, r in [(26, 30, -25), (48, 22, 0), (70, 30, 25)]), size)
+
+
 def slot(size=128):
     """Round cream slot for item icons in menus."""
     c = size / 2
@@ -652,9 +722,19 @@ def badge(size=56):
                   f'fill="#3FA535"/>', size, size)
 
 
+DINO_COLORS = {
+    "moosaurus": ("#7FCF8E", "#4E9E63"), "trikeri": ("#F4B183", "#D9825A"), "stegolino": ("#B9A6E8", "#8A72C8"),
+    "ankyknubbel": ("#C8B98A", "#9A8A5A"), "parasauri": ("#8EC8EE", "#5A9AD0"), "segelruecken": ("#F4908A", "#D9605A"),
+    "pachy": ("#E8D0A0", "#C8A870"), "stachelchen": ("#6EC8B8", "#3A9A8A"), "flauschi": ("#FFD86A", "#F2A923"),
+    "brontobeere": ("#C88AD8", "#F28AB8"),
+}
+
+
 def ui_images_all() -> dict:
     d = ui_images()
     d.update(fish_icons())
+    for sp, (a, b) in DINO_COLORS.items():
+        d[f"item_egg_{sp}"] = item_big_egg(a, b)
     return d
 
 
@@ -721,6 +801,13 @@ def ui_images() -> dict:
         "rod_bamboo": rod_icon(color="#9CC95A"),
         "rod_gold": rod_icon(color="#FFC93C"),
         "ico_book": book(),
+        "ico_dino": dino_glyph(),
+        "item_fern": item_fern(),
+        "item_fossil": item_fossil(),
+        "item_amber": item_amber(),
+        "item_primeval_egg": item_big_egg("#E8DCC0", "#8A6A4A"),
+        "item_giant_pancake": item_pancake(),
+        "item_amber_candle": item_candle("#F2A023", "#FFF4DA"),
     }
 
 

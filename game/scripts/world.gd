@@ -42,7 +42,16 @@ var hud: Hud
 var fields: Dictionary = {}  # Vector2i -> Field
 var animals: Array[Animal] = []
 var production: Dictionary = {}  # building id -> ProductionBuilding
+const VILLAGE := {"cafe": Vector2(9.2, -2.4), "market": Vector2(16.4, -2.2), "museum": Vector2(20.4, -3.2),
+	"library": Vector2(5.8, -3.0), "lighthouse": Vector2(2.4, -6.4)}
+const NPC_SPOTS := {"brumm": Vector2(12.2, 0.4), "lotte": Vector2(11.4, -5.1), "fenna": Vector2(29.8, 8.3),
+	"pip": Vector2(15.2, -0.7)}
+var _village: Dictionary = {}
+var npcs: Dictionary = {}  # id -> Node2D
 var _swimmers_root: Node2D
+var _dig_sprites: Array[Sprite2D] = []
+var _meadow_rect := Rect2i()
+var _dig_t := 0.0
 var _swimmers: Array[Sprite2D] = []
 const POND_CELLS := [Vector2i(3, 18), Vector2i(4, 18), Vector2i(3, 19), Vector2i(4, 19), Vector2i(5, 19),
 	Vector2i(4, 20)]
@@ -84,7 +93,7 @@ func _ready() -> void:
 	_sway_crop = _make_sway(5.0, 1.6, 60.0)
 	_sway_tree = _make_sway(5.0, 1.1, 420.0)
 	_sway_bush = _make_sway(3.0, 1.4, 120.0)
-	_mask = Image.create(MASK_SIZE, MASK_SIZE, false, Image.FORMAT_RG8)
+	_mask = Image.create(MASK_SIZE, MASK_SIZE, false, Image.FORMAT_RGB8)
 	objects = Node2D.new()
 	objects.y_sort_enabled = true
 	fx = Node2D.new()
@@ -96,6 +105,9 @@ func _ready() -> void:
 	add_child(objects)
 	add_child(fx)
 	Game.fish_caught.connect(func(_id: String) -> void: _refresh_swimmers())
+	Game.dino_hatched.connect(_on_dino_hatched)
+	Game.restored_building.connect(_on_restored)
+	_update_digs.call_deferred()
 	_refresh_swimmers.call_deferred()
 	cam = Camera2D.new()
 	add_child(cam)
@@ -170,7 +182,7 @@ func _dirt(cell: Vector2i, amount := 1.0) -> void:
 	if p.x < 0 or p.y < 0 or p.x >= MASK_SIZE or p.y >= MASK_SIZE:
 		return
 	var cur := _mask.get_pixelv(p)
-	_mask.set_pixelv(p, Color(maxf(cur.r, amount), cur.g, 0))
+	_mask.set_pixelv(p, Color(maxf(cur.r, amount), cur.g, cur.b))
 
 
 func _water(cell: Vector2i, amount := 1.0) -> void:
@@ -178,8 +190,16 @@ func _water(cell: Vector2i, amount := 1.0) -> void:
 	if p.x < 0 or p.y < 0 or p.x >= MASK_SIZE or p.y >= MASK_SIZE:
 		return
 	var cur := _mask.get_pixelv(p)
-	_mask.set_pixelv(p, Color(cur.r, maxf(cur.g, amount), 0))
+	_mask.set_pixelv(p, Color(cur.r, maxf(cur.g, amount), cur.b))
 	occupied[cell] = true
+
+
+func _moss(cell: Vector2i, amount := 1.0) -> void:
+	var p := cell - Vector2i(MAP_MIN, MAP_MIN)
+	if p.x < 0 or p.y < 0 or p.x >= MASK_SIZE or p.y >= MASK_SIZE:
+		return
+	var cur := _mask.get_pixelv(p)
+	_mask.set_pixelv(p, Color(cur.r, cur.g, maxf(cur.b, amount)))
 
 
 func _dirt_rect(r: Rect2i, amount := 1.0) -> void:
@@ -257,9 +277,10 @@ func _build_farm() -> void:
 	_fence_rect(meadow, Vector2i(meadow.position.x, meadow.end.y))
 	_add_prop("rock", Vector2(18.9, 11.6), null)
 	_add_prop("bush", Vector2(16.2, 11.3), _sway_bush)
-	for i in 2:
-		_add_animal("dino", Rect2i(meadow.position + Vector2i(0, 1), meadow.size - Vector2i(1, 1)), rng,
-				Vector2(16.4 + i * 2.0, 12.2 + i * 1.6))
+	_meadow_rect = Rect2i(meadow.position + Vector2i(0, 1), meadow.size - Vector2i(1, 1))
+	for i in Game.meadow.size():
+		_add_animal("dino_" + str(Game.meadow[i]), _meadow_rect, rng,
+				Vector2(16.4 + (i % 3) * 1.2, 11.8 + (i / 3) * 1.0 + (i % 2) * 0.4))
 
 	# production buildings on dirt pads
 	_add_building("feed_mill", Vector2i(5, 5))
@@ -332,6 +353,66 @@ func _build_farm() -> void:
 	for x in range(1, 9):
 		for y in range(16, 23):
 			occupied[Vector2i(x, y)] = true
+
+	# Mossbrook village by the sea in the north
+	for x in range(-10, 40):
+		for y in range(-10, -6):
+			_water(Vector2i(x, y), 1.0 if y < -7 else 0.6)
+		_dirt(Vector2i(x, -6), 0.75)
+		_dirt(Vector2i(x, -5), 0.35)
+	for x in range(-2, 25):
+		for y in range(-6, 1):
+			occupied[Vector2i(x, y)] = true
+	_dirt_rect(Rect2i(7, -3, 12, 3), 0.7)
+	for y in range(-1, 9):
+		_dirt(Vector2i(13, y), 0.85)
+		occupied[Vector2i(13, y)] = true
+	_add_static("fountain", Vector2(12.6, -2.2))
+	for id in ["cafe", "market", "museum", "library", "lighthouse"]:
+		var pos: Vector2 = VILLAGE[id]
+		var b := _add_prop(id if Game.restored.has(id) else id + "_ruin", pos, null)
+		b.set_meta("village", id)
+		b.set_meta("squash", 0.04)
+		_village[id] = b
+	var pier := _add_prop("dock_sea", Vector2(10.4, -5.8), null)
+	pier.set_meta("spot", "sea")
+	pier.set_meta("squash", 0.04)
+	for spot in [Vector2(5.0, -0.2), Vector2(21.5, -0.5), Vector2(23.4, -3.2), Vector2(15.4, 0.4)]:
+		_add_prop("tree_apple" if int(spot.x) % 2 == 0 else "bush_berry", spot, _sway_tree)
+	for spot in [Vector2(10.5, 0.2), Vector2(18.6, 0.4), Vector2(6.8, -0.6)]:
+		_add_prop("flowers_rose", spot, _sway_bush)
+	for id in NPC_SPOTS:
+		_add_npc(id, NPC_SPOTS[id])
+
+	# the Primeval Vale beyond the creek
+	for x in range(28, 37):
+		for y in range(-2, 19):
+			var edge := minf(float(x - 28) / 2.0 + 0.3, 1.0)
+			_moss(Vector2i(x, y), edge)
+			occupied[Vector2i(x, y)] = true
+	for x in range(29, 34):
+		_dirt(Vector2i(x, 6), 0.8)
+	_dirt(Vector2i(33, 7), 0.7)
+	_dirt(Vector2i(33, 8), 0.7)
+	_add_static("bridge", Vector2(27.5, 6.0))
+	_add_static("sign_valley", Vector2(29.3, 7.5))
+	var digs := [Vector2(30.2, 3.0), Vector2(32.3, 3.6), Vector2(31.2, 9.2), Vector2(34.5, 4.6), Vector2(30.4, 11.6),
+		Vector2(32.6, 11.0)]
+	for i in digs.size():
+		_dirt(Vector2i(digs[i].round()), 0.55)
+		var d := _add_prop("dig_full", digs[i], null)
+		d.set_meta("dig", "dig_%d" % i)
+		d.set_meta("squash", 0.12)
+		_dig_sprites.append(d)
+	_add_building("nest", Vector2i(34, 13))
+	for spot in [Vector2(29.0, 1.5), Vector2(35.5, 2.5), Vector2(35.8, 8.5), Vector2(29.2, 14.6), Vector2(31.6, 15.8),
+			Vector2(35.6, 16.5), Vector2(30.0, 17.5), Vector2(34.4, 0.2)]:
+		_add_prop("cycad" if int(spot.x * 10) % 3 == 0 else "cycad_b", spot, _sway_tree)
+	for spot in [Vector2(31.0, 1.0), Vector2(33.6, 1.8), Vector2(29.0, 4.4), Vector2(35.4, 6.4), Vector2(31.8, 7.4),
+			Vector2(29.4, 9.4), Vector2(35.2, 11.0), Vector2(32.0, 13.4), Vector2(30.0, 14.0), Vector2(33.0, 16.0)]:
+		_add_prop("fern_big", spot, _sway_bush)
+	for spot in [Vector2(33.5, 9.8), Vector2(29.6, 16.0), Vector2(36.0, 13.5)]:
+		_add_prop("rock", spot, null)
 
 	# fishing docks: pond and the creek on the east side
 	var d1 := _add_prop("dock_pond", Vector2(7.3, 18.5), null)
@@ -430,6 +511,58 @@ func _add_building(id: String, cell: Vector2i, size := Vector2i(3, 3)) -> Produc
 	return b
 
 
+func _add_npc(id: String, g: Vector2) -> void:
+	var n := Node2D.new()
+	n.position = grid_to_world(g)
+	n.set_meta("npc", id)
+	var sh := Atlas.sprite("shadow_blob")
+	sh.scale = Vector2(1.2, 1.1)
+	n.add_child(sh)
+	var s := Atlas.sprite("npc_%s_0" % id)
+	s.name = "Body"
+	n.add_child(s)
+	var mark := Label.new()
+	mark.name = "Mark"
+	mark.text = "!"
+	mark.add_theme_font_override("font", Game.font_bold)
+	mark.add_theme_font_size_override("font_size", 90)
+	mark.add_theme_color_override("font_color", Color("FFD23F"))
+	mark.add_theme_color_override("font_outline_color", Color("5A3410"))
+	mark.add_theme_constant_override("outline_size", 22)
+	mark.position = Vector2(-22, -Atlas.anchor("npc_%s_0" % id).y - 130)
+	n.add_child(mark)
+	n.set_meta("t", randf() * 3.0)
+	objects.add_child(n)
+	npcs[id] = n
+
+
+func _update_npcs(delta: float) -> void:
+	var q := Game.quest()
+	for id in npcs:
+		var n: Node2D = npcs[id]
+		var t: float = n.get_meta("t") + delta
+		n.set_meta("t", t)
+		var body: Sprite2D = n.get_node("Body")
+		var f := int(t * 5.0) % 6
+		var wave := fmod(t, 9.0) < 1.6
+		var frame := ("npc_%s_wave_%d" % [id, int(t * 6.0) % 4]) if wave else ("npc_%s_%d" % [id, f])
+		if body.get_meta("frame", "") != frame:
+			Atlas.apply(body, frame)
+			body.set_meta("frame", frame)
+		var mark: Label = n.get_node("Mark")
+		mark.visible = not q.is_empty() and q["npc"] == id and Game.quest_stage != "active"
+		if mark.visible:
+			mark.position.y = -Atlas.anchor("npc_%s_0" % id).y - 130 + sin(t * 4.0) * 8.0
+
+
+func _on_restored(id: String) -> void:
+	var b: Sprite2D = _village[id]
+	Atlas.apply(b, id)
+	b.set_meta("sprite", id)
+	Field.squash(b, 0.15)
+	_puff(b.position + Vector2(0, -120), "fx_leaf", 12)
+
+
 func _add_field(cell: Vector2i) -> Field:
 	var f: Field = FieldScript.new()
 	f.cell = cell
@@ -464,7 +597,7 @@ func _add_animal(kind: String, pen: Rect2i, rng: RandomNumberGenerator, start :=
 		return grid_to_world(Vector2(randf_range(pen.position.x - 0.2, pen.end.x - 0.8),
 				randf_range(pen.position.y - 0.2, pen.end.y - 0.8)))
 	a.random_point = pick
-	a.pen_id = kind
+	a.pen_id = "dino" if kind.begins_with("dino_") else kind
 	a.position = grid_to_world(Vector2(pen.position) + Vector2(rng.randf_range(0, pen.size.x - 1),
 			rng.randf_range(0, pen.size.y - 1)))
 	if start.x > -999.0:
@@ -634,6 +767,7 @@ func _harvest(f: Field) -> void:
 		return
 	f.harvest()
 	Game.add_item(crop, amount)
+	Game.event("harvest", crop, amount)
 	_combo += 1
 	var pitch := 1.0 + 0.06 * mini(_combo - 1, 10)
 	Audio.play("harvest", pitch, 0.02)
@@ -658,6 +792,7 @@ func _animal_tap(a: Animal) -> void:
 				break
 			var item := x.collect()
 			Game.add_item(item, 1)
+			Game.event("collect", item)
 			Game.add_xp(int(x.def()["xp"]))
 			_float_reward(x.position + Vector2(0, -120), 1, "item_%s.png" % item)
 			got += 1
@@ -698,6 +833,11 @@ func _on_seed_chosen(crop: String) -> void:
 
 
 func _tap(world: Vector2) -> void:
+	for id in npcs:
+		var n: Node2D = npcs[id]
+		if world.distance_to(n.position + Vector2(0, -110)) < 90.0:
+			hud.story.talk(id)
+			return
 	for a in animals:
 		if world.distance_to(a.tap_point()) < 70.0:
 			if a.produces():
@@ -711,6 +851,9 @@ func _tap(world: Vector2) -> void:
 		if b.sprite.get_rect().has_point(b.sprite.to_local(world)) and _opaque_at(b.sprite, world):
 			if hit == null or b.position.y > hit.position.y:
 				hit = b
+	if hit != null and hit.id == "nest" and Game.level < Game.VALLEY_LEVEL:
+		Game.toast.emit(tr("VALLEY_LOCKED"), "ico_dino.png")
+		return
 	if hit != null:
 		Field.squash(hit.sprite, 0.05)
 		if not hit.done.is_empty():
@@ -741,6 +884,42 @@ func _tap(world: Vector2) -> void:
 			return
 		if n == "order_board":
 			hud.open_orders()
+			return
+		if best.has_meta("village"):
+			var vid: String = best.get_meta("village")
+			if not Game.restored.has(vid):
+				hud.story.open_restore(vid)
+			else:
+				match vid:
+					"market":
+						hud.story.open_market()
+					"museum":
+						hud.story.open_museum()
+					"library":
+						hud.story.open_library()
+					"cafe":
+						hud.open_orders()
+					"lighthouse":
+						Audio.play("levelup", 1.4)
+			return
+		if best.has_meta("spot") and best.get_meta("spot") == "sea" and not Game.restored.has("lighthouse"):
+			Game.toast.emit(tr("SEA_LOCKED"), "bobber.png")
+			return
+		if best.has_meta("dig"):
+			if Game.level < Game.VALLEY_LEVEL:
+				Game.toast.emit(tr("VALLEY_LOCKED"), "ico_dino.png")
+				return
+			var found := Game.dig(best.get_meta("dig"))
+			if found == "":
+				Game.toast.emit(tr("DIG_EMPTY"), "item_fossil.png")
+			else:
+				Audio.play("dig")
+				_puff(best.position + Vector2(0, -30), "fx_grain", 6)
+				_float_reward(best.position + Vector2(0, -110), 1, "item_%s.png" % found)
+				if found.begins_with("egg_"):
+					Audio.play("levelup", 1.2)
+					Game.toast.emit(tr("DIG_FOUND") % tr("ITEM_" + found), "item_%s.png" % found)
+				_update_digs()
 			return
 		if best.has_meta("spot"):
 			var spot: String = best.get_meta("spot")
@@ -777,8 +956,8 @@ func zoom_at(screen_pos: Vector2, factor: float) -> void:
 
 
 func _clamp_cam() -> void:
-	var c := grid_to_world(Vector2(13, 13))
-	cam.position = cam.position.clamp(c - Vector2(2800, 1700), c + Vector2(2800, 1700))
+	var c := grid_to_world(Vector2(16, 8))
+	cam.position = cam.position.clamp(c - Vector2(3600, 2400), c + Vector2(3600, 2400))
 
 
 # ------------------------------------------------------------------ build mode
@@ -889,6 +1068,24 @@ func day_phase() -> float:
 
 
 ## "day", "dusk" (dawn counts as dusk) or "night" for the fish tables.
+func _update_digs() -> void:
+	for d in _dig_sprites:
+		var full := Game.dig_ready(d.get_meta("dig"))
+		var want := "dig_full" if full else "dig_empty"
+		if d.get_meta("sprite") != want:
+			Atlas.apply(d, want)
+			d.set_meta("sprite", want)
+
+
+func _on_dino_hatched(species: String) -> void:
+	var rng := RandomNumberGenerator.new()
+	var a := _add_animal("dino_" + species, _meadow_rect, rng,
+			Vector2(_meadow_rect.position) + Vector2(1.2, 1.0))
+	Audio.play("levelup")
+	_puff(a.position + Vector2(0, -60), "fx_leaf", 8)
+	Game.toast.emit(tr("DINO_HATCHED") % Game.dino_name(species), "ico_dino.png")
+
+
 func time_name() -> String:
 	var p := day_phase()
 	if p >= 0.28 and p < 0.72:
@@ -1077,6 +1274,15 @@ func _debug_ui(which: String) -> void:
 			hud.start_fishing("pond", "pond", "day")
 			hud.fishing._wait = 0.1
 			hud.fishing.set_meta("auto_tap", true)
+		"talk":
+			hud.story.talk("brumm")
+		"restore":
+			hud.story.open_restore("cafe")
+		"pedia":
+			for d in Game.dinos.slice(0, 6):
+				Game.dino_seen[d["id"]] = true
+			hud.open_dinopedia()
+			hud._fill_pedia("trikeri")
 		"album":
 			for f in Game.fish.slice(0, 22):
 				Game.record_catch(f["id"], float(f["size"][1]) * 0.8)
@@ -1104,7 +1310,7 @@ func _take_shot(path: String) -> void:
 
 func _run_smoke() -> void:
 	var errors: Array[String] = []
-	var need := ["field", "barn", "chicken_walk_se_0", "chicken_peck_ne_5", "dino_idle_se_0", "tree_oak",
+	var need := ["field", "barn", "chicken_walk_se_0", "chicken_peck_ne_5", "dino_moosaurus_idle_se_0", "dig_full", "nest", "bridge", "tree_oak",
 		"tree_pine", "fence_x", "fence_y", "shadow_blob"]
 	for c in Game.crop_order:
 		for st in 4:
@@ -1207,7 +1413,7 @@ func _run_smoke() -> void:
 	var kinds := {}
 	for a in animals:
 		kinds[a.kind] = true
-	for k in ["chicken", "cow", "sheep", "pig"]:
+	for k in ["chicken", "cow", "sheep", "pig", "dino_moosaurus"]:
 		if not kinds.has(k):
 			errors.append("missing animal " + k)
 	# fishing: stock, roll, record, album
@@ -1226,6 +1432,47 @@ func _run_smoke() -> void:
 	hud.start_fishing("river", "river", "night")
 	if hud.fishing == null:
 		errors.append("fishing overlay did not open")
+	# dinos: dig in the vale, hatch an egg in the nest, it joins the meadow
+	Game.level = maxi(Game.level, Game.VALLEY_LEVEL)
+	Game.digs.clear()
+	var found := Game.dig("dig_0")
+	if found == "" or Game.dig("dig_0") != "":
+		errors.append("digging broken")
+	Game.add_item("egg_trikeri", 1, true)
+	var nest: ProductionBuilding = production["nest"]
+	var r_idx := -1
+	for i in nest.recipes().size():
+		if nest.recipes()[i]["out"] == "dino_trikeri":
+			r_idx = i
+	var dinos_before := animals.size()
+	if not nest.start(r_idx):
+		errors.append("nest could not start")
+	nest.queue[0]["end"] = Time.get_unix_time_from_system() - 1.0
+	nest.tick()
+	nest.collect()
+	if animals.size() != dinos_before + 1 or not Game.dino_seen.has("trikeri"):
+		errors.append("hatching did not add a dino")
+	hud.open_dinopedia()
+	# story: talk to Brumm, harvest wheat, claim the reward
+	Game.quest_index = 0
+	Game.quest_stage = "intro"
+	if Game.talk("brumm").is_empty() or Game.quest_stage != "active":
+		errors.append("quest intro failed")
+	Game.event("harvest", "wheat", 6)
+	var lvl_coins := Game.coins
+	if Game.quest_stage != "ready" or Game.talk("brumm").is_empty() or Game.quest_index != 1 \
+			or Game.coins <= lvl_coins:
+		errors.append("quest completion failed")
+	hud.story.talk("brumm")
+	# restore the lighthouse
+	Game.level = maxi(Game.level, 5)
+	Game.add_item("candle", 2, true)
+	Game.add_item("cloth", 1, true)
+	Game.add_coins(1000)
+	if not Game.restore("lighthouse") or _village["lighthouse"].get_meta("sprite") != "lighthouse":
+		errors.append("restoring the lighthouse failed")
+	if Game.order_slots() != Game.ORDER_SLOTS:
+		errors.append("order slots wrong before the cafe")
 	var ws := _save_world()
 	if not ws.has("buildings") or not ws["pens"].has("chicken"):
 		errors.append("production state not saved")
@@ -1269,6 +1516,11 @@ func _setup_bench() -> void:
 func _process(delta: float) -> void:
 	_check_long_press(delta)
 	_move_swimmers(delta)
+	_update_npcs(delta)
+	_dig_t += delta
+	if _dig_t > 1.0:
+		_dig_t = 0.0
+		_update_digs()
 	_day_t += delta
 	if _day_t > 1.0:
 		_day_t = 0.0

@@ -30,6 +30,7 @@ REGISTRY = [
     ("animals", "sheep_frames", False, 40),
     ("animals", "pig_frames", False, 40),
     ("icons", "icon_frames", False, 48),
+    ("village", "village_frames", True, 48),
 ]
 
 
@@ -37,6 +38,7 @@ REGISTRY = [
 DEPS = {
     "buildings": ["farm", "nature"],
     "farm": ["nature"],
+    "village": ["animals", "buildings", "farm", "nature"],
 }
 
 
@@ -80,7 +82,8 @@ def main(argv: list[str]) -> int:
                 current = samples
             kit.clear_stage()
             build()
-            sh = CACHE / f"{name}_shadow.png" if shadow and name not in NO_SHADOW else None
+            floating = name in NO_SHADOW or name.startswith("npc_")
+            sh = CACHE / f"{name}_shadow.png" if shadow and not floating else None
             t = time.time()
             info = kit.fit_and_render(str(obj), str(sh) if sh else None)
             meta[name] = {"key": key, "ax": info["ax"], "ay": info["ay"], "shadow": sh is not None, "module": module}

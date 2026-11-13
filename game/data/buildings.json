@@ -94,6 +94,18 @@
 				"time": 150,
 				"xp": 6,
 				"unlock": 4
+			},
+			{
+				"out": "giant_pancake",
+				"n": 1,
+				"in": {
+					"primeval_egg": 1,
+					"milk": 1,
+					"wheat": 2
+				},
+				"time": 180,
+				"xp": 8,
+				"unlock": 6
 			}
 		]
 	},
@@ -281,6 +293,133 @@
 				"time": 240,
 				"xp": 9,
 				"unlock": 7
+			},
+			{
+				"out": "amber_candle",
+				"n": 1,
+				"in": {
+					"candle": 1,
+					"amber": 1
+				},
+				"time": 200,
+				"xp": 9,
+				"unlock": 6
+			}
+		]
+	},
+	"nest": {
+		"slots": 2,
+		"fx": {},
+		"recipes": [
+			{
+				"out": "dino_moosaurus",
+				"n": 1,
+				"in": {
+					"egg_moosaurus": 1
+				},
+				"time": 300,
+				"xp": 10,
+				"unlock": 4,
+				"spawn": true
+			},
+			{
+				"out": "dino_trikeri",
+				"n": 1,
+				"in": {
+					"egg_trikeri": 1
+				},
+				"time": 300,
+				"xp": 10,
+				"unlock": 4,
+				"spawn": true
+			},
+			{
+				"out": "dino_stegolino",
+				"n": 1,
+				"in": {
+					"egg_stegolino": 1
+				},
+				"time": 300,
+				"xp": 10,
+				"unlock": 4,
+				"spawn": true
+			},
+			{
+				"out": "dino_parasauri",
+				"n": 1,
+				"in": {
+					"egg_parasauri": 1
+				},
+				"time": 300,
+				"xp": 10,
+				"unlock": 4,
+				"spawn": true
+			},
+			{
+				"out": "dino_ankyknubbel",
+				"n": 1,
+				"in": {
+					"egg_ankyknubbel": 1
+				},
+				"time": 360,
+				"xp": 12,
+				"unlock": 4,
+				"spawn": true
+			},
+			{
+				"out": "dino_segelruecken",
+				"n": 1,
+				"in": {
+					"egg_segelruecken": 1
+				},
+				"time": 360,
+				"xp": 12,
+				"unlock": 4,
+				"spawn": true
+			},
+			{
+				"out": "dino_pachy",
+				"n": 1,
+				"in": {
+					"egg_pachy": 1
+				},
+				"time": 360,
+				"xp": 12,
+				"unlock": 4,
+				"spawn": true
+			},
+			{
+				"out": "dino_stachelchen",
+				"n": 1,
+				"in": {
+					"egg_stachelchen": 1
+				},
+				"time": 360,
+				"xp": 12,
+				"unlock": 4,
+				"spawn": true
+			},
+			{
+				"out": "dino_flauschi",
+				"n": 1,
+				"in": {
+					"egg_flauschi": 1
+				},
+				"time": 420,
+				"xp": 14,
+				"unlock": 4,
+				"spawn": true
+			},
+			{
+				"out": "dino_brontobeere",
+				"n": 1,
+				"in": {
+					"egg_brontobeere": 1
+				},
+				"time": 480,
+				"xp": 16,
+				"unlock": 4,
+				"spawn": true
 			}
 		]
 	}

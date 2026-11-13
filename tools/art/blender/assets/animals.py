@@ -138,97 +138,167 @@ def chicken_frames():
     return out
 
 
-# ---------------------------------------------------------------- baby dino
+# ---------------------------------------------------------------- baby dinos (10 species)
 
 DINO_SKIN = "#7FCF8E"
 DINO_BELLY = "#F4E9C8"
 DINO_SPOT = "#4E9E63"
 
+# id: skin, spot, edge, neck (0 short .. 1 long), extras
+DINOS = {
+    "moosaurus": {"skin": "#7FCF8E", "spot": "#4E9E63", "edge": "#2F6E48", "neck": 1.0, "x": ["plates_soft"]},
+    "trikeri": {"skin": "#F4B183", "spot": "#D9825A", "edge": "#8A4A2A", "neck": 0.0, "x": ["frill", "horns3"]},
+    "stegolino": {"skin": "#B9A6E8", "spot": "#8A72C8", "edge": "#4E3A86", "neck": 0.25, "x": ["plates_big", "tail_spikes"]},
+    "ankyknubbel": {"skin": "#C8B98A", "spot": "#9A8A5A", "edge": "#5A4A2A", "neck": 0.0, "x": ["armor", "club"]},
+    "parasauri": {"skin": "#8EC8EE", "spot": "#5A9AD0", "edge": "#2A5A8A", "neck": 0.45, "x": ["crest"]},
+    "segelruecken": {"skin": "#F4908A", "spot": "#D9605A", "edge": "#8A2A2A", "neck": 0.2, "x": ["sail"]},
+    "pachy": {"skin": "#E8D0A0", "spot": "#C8A870", "edge": "#7A5A2A", "neck": 0.3, "x": ["dome"]},
+    "stachelchen": {"skin": "#6EC8B8", "spot": "#3A9A8A", "edge": "#1E5A50", "neck": 0.3, "x": ["spikes"]},
+    "flauschi": {"skin": "#FFD86A", "spot": "#F2A923", "edge": "#8A5A10", "neck": 0.5, "x": ["fluff"]},
+    "brontobeere": {"skin": "#C88AD8", "spot": "#F28AB8", "edge": "#6A2A7A", "neck": 1.3, "x": ["plates_soft"]},
+}
 
-def dino(yaw: float, neck=0.0, head_tilt=0.0, legs=(0.0, 0.0), body_z=0.0, tail=0.0, blink=0.0, squash=0.0):
-    """Chibi baby long-neck ('Moosaurus'), ~0.8 m tall. Local +X is forward.
 
-    neck: sideways sway in degrees, legs: swing angles for the two diagonal leg pairs.
-    """
+def dino(yaw: float, species="moosaurus", neck=0.0, head_tilt=0.0, legs=(0.0, 0.0), body_z=0.0, tail=0.0,
+         blink=0.0, squash=0.0):
+    """Chibi baby dino. All species share the body; extras (frill, plates, crest ...) make them distinct."""
+    sp = DINOS[species]
+    nl = sp["neck"]
     root = kit.empty("dino", rot=(0, 0, math.radians(yaw)))
     body = kit.empty("body", loc=(0, 0, body_z), parent=root)
     s = 1.0 + squash
-    skin = mat("dino_skin", DINO_SKIN, rough=0.5, spec=0.3, edge=0.55, edge_color="#2F6E48", sss=0.06)
+    skin = mat("dino_skin_" + species, sp["skin"], rough=0.5, spec=0.3, edge=0.55, edge_color=sp["edge"], sss=0.06)
+    spot = mat("dino_spot_" + species, sp["spot"], rough=0.5, spec=0.25, edge=0.4)
     sw = math.sin(math.radians(neck))
-    spine = [(-0.64, 0.14 * tail, 0.2), (-0.46, 0.07 * tail, 0.25), (-0.26, 0.0, 0.3), (0.0, 0.0, 0.33 * s),
-             (0.2, 0.0, 0.4), (0.3, 0.03 * sw, 0.55), (0.35, 0.08 * sw, 0.72),
-             (0.38, 0.12 * sw, 0.86 - 0.02 * head_tilt)]
-    radii = [0.05, 0.1, 0.2, 0.3, 0.24, 0.15, 0.13, 0.13]
+    hz = 0.55 + 0.37 * nl
+    hx = 0.36 + 0.06 * (1 - nl)
+    tail_len = 1.25 if "club" in sp["x"] else 1.0
+    spine = [(-0.64 * tail_len, 0.14 * tail, 0.2), (-0.46, 0.07 * tail, 0.25), (-0.26, 0.0, 0.3), (0.0, 0.0, 0.33 * s),
+             (0.2, 0.0, 0.4), (0.28 + 0.02 * nl, 0.03 * sw, 0.45 + 0.1 * nl), (0.33, 0.08 * sw, 0.5 + 0.22 * nl),
+             (hx - 0.04, 0.12 * sw, hz - 0.06 - 0.02 * head_tilt)]
+    radii = [0.05, 0.1, 0.2, 0.3, 0.24, 0.17 - 0.02 * nl, 0.14 - 0.01 * nl, 0.13]
     elems = kit.chain(spine, radii, steps=7)
-    head_c = Vector((0.42, 0.12 * sw, 0.92 - 0.02 * head_tilt))
+    head_c = Vector((hx, 0.12 * sw, hz - 0.02 * head_tilt))
     elems.append({"co": tuple(head_c), "r": 0.24, "type": "ELLIPSOID", "size": (1.15, 0.92, 0.85), "stiff": 2.0})
     elems.append({"co": tuple(head_c + Vector((0.12, 0, -0.03))), "r": 0.17, "stiff": 2.0})
+    if "dome" in sp["x"]:
+        elems.append({"co": tuple(head_c + Vector((-0.02, 0, 0.12))), "r": 0.2, "stiff": 2.0})
     bo = kit.to_mesh(kit.blob(elems, skin, name="dino", parent=body))
     surf = kit.Surface([bo])
+    W = lambda loc: kit.world(body, loc)  # noqa: E731
 
-    # belly patch and spots placed on the real surface
+    def stick(o, p, n):
+        kit.place_on(o, p, n)
+        o.parent = body
+        o.matrix_parent_inverse = body.matrix_world.inverted()
+        return o
+
+    def top_point(x, y=0.0):
+        return surf.toward(W((x, y, 0.3)), Vector((0, 0, 1)))
+
     belly = mat("dino_belly", DINO_BELLY, rough=0.6, spec=0.2, edge=0.4, edge_color="#B5A47A")
-    spot = mat("dino_spot", DINO_SPOT, rough=0.5, spec=0.25, edge=0.4)
-    c_body = kit.world(body, (0.05, 0, 0.33))
-    for d, r in (((0.8, -0.35, -0.45), 0.12),):
-        p, n = surf.toward(c_body, kit.world(root, d) - kit.world(root, (0, 0, 0)))
-        if p is not None:
-            o = kit.sphere(r, belly, scale=(1.0, 1.0, 0.18), seg=20)
-            kit.place_on(o, p - n * 0.012, n)
-            o.parent = body
-            o.matrix_parent_inverse = body.matrix_world.inverted()
-    rng = __import__("random").Random(5)
-    for i in range(9):
+    p, n = surf.toward(W((0.05, 0, 0.33)), kit.world(root, (0.8, -0.35, -0.45)) - kit.world(root, (0, 0, 0)))
+    if p is not None:
+        stick(kit.sphere(0.12, belly, scale=(1.0, 1.0, 0.18), seg=20), p - n * 0.012, n)
+    rng = __import__("random").Random(len(species))
+    for i in range(8):
         a = rng.uniform(0, 2 * math.pi)
         x = rng.uniform(-0.3, 0.2)
         d = kit.world(root, (x * 0.4, math.cos(a) * 0.5, 0.9)) - kit.world(root, (0, 0, 0))
-        p, n = surf.toward(kit.world(body, (x, 0, 0.3)), d)
+        p, n = surf.toward(W((x, 0, 0.3)), d)
         if p is not None:
-            o = kit.sphere(rng.uniform(0.04, 0.07), spot, scale=(1.0, 1.0, 0.2), seg=16)
-            kit.place_on(o, p - n * 0.008, n)
-            o.parent = body
-            o.matrix_parent_inverse = body.matrix_world.inverted()
-    # soft back plates along the spine
-    for i, x in enumerate((0.1, -0.06, -0.22, -0.38)):
-        p, n = surf.toward(kit.world(body, (x, 0, 0.3)), Vector((0, 0, 1)))
-        if p is not None:
-            o = kit.sphere(0.065 - i * 0.01, spot, scale=(1.0, 0.32, 1.1), seg=16)
-            o.location = p + Vector((0, 0, 0.02))
-            o.rotation_euler = (0, 0, math.radians(yaw))
-            o.parent = body
-            o.matrix_parent_inverse = body.matrix_world.inverted()
+            stick(kit.sphere(rng.uniform(0.04, 0.07), spot, scale=(1.0, 1.0, 0.2), seg=16), p - n * 0.008, n)
 
-    # eyes, cheeks, nostrils via the head surface
+    x_ = sp["x"]
+    # --- back extras
+    if "plates_soft" in x_ or "plates_big" in x_:
+        big = "plates_big" in x_
+        pm = mat("plate_" + species, "#F2A23A" if big else sp["spot"], rough=0.5, spec=0.3, edge=0.45)
+        for i, x in enumerate((0.12, -0.04, -0.2, -0.36) if big else (0.1, -0.06, -0.22, -0.38)):
+            p, n = top_point(x)
+            if p is not None:
+                o = kit.sphere((0.1 if big else 0.065) - i * 0.012, pm, scale=(1.0, 0.3, 1.15), seg=16)
+                o.location = p + Vector((0, 0, 0.05 if big else 0.02))
+                o.rotation_euler = (0, 0, math.radians(yaw))
+                o.parent = body
+                o.matrix_parent_inverse = body.matrix_world.inverted()
+    if "sail" in x_:
+        sm = mat("sail_" + species, "#FFC2A0", rough=0.5, edge=0.5, edge_color=sp["edge"])
+        for i, x in enumerate((0.15, 0.0, -0.15, -0.3)):
+            p, n = top_point(x)
+            if p is not None:
+                h = 0.16 if i in (1, 2) else 0.11
+                o = kit.sphere(h, sm, scale=(0.75, 0.12, 1.0), seg=16)
+                o.location = p + Vector((0, 0, h * 0.55))
+                o.rotation_euler = (0, 0, math.radians(yaw))
+                o.parent = body
+                o.matrix_parent_inverse = body.matrix_world.inverted()
+    if "spikes" in x_ or "armor" in x_:
+        km = mat("spike_" + species, "#FFF0D0" if "spikes" in x_ else sp["spot"], rough=0.4, edge=0.45)
+        pts = [(x, y) for x in (0.15, 0.0, -0.15, -0.3) for y in ((-0.12, 0.12) if "armor" in x_ else (0.0,))]
+        for x, y in pts:
+            p, n = top_point(x, y)
+            if p is not None:
+                o = kit.cyl(0.035 if "spikes" in x_ else 0.06, 0.09 if "spikes" in x_ else 0.04, km,
+                            r2=0.004 if "spikes" in x_ else 0.03, bevel=0.0, verts=10)
+                stick(o, p - n * 0.01, n)
+    if "fluff" in x_:
+        fm = __import__("blender.assets.nature", fromlist=["x"]).foliage_mat("fluff_" + species, "#FFF2B0", sp["spot"],
+                                                                             noise_scale=24.0, z0=0.3, z1=1.0)
+        nat = __import__("blender.assets.nature", fromlist=["x"])
+        for x in (0.1, -0.08, -0.26):
+            p, n = top_point(x)
+            if p is not None:
+                nat.leaf_clump(tuple(p + Vector((0, 0, 0.02))), 0.08, fm, rng, parent=None, squash=0.7)
+        nat.leaf_clump(tuple(W(head_c + Vector((-0.05, 0, 0.2)))), 0.08, fm, rng, parent=None, squash=0.8)
+    # --- tail extras
+    if "club" in x_:
+        cm = mat("club_" + species, sp["spot"], rough=0.5, edge=0.45)
+        kit.sphere(0.1, cm, loc=(-0.8, 0.14 * tail, 0.2), scale=(1.2, 1.0, 0.75), seg=18, parent=body)
+    if "tail_spikes" in x_:
+        km = mat("spike_t_" + species, "#FFF0D0", rough=0.4, edge=0.45)
+        for y in (-1, 1):
+            kit.cyl(0.025, 0.12, km, r2=0.003, loc=(-0.56, 0.12 * tail, 0.24), rot=(y * 0.9, -0.5, 0), bevel=0.0,
+                    verts=8, parent=body)
+    # --- head extras
+    hw = W(head_c)
+    if "frill" in x_:
+        fr = mat("frill_" + species, "#FFD0A8", rough=0.5, edge=0.5, edge_color=sp["edge"])
+        o = kit.sphere(0.24, fr, loc=head_c + Vector((-0.14, 0, 0.1)), scale=(0.25, 1.0, 0.85),
+                       rot=(0, math.radians(-25), 0), seg=24, parent=body)
+        for k in range(5):
+            a = -1.0 + k * 0.5
+            kit.sphere(0.035, spot, loc=head_c + Vector((-0.17, math.sin(a) * 0.22, 0.1 + math.cos(a) * 0.19)),
+                       seg=10, parent=body)
+    if "horns3" in x_:
+        hm = mat("horn", "#F4E6C4", rough=0.4, edge=0.35)
+        kit.cyl(0.035, 0.11, hm, r2=0.005, loc=head_c + Vector((0.2, 0, 0.06)), rot=(0, 0.6, 0), bevel=0.0, verts=10,
+                parent=body)
+        for y in (-1, 1):
+            kit.cyl(0.03, 0.13, hm, r2=0.004, loc=head_c + Vector((0.02, y * 0.11, 0.15)), rot=(y * -0.3, 0.5, 0),
+                    bevel=0.0, verts=10, parent=body)
+    if "crest" in x_:
+        cm = mat("crest_" + species, "#FFB0C8", rough=0.45, edge=0.5, edge_color=sp["edge"])
+        kit.curve_tube([tuple(head_c + Vector((0.0, 0, 0.12))), tuple(head_c + Vector((-0.15, 0, 0.22))),
+                        tuple(head_c + Vector((-0.32, 0, 0.24)))], r=0.045, m=cm, parent=body)
+    if "dome" in x_:
+        for k in range(6):
+            a = k / 6 * 2 * math.pi
+            kit.sphere(0.03, spot, loc=head_c + Vector((-0.02 + 0.16 * math.cos(a) * 0.6, 0.16 * math.sin(a), 0.2)),
+                       seg=10, parent=body)
+
+    cheek = mat("dino_cheek", "#FF9EAA", rough=0.6, edge=0.2)
     look = _rotz(kit.TO_CAM, -yaw)
-    hw = kit.world(body, head_c)
     for side in (-1, 1):
         dl = Vector((0.72, side * 0.6, 0.32))
-        dw = kit.world(root, dl) - kit.world(root, (0, 0, 0))
-        p, n = surf.toward(hw, dw)
+        p, n = surf.toward(hw, kit.world(root, dl) - kit.world(root, (0, 0, 0)))
         if p is not None:
-            eye_r = 0.068
-            hit_local = body.matrix_world.inverted() @ p
-            hr = (hit_local - head_c).length
-            eye(head_c, hr, dl, eye_r, body, look=look, lid=blink, lid_color=DINO_SKIN)
-    cheek = mat("dino_cheek", "#FF9EAA", rough=0.6, edge=0.2)
-    for side in (-1, 1):
+            hr = (body.matrix_world.inverted() @ p - head_c).length
+            eye(head_c, hr, dl, 0.068, body, look=look, lid=blink, lid_color=sp["skin"])
         dl = Vector((0.65, side * 0.7, -0.15))
         p, n = surf.toward(hw, kit.world(root, dl) - kit.world(root, (0, 0, 0)))
         if p is not None:
-            o = kit.sphere(0.04, cheek, scale=(1.0, 1.0, 0.25), seg=12)
-            kit.place_on(o, p, n)
-            o.parent = body
-            o.matrix_parent_inverse = body.matrix_world.inverted()
-    nos = mat("dino_nostril", "#2F6E48", rough=0.6, edge=0.0)
-    for side in (-1, 1):
-        p, n = surf.toward(hw, kit.world(root, (1.0, side * 0.22, 0.25)) - kit.world(root, (0, 0, 0)))
-        if p is not None:
-            o = kit.sphere(0.014, nos, seg=8)
-            o.location = p
-            o.parent = body
-            o.matrix_parent_inverse = body.matrix_world.inverted()
-
-    # stubby legs (separate blobs so they can swing), wide feet with nails
+            stick(kit.sphere(0.04, cheek, scale=(1.0, 1.0, 0.25), seg=12), p, n)
     nail = mat("dino_nail", "#F7EEDB", rough=0.4, edge=0.3)
     for (lx, ly, ang) in ((0.17, -0.15, legs[0]), (0.17, 0.15, legs[1]), (-0.19, -0.15, legs[1]),
                           (-0.19, 0.15, legs[0])):
@@ -242,19 +312,19 @@ def dino(yaw: float, neck=0.0, head_tilt=0.0, legs=(0.0, 0.0), body_z=0.0, tail=
 
 def dino_frames():
     out = {}
-    for facing, yaw in (("se", 0.0), ("ne", 90.0)):
-        for i in range(8):
-            t = i / 8.0
-            w = math.sin(t * 2 * math.pi)
-            out[f"dino_idle_{facing}_{i}"] = (lambda w=w, i=i, yaw=yaw: dino(
-                yaw, neck=10 * w, head_tilt=0.5 + 0.5 * w, tail=0.6 * w, squash=0.015 * w,
-                blink=1.0 if i == 5 else 0.0))
-        for i in range(8):
-            t = i / 8.0
-            sw = math.sin(t * 2 * math.pi)
-            out[f"dino_walk_{facing}_{i}"] = (lambda sw=sw, t=t, yaw=yaw: dino(
-                yaw, neck=4 * sw, legs=(22 * sw, -22 * sw), body_z=0.018 * abs(math.cos(t * 2 * math.pi)),
-                tail=-0.8 * sw))
+    for species in DINOS:
+        for facing, yaw in (("se", 0.0), ("ne", 90.0)):
+            for i in range(6):
+                w = math.sin(i / 6 * 2 * math.pi)
+                out[f"dino_{species}_idle_{facing}_{i}"] = (lambda w=w, i=i, yaw=yaw, sp=species: dino(
+                    yaw, sp, neck=10 * w, head_tilt=0.5 + 0.5 * w, tail=0.6 * w, squash=0.015 * w,
+                    blink=1.0 if i == 4 else 0.0))
+            for i in range(8):
+                t = i / 8.0
+                sw = math.sin(t * 2 * math.pi)
+                out[f"dino_{species}_walk_{facing}_{i}"] = (lambda sw=sw, t=t, yaw=yaw, sp=species: dino(
+                    yaw, sp, neck=4 * sw, legs=(22 * sw, -22 * sw),
+                    body_z=0.018 * abs(math.cos(t * 2 * math.pi)), tail=-0.8 * sw))
     return out
 
 

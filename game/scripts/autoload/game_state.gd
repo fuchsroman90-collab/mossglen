@@ -10,6 +10,9 @@ signal leveled_up(level: int, unlocked: Array)
 signal toast(text: String, icon: String)
 signal orders_changed
 signal fish_caught(id: String)
+signal dino_hatched(species: String)
+signal quest_changed
+signal restored_building(id: String)
 
 const I18N_PATH := "res://i18n/strings.txt"
 const SAVE_PATH := "user://save.json"
@@ -28,6 +31,20 @@ var fish_by_id: Dictionary = {}
 var fish_log: Dictionary = {}  ## id -> {"n": caught, "best": cm}
 var rod := 0  ## 0 wood, 1 bamboo, 2 gold
 var spots: Dictionary = {}  ## fishing spot -> {"stock": float, "t": unix}
+var dinos: Array = []  ## species data from data/dinos.json
+var dino_by_id: Dictionary = {}
+var meadow: Array = ["moosaurus", "moosaurus"]  ## dinos living on the farm meadow
+var dino_seen: Dictionary = {"moosaurus": true}
+var digs: Dictionary = {}  ## dig spot -> unix time when it is full again
+var story: Dictionary = {}  ## data/story.json
+var quest_index := 0
+var quest_progress := 0
+var quest_stage := "intro"  ## intro (talk to npc) -> active -> ready (talk to claim) ; "end" after the arc
+var restored: Dictionary = {}  ## village building -> true
+var museum_fossils := 0
+const VALLEY_LEVEL := 4
+const MEADOW_MAX := 8
+const DIG_REGEN := 180.0
 const SPOT_MAX := 5.0
 const SPOT_REGEN := 90.0  ## seconds per fish
 const RODS := [{"id": "rod_wood", "price": 0, "unlock": 1}, {"id": "rod_bamboo", "price": 150, "unlock": 4},
@@ -62,6 +79,10 @@ func _ready() -> void:
 	fish = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish.json"))
 	for f in fish:
 		fish_by_id[f["id"]] = f
+	story = _json("res://data/story.json")
+	dinos = JSON.parse_string(FileAccess.get_file_as_string("res://data/dinos.json"))
+	for d in dinos:
+		dino_by_id[d["id"]] = d
 	_load_translations()
 	var lang := OS.get_locale_language()
 	TranslationServer.set_locale(lang if lang in LOCALES else "en")
@@ -260,6 +281,7 @@ func record_catch(id: String, size: float) -> Dictionary:
 	var res := {"new": int(e["n"]) == 0, "record": size > float(e["best"]) and int(e["n"]) > 0}
 	fish_log[id] = {"n": int(e["n"]) + 1, "best": maxf(float(e["best"]), size)}
 	fish_caught.emit(id)
+	event("catch", "any")
 	mark_dirty()
 	return res
 
@@ -284,6 +306,171 @@ func buy_rod(level_idx: int) -> bool:
 	return true
 
 
+# ------------------------------------------------------------------ story
+
+func quest() -> Dictionary:
+	var qs: Array = story["quests"]
+	return qs[quest_index] if quest_index < qs.size() else {}
+
+
+func npc_name(id: String) -> String:
+	return story["npcs"][id]["de" if TranslationServer.get_locale().begins_with("de") else "en"]
+
+
+## Game events that can advance the current quest.
+func event(type: String, id: String, n := 1) -> void:
+	var q := quest()
+	if q.is_empty() or quest_stage != "active":
+		return
+	var g: Dictionary = q["goal"]
+	if g["type"] != type or (g["id"] != "any" and g["id"] != id):
+		return
+	quest_progress = mini(quest_progress + n, int(g["n"]))
+	if quest_progress >= int(g["n"]):
+		quest_stage = "ready"
+	quest_changed.emit()
+	mark_dirty()
+
+
+## Talk to a villager. Returns the lines to show (empty if they have nothing to say right now).
+func talk(npc: String) -> Array:
+	var q := quest()
+	if q.is_empty() or q["npc"] != npc:
+		return []
+	var de := TranslationServer.get_locale().begins_with("de")
+	if quest_stage == "intro":
+		quest_stage = "active"
+		quest_progress = 0
+		var g: Dictionary = q["goal"]
+		if g["type"] == "restore" and restored.has(g["id"]):
+			quest_progress = 1
+			quest_stage = "ready"
+		quest_changed.emit()
+		mark_dirty()
+		return q["intro_de" if de else "intro_en"]
+	if quest_stage == "ready":
+		var r: Dictionary = q["reward"]
+		add_coins(int(r.get("coins", 0)))
+		add_emeralds(int(r.get("emeralds", 0)))
+		add_xp(int(r.get("xp", 0)))
+		quest_index += 1
+		quest_stage = "intro" if quest_index < story["quests"].size() else "end"
+		quest_progress = 0
+		quest_changed.emit()
+		mark_dirty()
+		return [q["done_de" if de else "done_en"]]
+	return []
+
+
+func restore_def(id: String) -> Dictionary:
+	return story["restore"][id]
+
+
+func can_restore(id: String) -> bool:
+	var d := restore_def(id)
+	return not restored.has(id) and level >= int(d["unlock"]) and has_all(d["need"]) and coins >= int(d["coins"])
+
+
+func restore(id: String) -> bool:
+	if not can_restore(id):
+		return false
+	var d := restore_def(id)
+	take_all(d["need"])
+	spend_coins(int(d["coins"]))
+	restored[id] = true
+	add_xp(20)
+	restored_building.emit(id)
+	if id == "cafe":
+		ensure_orders()
+	event("restore", id)
+	mark_dirty()
+	return true
+
+
+func order_slots() -> int:
+	return ORDER_SLOTS + (1 if restored.has("cafe") else 0)
+
+
+## Three goods Pip wants today, paid with +50 %. Same for the whole day.
+func market_wishes() -> Array:
+	var pool := orderable_items()
+	pool.sort()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(Time.get_unix_time_from_system() / 86400.0)
+	var out: Array = []
+	while out.size() < mini(3, pool.size()):
+		var it: String = pool[rng.randi() % pool.size()]
+		if not out.has(it):
+			out.append(it)
+	return out
+
+
+func sell_market(item: String) -> int:
+	if count(item) < 1:
+		return 0
+	take_item(item, 1)
+	var p := int(ceil(price(item) * 1.5))
+	add_coins(p)
+	return p
+
+
+func donate_fossil() -> bool:
+	if not take_item("fossil"):
+		return false
+	museum_fossils += 1
+	add_xp(5)
+	return true
+
+
+# ------------------------------------------------------------------ dinos
+
+func dig_ready(spot: String) -> bool:
+	return Time.get_unix_time_from_system() >= float(digs.get(spot, 0.0))
+
+
+## Digs a spot. Returns the found item id ("" if the spot is still empty).
+func dig(spot: String) -> String:
+	if not dig_ready(spot):
+		return ""
+	digs[spot] = Time.get_unix_time_from_system() + DIG_REGEN
+	var r := randf()
+	var found := "fossil"
+	if r > 0.78:
+		# egg: rarer species are harder to find
+		var w := {1: 50.0, 2: 24.0, 3: 6.0, 4: 2.0}
+		var total := 0.0
+		for d in dinos:
+			total += w[int(d["rarity"])]
+		var x := randf() * total
+		for d in dinos:
+			x -= w[int(d["rarity"])]
+			if x <= 0.0:
+				found = "egg_" + str(d["id"])
+				break
+	elif r > 0.5:
+		found = "amber"
+	add_item(found, 1, true)
+	add_xp(2)
+	event("dig", "any")
+	mark_dirty()
+	return found
+
+
+func hatch(species: String) -> bool:
+	if meadow.size() >= MEADOW_MAX:
+		return false
+	meadow.append(species)
+	dino_seen[species] = true
+	dino_hatched.emit(species)
+	mark_dirty()
+	return true
+
+
+func dino_name(id: String) -> String:
+	var d: Dictionary = dino_by_id[id]
+	return d["de"] if TranslationServer.get_locale().begins_with("de") else d["en"]
+
+
 # ------------------------------------------------------------------ orders
 
 ## Items the player can currently make or grow (order candidates). Feeds are excluded.
@@ -297,7 +484,8 @@ func orderable_items() -> Array:
 			out.append(animal_defs[a]["product"])
 	for b in buildings:
 		for r in buildings[b]["recipes"]:
-			if level >= int(r["unlock"]) and not str(r["out"]).begins_with("feed_"):
+			if level >= int(r["unlock"]) and not str(r["out"]).begins_with("feed_") \
+					and not str(r["out"]).begins_with("dino_"):
 				out.append(r["out"])
 	return out
 
@@ -318,7 +506,7 @@ func make_order() -> Dictionary:
 
 
 func ensure_orders() -> void:
-	while orders.size() < ORDER_SLOTS:
+	while orders.size() < order_slots():
 		orders.append(make_order())
 
 
@@ -332,6 +520,7 @@ func deliver(i: int) -> bool:
 		return false
 	add_coins(int(o["coins"]))
 	add_xp(int(o["xp"]))
+	event("deliver", "any")
 	var fresh := make_order()
 	fresh["wait_until"] = Time.get_unix_time_from_system() + 4.0  # a short pause before the next truck arrives
 	orders[i] = fresh
@@ -370,6 +559,9 @@ func save_game() -> void:
 		"coins": coins, "emeralds": emeralds, "xp": xp, "level": level,
 		"inventory": inventory, "extra_fields": extra_fields, "orders": orders,
 		"fish_log": fish_log, "rod": rod, "spots": spots,
+		"meadow": meadow, "dino_seen": dino_seen, "digs": digs,
+		"quest": {"i": quest_index, "p": quest_progress, "s": quest_stage}, "restored": restored,
+		"museum_fossils": museum_fossils,
 		"locale": TranslationServer.get_locale().substr(0, 2),
 		"music": Audio.music_enabled,
 		"world": world_saver.call() if world_saver.is_valid() else {},
@@ -410,6 +602,15 @@ func load_game() -> bool:
 		fish_log[k] = {"n": int(e["n"]), "best": float(e["best"])}
 	rod = int(parsed.get("rod", 0))
 	spots = parsed.get("spots", {})
+	meadow = parsed.get("meadow", meadow)
+	dino_seen = parsed.get("dino_seen", dino_seen)
+	digs = parsed.get("digs", {})
+	var qd: Dictionary = parsed.get("quest", {})
+	quest_index = int(qd.get("i", 0))
+	quest_progress = int(qd.get("p", 0))
+	quest_stage = str(qd.get("s", "intro"))
+	restored = parsed.get("restored", {})
+	museum_fossils = int(parsed.get("museum_fossils", 0))
 	orders = []
 	for o in parsed.get("orders", []):
 		var need := {}

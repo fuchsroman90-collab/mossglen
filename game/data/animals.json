@@ -26,5 +26,75 @@
 		"time": 240,
 		"xp": 3,
 		"unlock": 6
+	},
+	"dino_moosaurus": {
+		"feed": "fern",
+		"product": "primeval_egg",
+		"time": 300,
+		"xp": 4,
+		"unlock": 1
+	},
+	"dino_trikeri": {
+		"feed": "fern",
+		"product": "primeval_egg",
+		"time": 300,
+		"xp": 4,
+		"unlock": 1
+	},
+	"dino_stegolino": {
+		"feed": "fern",
+		"product": "primeval_egg",
+		"time": 300,
+		"xp": 4,
+		"unlock": 1
+	},
+	"dino_parasauri": {
+		"feed": "fern",
+		"product": "primeval_egg",
+		"time": 300,
+		"xp": 4,
+		"unlock": 1
+	},
+	"dino_ankyknubbel": {
+		"feed": "fern",
+		"product": "primeval_egg",
+		"time": 300,
+		"xp": 4,
+		"unlock": 1
+	},
+	"dino_segelruecken": {
+		"feed": "fern",
+		"product": "primeval_egg",
+		"time": 300,
+		"xp": 4,
+		"unlock": 1
+	},
+	"dino_pachy": {
+		"feed": "fern",
+		"product": "primeval_egg",
+		"time": 300,
+		"xp": 4,
+		"unlock": 1
+	},
+	"dino_stachelchen": {
+		"feed": "fern",
+		"product": "primeval_egg",
+		"time": 300,
+		"xp": 4,
+		"unlock": 1
+	},
+	"dino_flauschi": {
+		"feed": "fern",
+		"product": "primeval_egg",
+		"time": 300,
+		"xp": 4,
+		"unlock": 1
+	},
+	"dino_brontobeere": {
+		"feed": "fern",
+		"product": "primeval_egg",
+		"time": 300,
+		"xp": 4,
+		"unlock": 1
 	}
 }

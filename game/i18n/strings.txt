@@ -81,7 +81,7 @@ FISH_RELEASE	Freilassen	Release
 FISH_EMPTY	Hier beißt gerade nichts. Komm bald wieder!	Nothing is biting here right now. Come back soon!
 LOC_pond	Teich	Pond
 LOC_river	Bach	Creek
-LOC_sea	Meer (bald mit dem Dorf)	Sea (coming with the village)
+LOC_sea	Meer (Strandsteg, wenn der Leuchtturm leuchtet)	Sea (beach pier, once the lighthouse shines)
 TIME_any	jederzeit	any time
 TIME_day	tagsüber	daytime
 TIME_dusk	in der Dämmerung	at dusk and dawn
@@ -91,3 +91,70 @@ CAUGHT	gefangen	caught
 ROD_BAMBOO	Bambusrute	Bamboo rod
 ROD_GOLD	Goldrute	Golden rod
 ROD_SUB	mehr seltene Fische	more rare fish
+ITEM_fern	Farn	Fern
+ITEM_fossil	Fossil	Fossil
+ITEM_amber	Bernstein	Amber
+ITEM_primeval_egg	Urzeit-Ei	Primeval egg
+ITEM_giant_pancake	Riesen-Pfannkuchen	Giant pancake
+ITEM_amber_candle	Bernsteinkerze	Amber candle
+BUILDING_nest	Brutnest	Hatching Nest
+VALLEY_LOCKED	Das Urzeit-Tal öffnet ab Level 4.	The Primeval Vale opens at level 4.
+DIG_EMPTY	Hier ist schon alles ausgegraben. Bald findet sich Neues.	Already dug up. Something new will turn up soon.
+DIG_FOUND	Gefunden: %s	Found: %s
+DINO_HATCHED	Ein Baby-Dino ist geschlüpft: %s!	A baby dino hatched: %s!
+DINOPEDIA	Dino-Pedia	Dino-pedia
+DINO_UNKNOWN	Noch nicht entdeckt. Grabe im Urzeit-Tal nach Eiern!	Not discovered yet. Dig for eggs in the Primeval Vale!
+MEADOW_FULL	Die Dino-Wiese ist voll.	The dino meadow is full.
+ITEM_egg_moosaurus	Moosaurus-Ei	Moosaurus egg
+ITEM_dino_moosaurus	Moosaurus	Moosaurus
+ITEM_egg_trikeri	Trikeri-Ei	Trikeri egg
+ITEM_dino_trikeri	Trikeri	Trikeri
+ITEM_egg_stegolino	Stegolino-Ei	Stegolino egg
+ITEM_dino_stegolino	Stegolino	Stegolino
+ITEM_egg_parasauri	Parasauri-Ei	Parasauri egg
+ITEM_dino_parasauri	Parasauri	Parasauri
+ITEM_egg_ankyknubbel	Ankyknubbel-Ei	Ankybump egg
+ITEM_dino_ankyknubbel	Ankyknubbel	Ankybump
+ITEM_egg_segelruecken	Segelrücken-Ei	Sailback egg
+ITEM_dino_segelruecken	Segelrücken	Sailback
+ITEM_egg_pachy	Pachyköpfchen-Ei	Pachypate egg
+ITEM_dino_pachy	Pachyköpfchen	Pachypate
+ITEM_egg_stachelchen	Stachelchen-Ei	Spikelet egg
+ITEM_dino_stachelchen	Stachelchen	Spikelet
+ITEM_egg_flauschi	Flauschi-Ei	Fluffy egg
+ITEM_dino_flauschi	Flauschi	Fluffy
+ITEM_egg_brontobeere	Brontobeere-Ei	Brontoberry egg
+ITEM_dino_brontobeere	Brontobeere	Brontoberry
+QUEST_TALK	Sprich mit %s	Talk to %s
+QUEST_RETURN	Geh zurück zu %s	Go back to %s
+QUEST_ALL_DONE	Alle Aufgaben erledigt!	All tasks done!
+GOAL_harvest	Ernte %s: %d/%d	Harvest %s: %d/%d
+GOAL_make	Stelle %s her: %d/%d	Make %s: %d/%d
+GOAL_collect	Sammle %s: %d/%d	Collect %s: %d/%d
+GOAL_catch	Fange Fische%s: %d/%d	Catch fish%s: %d/%d
+GOAL_dig	Grabe im Urzeit-Tal%s: %d/%d	Dig in the vale%s: %d/%d
+GOAL_deliver	Erfülle Aufträge%s: %d/%d	Fill orders%s: %d/%d
+GOAL_restore	Baue auf: %s (%d/%d)	Rebuild: %s (%d/%d)
+NPC_IDLE_brumm	Die Mühle klappert, das Korn rieselt. Herrlich!	The mill clatters, the grain trickles. Lovely!
+NPC_IDLE_lotte	Heute ist ein guter Tag zum Angeln.	Today is a good day for fishing.
+NPC_IDLE_fenna	Wusstest du, dass Bernstein uralte Harz-Tropfen sind?	Did you know amber is ancient tree resin?
+NPC_IDLE_pip	Kaufen, verkaufen, plaudern – mein Lieblingsdreiklang!	Buying, selling, chatting – my favourite trio!
+VILLAGE_lighthouse	Leuchtturm	Lighthouse
+VILLAGE_museum	Museum	Museum
+VILLAGE_market	Markt	Market
+VILLAGE_cafe	Café	Café
+VILLAGE_library	Bibliothek	Library
+RESTORE	Wieder aufbauen	Rebuild
+RESTORED	%s ist wieder aufgebaut!	%s has been rebuilt!
+RESTORE_INFO_lighthouse	Mit Kerzen und Stoff leuchtet der Turm wieder. Dann kannst du am Strand im Meer angeln.	With candles and cloth the tower shines again. Then you can fish the sea from the beach.
+RESTORE_INFO_museum	Fossilien und Bernstein füllen die Vitrinen. Danach kannst du Fossilien spenden.	Fossils and amber fill the cases. Afterwards you can donate fossils.
+RESTORE_INFO_market	Popcorn und Tomatensoße locken Kundschaft an. Pip kauft dann Wunschwaren teurer.	Popcorn and tomato sauce bring in customers. Pip then pays more for wished-for goods.
+RESTORE_INFO_cafe	Brot, Sahne und Marmelade für das erste Frühstück. Das Café bringt einen Extra-Auftrag.	Bread, cream and jam for the first breakfast. The café brings an extra order.
+RESTORE_INFO_library	Ein Schal für die Leseecke und Kerzen für lange Abende. Hier liest du die Geschichte des Tals.	A scarf for the reading nook and candles for long evenings. Here you can read the vale's story.
+MARKET_INFO	Pips Wunschwaren heute: Er zahlt 50 % mehr als die Scheune.	Pip's wished-for goods today: he pays 50 % more than the barn.
+MUSEUM_FOSSILS	Ausgestellte Fossilien: %d	Fossils on display: %d
+MUSEUM_FISH	Fischalbum: %d / %d	Fish album: %d / %d
+MUSEUM_DINOS	Dino-Pedia: %d / %d	Dino-pedia: %d / %d
+DONATE_FOSSIL	Fossil spenden (+5 XP)	Donate a fossil (+5 XP)
+LIBRARY_EMPTY	Die Seiten sind noch leer. Hilf den Leuten im Tal!	The pages are still empty. Help the people of the vale!
+SEA_LOCKED	Der Leuchtturm muss erst wieder leuchten.	The lighthouse has to shine again first.

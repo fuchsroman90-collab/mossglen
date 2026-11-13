@@ -1,0 +1,82 @@
+[
+	{
+		"id": "moosaurus",
+		"de": "Moosaurus",
+		"en": "Moosaurus",
+		"rarity": 1,
+		"fact_de": "Liebt weiches Moos und Mittagsschläfchen.",
+		"fact_en": "Loves soft moss and afternoon naps."
+	},
+	{
+		"id": "trikeri",
+		"de": "Trikeri",
+		"en": "Trikeri",
+		"rarity": 1,
+		"fact_de": "Putzt seinen Kragen jeden Morgen im Bach.",
+		"fact_en": "Cleans its frill in the creek every morning."
+	},
+	{
+		"id": "stegolino",
+		"de": "Stegolino",
+		"en": "Stegolino",
+		"rarity": 1,
+		"fact_de": "Seine Platten werden in der Sonne warm.",
+		"fact_en": "Its plates get warm in the sun."
+	},
+	{
+		"id": "parasauri",
+		"de": "Parasauri",
+		"en": "Parasauri",
+		"rarity": 1,
+		"fact_de": "Summt Lieder durch seinen Kamm.",
+		"fact_en": "Hums songs through its crest."
+	},
+	{
+		"id": "ankyknubbel",
+		"de": "Ankyknubbel",
+		"en": "Ankybump",
+		"rarity": 2,
+		"fact_de": "Klopft mit dem Schwanz den Takt.",
+		"fact_en": "Taps the beat with its tail."
+	},
+	{
+		"id": "segelruecken",
+		"de": "Segelrücken",
+		"en": "Sailback",
+		"rarity": 2,
+		"fact_de": "Dreht sein Segel immer zum Wind.",
+		"fact_en": "Always turns its sail into the wind."
+	},
+	{
+		"id": "pachy",
+		"de": "Pachyköpfchen",
+		"en": "Pachypate",
+		"rarity": 2,
+		"fact_de": "Sammelt glatte Kieselsteine.",
+		"fact_en": "Collects smooth pebbles."
+	},
+	{
+		"id": "stachelchen",
+		"de": "Stachelchen",
+		"en": "Spikelet",
+		"rarity": 2,
+		"fact_de": "Seine Stacheln sind ganz weich.",
+		"fact_en": "Its spikes are perfectly soft."
+	},
+	{
+		"id": "flauschi",
+		"de": "Flauschi",
+		"en": "Fluffy",
+		"rarity": 3,
+		"fact_de": "Hat Federn wie ein Küken.",
+		"fact_en": "Has feathers like a chick."
+	},
+	{
+		"id": "brontobeere",
+		"de": "Brontobeere",
+		"en": "Brontoberry",
+		"rarity": 4,
+		"fact_de": "Riesig, rosa gepunktet und sehr verschmust.",
+		"fact_en": "Huge, pink-spotted and very cuddly."
+	}
+]

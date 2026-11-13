@@ -740,6 +740,113 @@ def dock(yaw=0.0):
     return root
 
 
+def dig_mound(full=True):
+    """Dig spot: a mound of earth, with a bone sticking out when something is buried."""
+    rng = random.Random(5)
+    root = kit.empty("dig")
+    earth = mat("dig_earth", "#9A6A44", rough=0.95, edge=0.5, var=0.05)
+    o = kit.ico(0.36, earth, loc=(0, 0, 0.04), scale=(1.15, 1.0, 0.7), sub=3, parent=root)
+    kit.displace(o, strength=0.05, scale=0.12, seed=5)
+    for k in range(6):
+        a = k * 1.05
+        kit.ico(0.07, earth, loc=(math.cos(a) * 0.42, math.sin(a) * 0.36, 0.02), scale=(1, 1, 0.5), sub=2, parent=root)
+    if full:
+        bone = mat("bone", "#F6EEDC", rough=0.5, edge=0.45, edge_color="#9A8A6A")
+        bone_root = kit.empty("bone", loc=(0.0, -0.05, 0.25), rot=(0.0, 0.0, math.atan2(kit.TO_CAM.y, kit.TO_CAM.x) + 1.57),
+                              parent=root)
+        b2 = kit.empty("b2", rot=(0.0, math.radians(-35), 0.0), parent=bone_root)
+        kit.cyl(0.045, 0.34, bone, loc=(0, 0, 0), rot=(0, math.radians(90), 0), bevel=0.0, verts=12, parent=b2)
+        for x in (0.0, 0.34):
+            for d in (-1, 1):
+                kit.sphere(0.058, bone, loc=(x, d * 0.045, 0), seg=12, parent=b2)
+        kit.sphere(0.08, mat("amber", "#F2A023", rough=0.15, spec=0.8, edge=0.3, coat=0.6, emit=0.2),
+                   loc=(-0.2, -0.12, 0.2), scale=(1, 0.8, 0.8), seg=14, parent=root)
+    shovel = wood("shovel", "#9C6539")
+    kit.cyl(0.018, 0.55, shovel, loc=(0.3, 0.2, 0.0), rot=(0.25, -0.3, 0), bevel=0.0, verts=8, parent=root)
+    kit.box((0.14, 0.03, 0.16), mat("iron", "#7C7F86", rough=0.35, spec=0.6, metal=0.6, edge=0.4),
+            loc=(0.3, 0.2, 0.05), rot=(0.25, -0.3, 0), bevel=0.01, parent=root)
+    return root
+
+
+def nest():
+    """Hatching nest: a huge twig nest on warm stones, under a small leaf canopy."""
+    root = kit.empty("nest")
+    twig = mat("twig", "#A0703E", rough=0.85, edge=0.5, var=0.1)
+    stone = mat("warm_stone", "#B9A28A", rough=0.8, edge=0.5, var=0.07)
+    for k in range(10):
+        a = k / 10 * 2 * math.pi
+        kit.ico(0.11, stone, loc=(math.cos(a) * 0.72, math.sin(a) * 0.72, 0.05), scale=(1.2, 1.0, 0.6), sub=2,
+                parent=root)
+    for r, z in ((0.55, 0.12), (0.5, 0.22), (0.42, 0.3)):
+        kit.torus(r, 0.09, twig, loc=(0, 0, z), parent=root, scale=(1, 1, 0.7))
+    rng = random.Random(9)
+    for k in range(24):
+        a = rng.uniform(0, 6.28)
+        kit.cyl(0.012, 0.35, twig, loc=(math.cos(a) * 0.55, math.sin(a) * 0.55, 0.2),
+                rot=(rng.uniform(-1.2, 1.2), rng.uniform(-1.2, 1.2), a), bevel=0.0, verts=6, parent=root)
+    straw = mat("straw_bed", "#EDC65A", rough=0.9, edge=0.4)
+    kit.cyl(0.4, 0.1, straw, loc=(0, 0, 0.2), bevel=0.04, verts=24, parent=root)
+    egg = mat("nest_egg", "#F4EAD8", rough=0.45, spec=0.3, edge=0.45, edge_color="#9A8A6A")
+    sp = mat("nest_egg_spot", "#7FCF8E", rough=0.5, edge=0.0)
+    for x, y in ((0.0, 0.0), (0.18, -0.1)):
+        kit.sphere(0.13, egg, loc=(x, y, 0.4), scale=(0.85, 0.85, 1.15), seg=20, parent=root)
+        for k in range(4):
+            a = k * 1.6
+            kit.sphere(0.03, sp, loc=(x + math.cos(a) * 0.1, y + math.sin(a) * 0.1, 0.42 + (k % 2) * 0.06),
+                       scale=(1, 1, 0.4), rot=(0, 1.2, a), seg=8, parent=root)
+    # leaf canopy on two poles
+    pole = wood("pole", "#8C5A34")
+    for x in (-0.7, 0.7):
+        kit.cyl(0.04, 1.1, pole, loc=(x, 0.45, 0), bevel=0.0, verts=10, parent=root)
+    leaf = __import__("blender.assets.nature", fromlist=["x"])
+    fm = leaf.foliage_mat("canopy", "#86CC4A", "#2D7A2C", noise_scale=10.0, z0=0.8, z1=1.4)
+    for x in (-0.6, -0.2, 0.2, 0.6):
+        leaf.leaf_clump((x, 0.45, 1.15), 0.24, fm, rng, parent=root, squash=0.55)
+    return root
+
+
+def bridge():
+    """Wooden footbridge over the creek, along world +X (grid x)."""
+    root = kit.empty("bridge")
+    plank = wood("bridge_plank", "#C08A55")
+    post = wood("bridge_post", "#8C5A34")
+    n = 14
+    for i in range(n):
+        t = i / (n - 1)
+        x = -1.3 + t * 2.6
+        z = 0.12 + math.sin(t * math.pi) * 0.28
+        kit.box((0.17, 0.75, 0.05), plank, loc=(x, 0, z), rot=(0, -math.cos(t * math.pi) * 0.35, 0), bevel=0.015,
+                parent=root)
+    for side in (-1, 1):
+        pts = []
+        for i in range(7):
+            t = i / 6
+            pts.append((-1.3 + t * 2.6, side * 0.36, 0.45 + math.sin(t * math.pi) * 0.28))
+        kit.curve_tube(pts, r=0.03, m=post, parent=root)
+        for i in range(7):
+            t = i / 6
+            x = -1.3 + t * 2.6
+            z = 0.12 + math.sin(t * math.pi) * 0.28
+            kit.cyl(0.03, 0.35, post, loc=(x, side * 0.36, z), bevel=0.0, verts=8, parent=root)
+    return root
+
+
+def sign_post(text_color="#FFF4E2"):
+    root = kit.empty("sign")
+    post = wood("sign_post", "#8C5A34")
+    board = wood("sign_board", "#C9905A")
+    kit.box((0.08, 0.08, 0.9), post, loc=(0, 0, 0.45), bevel=0.02, parent=root)
+    yaw = math.atan2(kit.TO_CAM.y, kit.TO_CAM.x) + math.pi / 2
+    b = kit.empty("b", rot=(0, 0, yaw), parent=root)
+    kit.box((0.7, 0.05, 0.3), board, loc=(0, -0.05, 0.75), bevel=0.02, parent=b)
+    bone = mat("bone", "#F6EEDC", rough=0.5, edge=0.45, edge_color="#9A8A6A")
+    kit.cyl(0.025, 0.4, bone, loc=(-0.2, -0.09, 0.75), rot=(0, math.radians(90), 0), bevel=0.0, verts=8, parent=b)
+    for x in (-0.2, 0.2):
+        for z in (-0.03, 0.03):
+            kit.sphere(0.035, bone, loc=(x, -0.09, 0.75 + z), seg=8, parent=b)
+    return root
+
+
 def building_frames():
     return {
         "barn": barn,
@@ -757,4 +864,9 @@ def building_frames():
         "candle_maker": candle_maker,
         "dock_pond": lambda: dock(0.0),
         "dock_creek": lambda: dock(180.0),
+        "dig_full": lambda: dig_mound(True),
+        "dig_empty": lambda: dig_mound(False),
+        "nest": nest,
+        "bridge": bridge,
+        "sign_valley": sign_post,
     }

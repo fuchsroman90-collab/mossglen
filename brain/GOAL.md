@@ -272,6 +272,12 @@ Entschieden: Free-to-play, Zielgruppe alle, Budget 0 €, iPhone 11 vorhanden, N
 
 ## 15. Status
 
+**M5 Dorf und Story – fertig (2026-11-13)**
+- Moosdorf mit 5 wiederaufbaubaren Gebäuden, 4 Bewohnern, Story-Bogen 1 (10 Quests), Dialoge DE/EN, Museum.
+
+**M4 Dinos – fertig (2026-11-13)**
+- Urzeit-Tal, Ausgraben, Brutnest, 10 Dino-Arten, Dino-Pedia, Farn als Futter, Urzeit-Ei + Bernstein als Spezialprodukte.
+
 **M3 Angeln – fertig (2026-11-13)**
 - Teich + Bach mit Stegen, entspanntes Timing-Minispiel ohne Scheitern, 40 Fischarten (Meer-Arten folgen mit
   dem Dorf), Ruten-Stufen, Fischalbum, Fische im Farmteich sichtbar, Platsch-/Rollen-Sounds.

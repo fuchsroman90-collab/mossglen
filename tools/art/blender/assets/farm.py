@@ -233,6 +233,29 @@ def strawberry(stage: int, seed=51):
     return root
 
 
+def fern_crop(stage: int, seed=61):
+    rng = random.Random(seed + stage)
+    root = kit.empty("fern_crop")
+    green = mat("fern_green", "#5DB33C", rough=0.6, spec=0.2, edge=0.45, var=0.08, sss=0.1)
+    if stage == 0:
+        _sprouts(root, rng, 3, green)
+        return root
+    from .nature import fern_frond
+    curl = mat("fern_curl", "#8FD455", rough=0.6, edge=0.45)
+    for base in _grid(2, 0.04, rng):
+        n = {1: 3, 2: 6, 3: 8}[stage]
+        ln = {1: 0.14, 2: 0.24, 3: 0.3}[stage]
+        for k in range(n):
+            yaw = k / n * 2 * math.pi + rng.uniform(-0.3, 0.3)
+            fern_frond(tuple(base), ln, yaw, 0.8, green, root, width=0.03)
+        if stage == 3:
+            for k in range(2):
+                a = rng.uniform(0, 6.28)
+                kit.torus(0.022, 0.009, curl, loc=base + Vector((math.cos(a) * 0.03, math.sin(a) * 0.03, 0.2)),
+                          rot=(1.57, 0, a), parent=root)
+    return root
+
+
 def fence(axis="x", moss=True, seed=3):
     """One fence segment, one tile long, centred on the origin."""
     rng = random.Random(seed)
@@ -338,4 +361,5 @@ def farm_frames():
         out[f"carrot_{s}"] = (lambda s=s: carrot(s))
         out[f"tomato_{s}"] = (lambda s=s: tomato(s))
         out[f"strawberry_{s}"] = (lambda s=s: strawberry(s))
+        out[f"fern_{s}"] = (lambda s=s: fern_crop(s))
     return out

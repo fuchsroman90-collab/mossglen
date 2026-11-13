@@ -4,7 +4,7 @@ shader_type canvas_item;
 
 uniform sampler2D grass_tex : repeat_enable, filter_linear_mipmap;
 uniform sampler2D dirt_tex : repeat_enable, filter_linear_mipmap;
-uniform sampler2D mask_tex : filter_linear;   // r = dirt, g = water amount per cell
+uniform sampler2D mask_tex : filter_linear;   // r = dirt, g = water, b = primeval moss per cell
 uniform vec2 mask_origin = vec2(-10.0, -10.0);  // grid coord of mask pixel (0, 0)
 uniform float mask_size = 64.0;
 uniform float tex_cells = 4.0;                  // grid cells covered by one grass texture
@@ -30,6 +30,12 @@ void fragment() {
 	float rim = smoothstep(0.0, 0.35, e) * (1.0 - smoothstep(0.35, 0.9, e));
 	dirt *= 1.0 - 0.22 * rim;
 	grass *= 1.0 - 0.08 * smoothstep(0.0, 0.5, e);
+	// primeval vale: deeper, bluer green with soft moss blotches
+	float moss = texture(mask_tex, (g - mask_origin + 0.5) / mask_size).b;
+	float blotch = smoothstep(0.45, 0.7, texture(grass_tex, g / 5.0 + vec2(0.2, 0.6)).a);
+	vec3 vale = grass * vec3(0.7, 0.9, 0.82) + vec3(0.0, 0.03, 0.05);
+	vale = mix(vale, vale * vec3(0.82, 1.05, 0.8), blotch);
+	grass = mix(grass, vale, smoothstep(0.2, 0.8, moss));
 	vec3 col = mix(grass, dirt, e);
 
 	// pond: sandy shore, shallow turquoise rim, deeper blue centre, moving glints

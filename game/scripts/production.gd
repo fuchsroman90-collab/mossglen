@@ -120,11 +120,20 @@ func collect() -> Array:
 	while not done.is_empty():
 		var rec: Dictionary = recipes()[int(done[0])]
 		var n := int(rec["n"])
+		if rec.get("spawn", false):
+			if not Game.hatch(str(rec["out"]).trim_prefix("dino_")):
+				Game.toast.emit(tr("MEADOW_FULL"), "ico_dino.png")
+				break
+			done.pop_front()
+			Game.add_xp(int(rec["xp"]))
+			got.append([rec["out"], 1])
+			continue
 		if Game.space() < n:
 			break
 		done.pop_front()
 		Game.add_item(rec["out"], n)
 		Game.add_xp(int(rec["xp"]))
+		Game.event("make", rec["out"], n)
 		got.append([rec["out"], n])
 	if not got.is_empty():
 		_refresh()
@@ -136,7 +145,7 @@ func _refresh() -> void:
 	_bubble.visible = not done.is_empty()
 	if _bubble.visible:
 		var rec: Dictionary = recipes()[int(done[0])]
-		_bubble_icon.texture = load("res://art/generated/ui/item_%s.png" % rec["out"])
+		_bubble_icon.texture = Hud.item_texture(rec["out"])
 
 
 func _process(delta: float) -> void:

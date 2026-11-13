@@ -1,0 +1,295 @@
+{
+	"npcs": {
+		"brumm": {
+			"de": "Müller Brumm",
+			"en": "Miller Brumm"
+		},
+		"lotte": {
+			"de": "Fischerin Lotte",
+			"en": "Lotte the Fisher"
+		},
+		"fenna": {
+			"de": "Dr. Fenna",
+			"en": "Dr. Fenna"
+		},
+		"pip": {
+			"de": "Händler Pip",
+			"en": "Pip the Trader"
+		}
+	},
+	"quests": [
+		{
+			"id": "q1",
+			"npc": "brumm",
+			"goal": {
+				"type": "harvest",
+				"id": "wheat",
+				"n": 6
+			},
+			"reward": {
+				"coins": 30,
+				"xp": 10
+			},
+			"intro_de": [
+				"Hallo, Nachbar! Ich bin Brumm, der Müller. Schön, dass wieder jemand auf dem alten Hof lebt.",
+				"Das Moosental hat lange geschlafen. Fangen wir klein an: Ernte 6 Weizen für mich?"
+			],
+			"intro_en": [
+				"Hello, neighbour! I'm Brumm, the miller. It's lovely to see someone living on the old farm again.",
+				"The vale has been asleep for a long time. Let's start small: could you harvest 6 wheat for me?"
+			],
+			"done_de": "Wunderbar! Das riecht nach Sommer.",
+			"done_en": "Wonderful! That smells like summer."
+		},
+		{
+			"id": "q2",
+			"npc": "brumm",
+			"goal": {
+				"type": "make",
+				"id": "bread",
+				"n": 2
+			},
+			"reward": {
+				"coins": 40,
+				"xp": 12
+			},
+			"intro_de": [
+				"Weißt du, was das Tal früher zusammengebracht hat? Frisches Brot am Morgen.",
+				"Back 2 Brote in der Bäckerei."
+			],
+			"intro_en": [
+				"Do you know what used to bring the vale together? Fresh bread in the morning.",
+				"Bake 2 loaves at the bakery."
+			],
+			"done_de": "Hmm, knusprig! Die Leute werden kommen, du wirst sehen.",
+			"done_en": "Mmm, crusty! People will come, you'll see."
+		},
+		{
+			"id": "q3",
+			"npc": "brumm",
+			"goal": {
+				"type": "collect",
+				"id": "egg",
+				"n": 4
+			},
+			"reward": {
+				"coins": 50,
+				"xp": 15
+			},
+			"intro_de": [
+				"Deine Hühner sehen hungrig aus. Futter gibt es in der Futtermühle.",
+				"Sammle 4 Eier, dann zeige ich dir das Dorf."
+			],
+			"intro_en": [
+				"Your hens look hungry. You can make feed at the feed mill.",
+				"Collect 4 eggs and I'll show you the village."
+			],
+			"done_de": "Siehst du die Häuser oben am Wasser? Das ist Moosdorf. Es braucht deine Hilfe.",
+			"done_en": "See the houses up by the water? That's Mossbrook. It needs your help."
+		},
+		{
+			"id": "q4",
+			"npc": "lotte",
+			"goal": {
+				"type": "catch",
+				"id": "any",
+				"n": 3
+			},
+			"reward": {
+				"coins": 60,
+				"xp": 15
+			},
+			"intro_de": [
+				"Ahoi! Lotte hier. Früher lagen hier viele Boote. Jetzt nur noch meins.",
+				"Fang 3 Fische, egal wo. Dann reden wir über den Leuchtturm."
+			],
+			"intro_en": [
+				"Ahoy! Lotte here. There used to be lots of boats. Now there's only mine.",
+				"Catch 3 fish, anywhere you like. Then we'll talk about the lighthouse."
+			],
+			"done_de": "Ordentliche Fänge! Du hast ein ruhiges Händchen.",
+			"done_en": "Nice catches! You've got a steady hand."
+		},
+		{
+			"id": "q5",
+			"npc": "lotte",
+			"goal": {
+				"type": "restore",
+				"id": "lighthouse",
+				"n": 1
+			},
+			"reward": {
+				"coins": 80,
+				"xp": 25,
+				"emeralds": 2
+			},
+			"intro_de": [
+				"Der Leuchtturm ist dunkel, seit der Sturm kam. Mit Kerzen und Stoff bekommen wir ihn wieder hell.",
+				"Bau ihn wieder auf, dann können wir aufs Meer hinaus angeln."
+			],
+			"intro_en": [
+				"The lighthouse has been dark since the storm. With candles and cloth we can make it shine again.",
+				"Rebuild it and we can fish out on the sea."
+			],
+			"done_de": "Schau, wie er leuchtet! Am Steg am Strand beißen jetzt Meeresfische.",
+			"done_en": "Look how it shines! Sea fish bite at the beach pier now."
+		},
+		{
+			"id": "q6",
+			"npc": "fenna",
+			"goal": {
+				"type": "dig",
+				"id": "any",
+				"n": 3
+			},
+			"reward": {
+				"coins": 60,
+				"xp": 15
+			},
+			"intro_de": [
+				"Oh! Hallo! Dr. Fenna, Paläontologin. Im Urzeit-Tal liegen Schätze im Boden!",
+				"Grab 3 Mal im Tal. Wer weiß, was du findest?"
+			],
+			"intro_en": [
+				"Oh! Hello! Dr. Fenna, palaeontologist. There are treasures buried in the Primeval Vale!",
+				"Dig 3 times in the vale. Who knows what you'll find?"
+			],
+			"done_de": "Fantastisch! Das gehört in ein Museum.",
+			"done_en": "Fantastic! That belongs in a museum."
+		},
+		{
+			"id": "q7",
+			"npc": "fenna",
+			"goal": {
+				"type": "restore",
+				"id": "museum",
+				"n": 1
+			},
+			"reward": {
+				"coins": 100,
+				"xp": 30,
+				"emeralds": 3
+			},
+			"intro_de": [
+				"Das alte Museum steht leer. Mit Fossilien und Bernstein machen wir es wieder auf!"
+			],
+			"intro_en": [
+				"The old museum stands empty. With fossils and amber we can open it again!"
+			],
+			"done_de": "Das Museum ist offen! Bring mir Fossilien, ich stelle sie aus.",
+			"done_en": "The museum is open! Bring me fossils and I'll display them."
+		},
+		{
+			"id": "q8",
+			"npc": "pip",
+			"goal": {
+				"type": "deliver",
+				"id": "any",
+				"n": 3
+			},
+			"reward": {
+				"coins": 80,
+				"xp": 20
+			},
+			"intro_de": [
+				"Pip, Händler, zu Diensten! Die Leute bestellen wieder, das ist gut fürs Geschäft.",
+				"Erfülle 3 Aufträge an der Auftragstafel."
+			],
+			"intro_en": [
+				"Pip, trader, at your service! People are ordering again, that's good for business.",
+				"Fill 3 orders at the order board."
+			],
+			"done_de": "Zufriedene Kunden! Zeit für einen richtigen Markt.",
+			"done_en": "Happy customers! Time for a proper market."
+		},
+		{
+			"id": "q9",
+			"npc": "pip",
+			"goal": {
+				"type": "restore",
+				"id": "market",
+				"n": 1
+			},
+			"reward": {
+				"coins": 120,
+				"xp": 30,
+				"emeralds": 3
+			},
+			"intro_de": [
+				"Der Marktplatz braucht Stände und etwas Leckeres zum Probieren."
+			],
+			"intro_en": [
+				"The market square needs stalls and something tasty to try."
+			],
+			"done_de": "Der Markt ist offen! Ich kaufe jeden Tag Wunschwaren zu besseren Preisen.",
+			"done_en": "The market is open! Every day I buy wished-for goods at better prices."
+		},
+		{
+			"id": "q10",
+			"npc": "brumm",
+			"goal": {
+				"type": "restore",
+				"id": "cafe",
+				"n": 1
+			},
+			"reward": {
+				"coins": 200,
+				"xp": 50,
+				"emeralds": 10
+			},
+			"intro_de": [
+				"Weißt du, was uns noch fehlt? Ein Ort zum Zusammensitzen. Das Café!",
+				"Wenn es fertig ist, feiern wir ein Fest. Das ganze Tal kommt!"
+			],
+			"intro_en": [
+				"You know what we're still missing? A place to sit together. The café!",
+				"When it's done, we'll have a festival. The whole vale will come!"
+			],
+			"done_de": "Das Moosental ist wieder wach. Danke, Nachbar. Willkommen zu Hause.",
+			"done_en": "The vale is awake again. Thank you, neighbour. Welcome home."
+		}
+	],
+	"restore": {
+		"lighthouse": {
+			"need": {
+				"candle": 2,
+				"cloth": 1
+			},
+			"coins": 300,
+			"unlock": 4
+		},
+		"museum": {
+			"need": {
+				"fossil": 3,
+				"amber": 1
+			},
+			"coins": 400,
+			"unlock": 4
+		},
+		"market": {
+			"need": {
+				"popcorn": 3,
+				"tomato_sauce": 1
+			},
+			"coins": 250,
+			"unlock": 4
+		},
+		"cafe": {
+			"need": {
+				"bread": 3,
+				"cream": 2,
+				"strawberry_jam": 1
+			},
+			"coins": 500,
+			"unlock": 5
+		},
+		"library": {
+			"need": {
+				"scarf": 1,
+				"candle": 2
+			},
+			"coins": 350,
+			"unlock": 6
+		}
+	}
+}

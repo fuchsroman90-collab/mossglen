@@ -73,5 +73,50 @@
 	},
 	"festive_candle": {
 		"sell": 110
+	},
+	"fossil": {
+		"sell": 25
+	},
+	"amber": {
+		"sell": 40
+	},
+	"primeval_egg": {
+		"sell": 45
+	},
+	"giant_pancake": {
+		"sell": 130
+	},
+	"amber_candle": {
+		"sell": 150
+	},
+	"egg_moosaurus": {
+		"sell": 80
+	},
+	"egg_trikeri": {
+		"sell": 80
+	},
+	"egg_stegolino": {
+		"sell": 80
+	},
+	"egg_parasauri": {
+		"sell": 80
+	},
+	"egg_ankyknubbel": {
+		"sell": 100
+	},
+	"egg_segelruecken": {
+		"sell": 100
+	},
+	"egg_pachy": {
+		"sell": 100
+	},
+	"egg_stachelchen": {
+		"sell": 100
+	},
+	"egg_flauschi": {
+		"sell": 120
+	},
+	"egg_brontobeere": {
+		"sell": 140
 	}
 }

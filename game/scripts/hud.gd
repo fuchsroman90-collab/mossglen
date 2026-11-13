@@ -46,6 +46,10 @@ var _refresh_t := 0.0
 var _album: Control
 var _album_body: Control
 var fishing: FishingUI = null
+var story: StoryUI
+var extra_windows: Array[Control] = []
+var _pedia: Control
+var _pedia_body: Control
 
 ## Level star at STAR_POS; its right tip (in star.png pixels) defines where the XP bar starts.
 const STAR_POS := Vector2(14, 4)
@@ -100,6 +104,8 @@ func _ready() -> void:
 	gear.pressed.connect(_toggle_settings)
 	var album := _round_button("ico_book.png", Vector2(26, 340), 128)
 	album.pressed.connect(open_album)
+	var pedia := _round_button("ico_dino.png", Vector2(26, 490), 128)
+	pedia.pressed.connect(open_dinopedia)
 	# bottom left: shop (build / seeds menu)
 	var shop := _round_button("ico_shop.png", Vector2(20, -250), 196, true)
 	shop.pressed.connect(func() -> void:
@@ -107,6 +113,9 @@ func _ready() -> void:
 		shop_pressed.emit())
 
 	_build_settings()
+	story = StoryUI.new()
+	add_child(story)
+	story.setup(self)
 	_build_barn()
 	_build_shop()
 	_build_place_bar()
@@ -116,6 +125,9 @@ func _ready() -> void:
 	_album = _panel_window(Vector2(1480, 1000), "ALBUM")[0]
 	_album_body = Control.new()
 	_album.add_child(_album_body)
+	_pedia = _panel_window(Vector2(1500, 900), "DINOPEDIA")[0]
+	_pedia_body = Control.new()
+	_pedia.add_child(_pedia_body)
 	_orders = _panel_window(Vector2(1320, 900), "ORDERS")[0]
 	_orders_body = Control.new()
 	_orders.add_child(_orders_body)
@@ -191,7 +203,8 @@ func _process(delta: float) -> void:
 
 func any_menu_open() -> bool:
 	return _barn.visible or _shop.visible or _settings.visible or _prod.visible or _orders.visible \
-			or _album.visible or fishing != null
+			or _album.visible or _pedia.visible or fishing != null or story.is_open() \
+			or extra_windows.any(func(w: Control) -> bool: return w.visible)
 
 
 static func _fmt_time(sec: int) -> String:
@@ -202,8 +215,10 @@ static func _fmt_time(sec: int) -> String:
 
 
 func close_menus() -> void:
-	for m in [_barn, _shop, _settings, _prod, _orders, _album]:
+	for m in [_barn, _shop, _settings, _prod, _orders, _album, _pedia]:
 		m.hide()
+	for w in extra_windows:
+		w.hide()
 	hide_seed_picker()
 
 
@@ -601,6 +616,66 @@ func open_shop() -> void:
 	_open(_shop)
 
 
+# ------------------------------------------------------------------ dino-pedia
+
+func open_dinopedia() -> void:
+	Audio.play("click")
+	_fill_pedia("")
+	_open(_pedia)
+
+
+func _fill_pedia(selected: String) -> void:
+	for c in _pedia_body.get_children():
+		c.queue_free()
+	var seen := 0
+	for i in Game.dinos.size():
+		var d: Dictionary = Game.dinos[i]
+		var known := Game.dino_seen.has(d["id"])
+		if known:
+			seen += 1
+		var b := TextureButton.new()
+		b.texture_normal = load(UI + "slot.png")
+		b.ignore_texture_size = true
+		b.stretch_mode = TextureButton.STRETCH_SCALE
+		b.position = Vector2(70 + (i % 5) * 280, 110 + (i / 5) * 290)
+		b.size = Vector2(250, 262)
+		b.focus_mode = Control.FOCUS_NONE
+		if d["id"] == selected:
+			b.modulate = Color(1.0, 0.95, 0.7)
+		_pedia_body.add_child(b)
+		var ic := _item_icon("dino_" + str(d["id"]), 210)
+		ic.position = Vector2(20, 20)
+		if not known:
+			ic.modulate = Color(0.1, 0.12, 0.18, 0.35)
+		b.add_child(ic)
+		var stars := ""
+		for k in int(d["rarity"]):
+			stars += "★"
+		var st := _label(stars, 30)
+		st.position = Vector2(0, 214)
+		st.size = Vector2(250, 40)
+		st.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		b.add_child(st)
+		var did: String = d["id"]
+		b.pressed.connect(func() -> void:
+			Audio.play("click")
+			_fill_pedia(did))
+	(_pedia.get_child(0) as Label).text = "%s  %d / %d" % [tr("DINOPEDIA"), seen, Game.dinos.size()]
+	var info := _dark(_label("", 36))
+	info.position = Vector2(70, 700)
+	info.size = Vector2(1360, 170)
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD
+	info.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_pedia_body.add_child(info)
+	if selected == "":
+		info.text = tr("DINO_UNKNOWN") if seen < Game.dinos.size() else ""
+	elif Game.dino_seen.has(selected):
+		var d: Dictionary = Game.dino_by_id[selected]
+		info.text = "%s\n%s" % [Game.dino_name(selected), d["fact_de"] if TranslationServer.get_locale().begins_with("de") else d["fact_en"]]
+	else:
+		info.text = "???\n" + tr("DINO_UNKNOWN")
+
+
 # ------------------------------------------------------------------ fishing
 
 func start_fishing(spot: String, place: String, time_of_day: String) -> void:
@@ -703,9 +778,8 @@ func _fill_prod() -> void:
 			sl.modulate.a = 0.55
 			continue
 		var rec: Dictionary = b.recipes()[items[i][0]]
-		var ic := _tex("item_%s.png" % rec["out"])
-		ic.scale = Vector2(0.86, 0.86)
-		ic.position = Vector2(14, 10)
+		var ic := _item_icon(rec["out"], 100)
+		ic.position = Vector2(14, 12)
 		sl.add_child(ic)
 		match items[i][1]:
 			"done":
@@ -737,14 +811,16 @@ func _fill_prod() -> void:
 	var y := 330.0
 	for r in b.recipes().size():
 		var rec: Dictionary = b.recipes()[r]
+		# the nest only lists eggs the player actually has
+		if rec.get("spawn", false) and Game.count(rec["in"].keys()[0]) == 0:
+			continue
 		var row := Control.new()
 		row.position = Vector2(60, y)
 		_prod_body.add_child(row)
 		var sl := _tex("slot.png")
 		row.add_child(sl)
-		var ic := _tex("item_%s.png" % rec["out"])
-		ic.scale = Vector2(0.86, 0.86)
-		ic.position = Vector2(14, 10)
+		var ic := _item_icon(rec["out"], 100)
+		ic.position = Vector2(14, 12)
 		row.add_child(ic)
 		var nm := _dark(_label("ITEM_" + str(rec["out"]), 38))
 		nm.position = Vector2(150, 0)
@@ -968,6 +1044,23 @@ func _toggle_settings() -> void:
 
 
 # ------------------------------------------------------------------ widgets
+
+## Icon texture for any item id. Dinos use their 3D idle frame from the atlas.
+static func item_texture(id: String) -> Texture2D:
+	if id.begins_with("dino_"):
+		return Atlas.tex("%s_idle_se_0" % id)
+	return load(UI + "item_%s.png" % id)
+
+
+func _item_icon(id: String, box := 112.0) -> TextureRect:
+	var t := TextureRect.new()
+	t.texture = item_texture(id)
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	t.size = Vector2(box, box)
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return t
+
 
 func _patch(file: String, mx: int, my: int) -> NinePatchRect:
 	var p := NinePatchRect.new()

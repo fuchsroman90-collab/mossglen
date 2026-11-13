@@ -22,7 +22,7 @@ const CONFIG := {
 		"shadow": Vector2(1.2, 1.1), "tap_height": 50.0, "sound": "oink",
 	},
 	"dino": {
-		"speed": 58.0, "anims": {"idle": [8, 7.0], "walk": [8, 9.0]},
+		"speed": 58.0, "anims": {"idle": [6, 6.0], "walk": [8, 9.0]},
 		"shadow": Vector2(1.45, 1.4), "tap_height": 80.0, "sound": "pop",
 	},
 }
@@ -46,7 +46,7 @@ var _bubble_icon: Sprite2D
 
 
 func _ready() -> void:
-	_cfg = CONFIG[kind]
+	_cfg = CONFIG["dino"] if kind.begins_with("dino_") else CONFIG[kind]
 	var sh := Atlas.sprite("shadow_blob")
 	sh.scale = _cfg["shadow"]
 	sh.modulate.a = 0.9

@@ -2,6 +2,32 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-13 – PC-Sitzung: M4 Dinos + M5 Dorf und Story
+
+M4:
+- 10 Dino-Arten aus einem Grundmodell + Zubehör (Kragen/Hörner, Platten, Keulenschwanz, Kamm, Segel, Kuppel,
+  Stacheln, Federn, Riesenhals): Moosaurus, Trikeri, Stegolino, Ankyknubbel, Parasauri, Segelrücken, Pachyköpfchen,
+  Stachelchen, Flauschi, Brontobeere (`data/dinos.json`, Seltenheit 1–4).
+- Urzeit-Tal jenseits des Bachs (Brücke, Moos-Boden über Blau-Kanal der Boden-Maske, Riesenfarne, Palmfarne),
+  6 Grabungshügel (voll/leer, füllen sich nach 3 Min.), Funde: Fossil, Bernstein, Dino-Eier. Ab Level 4.
+- Brutnest = Produktionsgebäude mit `"spawn": true` → Baby-Dino zieht auf die Dino-Wiese (max. 8).
+- Dinos fressen Farn (neue Feldpflanze, Lv 4) und legen Urzeit-Eier → Riesen-Pfannkuchen; Bernstein → Bernsteinkerze.
+- Dino-Pedia (Knopf mit Fußabdruck), Icons sind die 3D-Idle-Frames aus dem Atlas.
+- Farn-Wedel zuerst „Speichenrad“ → mehr, breitere Fiederblättchen.
+
+M5:
+- Moosdorf im Norden am Meer: Strand, Dorfplatz mit Brunnen, 5 Gebäude als Ruinen (Leuchtturm, Museum, Markt,
+  Café, Bibliothek) → Wiederaufbau mit Waren + Münzen. Funktionen: Leuchtturm = Meeresangeln am Strandsteg,
+  Museum = Fossilien spenden + Sammlungsstand, Markt = 3 Wunschwaren/Tag mit +50 %, Café = 7. Auftrag,
+  Bibliothek = Tagebuch der Geschichte.
+- 4 Bewohner als Tier-Leute (Bär Brumm, Otterin Lotte, Wüstenfüchsin Dr. Fenna, Maus Pip), Idle + Winken,
+  „!“ wenn sie etwas zu sagen haben.
+- Story-Bogen 1 „Das Moosental erwacht“: 10 Quests (`data/story.json`), Dialoge DE/EN mit Schreibmaschinen-Text,
+  Quest-Anzeige links (antippen = Gespräch), Belohnungen inkl. Smaragde, Finale = Café-Fest.
+- Atlas jetzt 7 Seiten (2048²). Für Mobil später VRAM-Kompression prüfen (Textur-Budget iPhone 11).
+
+Offen: M6 Backend braucht Romans Entscheidung (Supabase-Projekt anlegen, Konto/Region).
+
 ## 2026-11-13 – PC-Sitzung: M3 Angeln
 
 - 40 Fischarten (`game/data/fish.json`): 14 Teich, 14 Bach, 12 Meer (Meer kommt mit dem Dorf in M5).
