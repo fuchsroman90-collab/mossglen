@@ -32,6 +32,7 @@ REGISTRY = [
     ("icons", "icon_frames", False, 48),
     ("village", "village_frames", True, 48),
     ("progress", "progress_frames", True, 56),
+    ("items", "item_frames", False, 40),
 ]
 
 

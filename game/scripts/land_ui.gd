@@ -92,21 +92,23 @@ func _fill_store() -> void:
 
 
 func _tile(id: String) -> Control:
+	# like the reference: the 3D item on the cream panel, a big outlined count overlapping its corner
 	var b := TextureButton.new()
-	b.texture_normal = load(Hud.UI + "slot.png")
 	b.ignore_texture_size = true
-	b.stretch_mode = TextureButton.STRETCH_SCALE
 	b.custom_minimum_size = Vector2(TILE, TILE)
 	b.focus_mode = Control.FOCUS_NONE
-	if id == _store_sel:
-		b.modulate = Color(1.15, 1.1, 0.8)
 	hud._press_feedback(b)
-	var icon := hud._item_icon(id, TILE - 40)
-	icon.position = Vector2(20, 14)
+	if id == _store_sel:
+		var glow := hud._tex("ring_target.png")
+		glow.scale = Vector2(TILE, TILE) / glow.texture.get_size()
+		glow.modulate = Color(1, 1, 1, 0.55)
+		b.add_child(glow)
+	var icon := hud._item_icon(id, TILE - 24)
+	icon.position = Vector2(4, 0)
 	b.add_child(icon)
-	var n := hud._label(str(Game.count(id)), 34)
-	n.position = Vector2(0, TILE - 60)
-	n.size = Vector2(TILE - 14, 50)
+	var n := hud._label(str(Game.count(id)), 52)
+	n.position = Vector2(0, TILE - 74)
+	n.size = Vector2(TILE - 4, 70)
 	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	b.add_child(n)
 	b.pressed.connect(func() -> void:

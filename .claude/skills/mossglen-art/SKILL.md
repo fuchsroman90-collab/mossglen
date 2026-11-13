@@ -81,3 +81,10 @@ python tools/art/build.py --force      # re-render everything
 pixel-exact taps (`Atlas.opaque_region`). Never read pixels from the atlas textures themselves.
 Seasonal looks are shader-only (`ground.gdshader` season_tint/snow, `sway.gdshader` foliage/autumn/frost/bloom):
 new trees/bushes get them for free if their leaves are green and they use the tree/bush sway material.
+
+## Item icons are 3D (Roman, 2026-11-13)
+
+Item icons (crops, goods, tools, materials, eggs) are Blender renders, never flat SVG: add a model to
+`assets/items.py` (`item_frames`, name `uiitem_<id>`), keep it simple and chunky, put labels on `_front(root)`
+so they face the camera, lean flat things with `_lean`. `build.py` exports them to `ui/item_<id>.png`.
+Reference: `brain/references/img/hd_item_icons_3d.png`. HUD frames, buttons and glyphs stay 2D (`ui.py`).

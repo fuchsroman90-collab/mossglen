@@ -77,6 +77,8 @@ def build(out_dir: Path, extra: dict | None = None) -> dict:
     meta = json.loads((cache / "meta.json").read_text())
     sprites = {}
     for name, m in sorted(meta.items()):
+        if name.startswith("uiitem_"):
+            continue  # item icons go to ui/ (see build.export_item_icons), not into the world atlas
         obj = cache / f"{name}.png"
         sh = cache / f"{name}_shadow.png" if m["shadow"] else None
         px = 2.5 if name.startswith("icon_") else post.OUTLINE_PX
