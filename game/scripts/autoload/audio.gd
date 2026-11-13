@@ -2,13 +2,23 @@ extends Node
 ## Music + pooled sound effects on separate buses.
 
 const SFX := ["click", "pop", "plant", "harvest", "coin", "cluck", "whoosh", "moo", "baa", "oink", "splash",
-	"reel", "levelup", "dig"]
+	"reel", "levelup", "dig", "achieve"]
+## music loop -> volume offset in dB (the vale loop is mixed a little hotter)
+const TRACKS := {"meadow": 0.0, "night": 0.0, "village": 0.0, "vale": -2.5}
+const FADE := 3.0
+const AREA_HOLD := 2.5  ## seconds an area must stay before the music changes
 const POOL_SIZE := 12
 
 var _music: AudioStreamPlayer
+var _music_b: AudioStreamPlayer  ## second player for cross-fades
+var _songs: Dictionary = {}
+var track := ""
+var _want := ""
+var _want_t := 0.0
 var _pool: Array[AudioStreamPlayer] = []
 var _streams: Dictionary = {}
 var music_enabled := true
+var sfx_enabled := true
 
 
 func _ready() -> void:
@@ -25,17 +35,53 @@ func _ready() -> void:
 	_music = AudioStreamPlayer.new()
 	_music.bus = "Music"
 	add_child(_music)
-	var song: AudioStreamWAV = load("res://audio/generated/music_meadow.wav")
-	song.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	song.loop_begin = 0
-	song.loop_end = int(song.get_length() * song.mix_rate)
-	_music.stream = song
+	_music_b = AudioStreamPlayer.new()
+	_music_b.bus = "Music"
+	add_child(_music_b)
+	for t in TRACKS:
+		var song: AudioStreamOggVorbis = load("res://audio/generated/music_%s.ogg" % t)
+		song.loop = true
+		_songs[t] = song
 
 
-func play_music() -> void:
+func play_music(name := "meadow") -> void:
+	track = name
+	_want = name
+	_music.stream = _songs[name]
 	_music.volume_db = -30.0
 	_music.play()
-	create_tween().tween_property(_music, "volume_db", 0.0, 2.5)
+	create_tween().tween_property(_music, "volume_db", TRACKS[name], 2.5)
+
+
+## Asks for the loop that fits the current area; switches after it has been wanted for a moment.
+func set_area(name: String) -> void:
+	if not _songs.has(name) or track == "":
+		return
+	if name != _want:
+		_want = name
+		_want_t = Time.get_ticks_msec() / 1000.0
+		return
+	if name != track and Time.get_ticks_msec() / 1000.0 - _want_t >= AREA_HOLD:
+		_crossfade(name)
+
+
+func _crossfade(name: String) -> void:
+	track = name
+	var old := _music
+	_music = _music_b
+	_music_b = old
+	_music.stream = _songs[name]
+	_music.volume_db = -40.0
+	_music.play()
+	var tw := create_tween().set_parallel()
+	tw.tween_property(_music, "volume_db", TRACKS[name], FADE)
+	tw.tween_property(old, "volume_db", -40.0, FADE)
+	tw.chain().tween_callback(old.stop)
+
+
+func set_sfx_enabled(on: bool) -> void:
+	sfx_enabled = on
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("SFX"), not on)
 
 
 func set_music_enabled(on: bool) -> void:

@@ -2,6 +2,13 @@
 
 Neueste oben. Format: Datum – Entscheidung – Begründung – wer.
 
+- **2026-11-13 – Jahreszeiten nach echtem Kalender** (Nordhalbkugel), nicht nach Spieltagen: fühlt sich an wie
+  draußen, kein Grind. Jede Saison hat eine Bonus-Pflanze. – Claude
+- **2026-11-13 – Musik als Ogg Vorbis**, Soundeffekte bleiben WAV (kurz, latenzfrei). – Claude
+- **2026-11-13 – Atlas VRAM-komprimiert (BPTC Desktop, ASTC Handy).** ~4x weniger Grafikspeicher fürs
+  iPhone 11; die APK wird dafür ~15 MB größer. Tipp-Erkennung über eigene Alpha-Masken. – Claude
+- **2026-11-13 – Anleitung nur für neue Spielstände**, jederzeit in den Einstellungen neu startbar. – Claude
+
 - **2026-11-13 – Welt 3D, UI 2D.** Spielwelt bleibt vorgerendertes 3D, die Benutzeroberfläche (HUD, Knöpfe,
   Icons, Menüs) wird flach in 2D gezeichnet (SVG aus Code), angelehnt an das Referenz-HUD. – Roman
 

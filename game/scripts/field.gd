@@ -28,7 +28,7 @@ static func now() -> float:
 
 
 func grow_time() -> float:
-	return float(Game.crops[crop]["grow"]) if crop != "" else 1.0
+	return Game.grow_time(crop) if crop != "" else 1.0
 
 
 func plant(kind: String, at := -1.0) -> bool:

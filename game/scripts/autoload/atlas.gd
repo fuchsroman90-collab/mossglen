@@ -5,7 +5,10 @@ extends Node
 
 const DIR := "res://art/generated/"
 
+const MASK_SCALE := 4  ## tap masks are 1/4 size (tools/art/pack.py)
+
 var pages: Array[Texture2D] = []
+var masks: Array[Image] = []  ## alpha > 0.5 per page, CPU side, for pixel-exact taps
 var _frames: Dictionary = {}
 var _cache: Dictionary = {}
 
@@ -17,6 +20,7 @@ func _ready() -> void:
 	_frames = data["frames"]
 	for i in int(data["pages"]):
 		pages.append(load(DIR + "atlas_%d.png" % i))
+		masks.append(load(DIR + "atlas_%d_mask.png" % i))
 
 
 func has(sprite_name: String) -> bool:
@@ -60,7 +64,23 @@ func sprite(sprite_name: String) -> Sprite2D:
 	return s
 
 
-## Image of one frame (for pixel-exact tap tests).
-func image_of(sprite_name: String) -> Image:
+## True if the frame is opaque at a pixel given relative to the frame's top-left corner.
+func opaque(sprite_name: String, local: Vector2) -> bool:
 	var d: Array = _frames[sprite_name]
-	return pages[int(d[0])].get_image()
+	if local.x < 0 or local.y < 0 or local.x >= float(d[3]) or local.y >= float(d[4]):
+		return false
+	var m: Image = masks[int(d[0])]
+	var p := Vector2i((Vector2(d[1], d[2]) + local) / MASK_SCALE)
+	if p.x >= m.get_width() or p.y >= m.get_height():
+		return false
+	return m.get_pixelv(p).r > 0.5
+
+
+## Same test for any AtlasTexture cut from a page (local = pixel inside its region).
+func opaque_region(at: AtlasTexture, local: Vector2) -> bool:
+	var i := pages.find(at.atlas)
+	if i < 0 or not Rect2(Vector2.ZERO, at.region.size).has_point(local):
+		return i < 0
+	var m: Image = masks[i]
+	var p := Vector2i((at.region.position + local) / MASK_SCALE)
+	return p.x < m.get_width() and p.y < m.get_height() and m.get_pixelv(p).r > 0.5

@@ -1,0 +1,14 @@
+[
+	{"id": "farmer", "stat": "harvest", "tiers": [100, 1000, 5000], "gems": [2, 5, 10]},
+	{"id": "wheat", "stat": "harvest:wheat", "tiers": [50, 500, 2500], "gems": [1, 3, 6]},
+	{"id": "rancher", "stat": "collect", "tiers": [50, 500, 2500], "gems": [2, 5, 10]},
+	{"id": "maker", "stat": "make", "tiers": [25, 250, 1000], "gems": [2, 5, 10]},
+	{"id": "orders", "stat": "deliver", "tiers": [10, 100, 500], "gems": [2, 5, 10]},
+	{"id": "angler", "stat": "catch", "tiers": [10, 100, 500], "gems": [1, 3, 6]},
+	{"id": "album", "stat": "#fish_species", "tiers": [10, 25, 40], "gems": [2, 5, 15]},
+	{"id": "digger", "stat": "dig", "tiers": [10, 50, 200], "gems": [1, 3, 6]},
+	{"id": "dinos", "stat": "#dino_species", "tiers": [3, 6, 10], "gems": [2, 5, 15]},
+	{"id": "village", "stat": "restore", "tiers": [1, 3, 5], "gems": [2, 4, 8]},
+	{"id": "rich", "stat": "earn", "tiers": [1000, 10000, 100000], "gems": [2, 5, 10]},
+	{"id": "level", "stat": "#level", "tiers": [5, 10, 20], "gems": [2, 5, 10]}
+]

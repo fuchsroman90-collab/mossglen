@@ -730,8 +730,148 @@ DINO_COLORS = {
 }
 
 
+# ---------------------------------------------------------------- M9: seasons, achievements, tutorial
+
+def fx_fall_leaf(size=48):
+    """Pale leaf for falling-leaf particles; tinted orange/red/gold in the engine."""
+    c = size / 2
+    leaf = (f'M{c} 4 C{size - 6} {c - 8} {size - 8} {c + 10} {c} {size - 6} '
+            f'C8 {c + 10} 6 {c - 8} {c} 4 Z')
+    return render(f'<path d="{leaf}" fill="#FFF3C8" stroke="#B88A50" stroke-width="2.5"/>'
+                  f'<path d="M{c} 8 L{c} {size - 8}" stroke="#C8A060" stroke-width="2"/>'
+                  f'<path d="M{c} {c} L{c + 9} {c - 7} M{c} {c + 8} L{c - 9} {c + 1}" stroke="#C8A060" '
+                  f'stroke-width="1.6"/>', size, size)
+
+
+def fx_petal(size=40):
+    c = size / 2
+    return render(f'<defs>{grad("p", [(0, "#FFFFFF"), (1, "#FFC4D6")])}</defs>'
+                  f'<path d="M{c} 4 C{size - 4} 10 {size - 6} {size - 8} {c} {size - 4} '
+                  f'C6 {size - 8} 4 10 {c} 4 Z" fill="url(#p)" stroke="#E890AE" stroke-width="2"/>', size, size)
+
+
+def fx_snow(size=32):
+    c = size / 2
+    return render(f'<defs><radialGradient id="s"><stop offset="0" stop-color="#FFFFFF"/>'
+                  f'<stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0.95"/>'
+                  f'<stop offset="1" stop-color="#E4F1FF" stop-opacity="0"/></radialGradient></defs>'
+                  f'<circle cx="{c}" cy="{c}" r="{c - 1}" fill="url(#s)"/>', size, size)
+
+
+def fx_firefly(size=40):
+    c = size / 2
+    return render(f'<defs><radialGradient id="s"><stop offset="0" stop-color="#FFFFE0"/>'
+                  f'<stop offset="0.3" stop-color="#F6FF8A" stop-opacity="0.9"/>'
+                  f'<stop offset="1" stop-color="#C8FF5A" stop-opacity="0"/></radialGradient></defs>'
+                  f'<circle cx="{c}" cy="{c}" r="{c - 1}" fill="url(#s)"/>', size, size)
+
+
+def trophy(size=96):
+    o = _o(6)
+    return _glyph(f'<path d="M30 22 L66 22 L64 50 C62 62 54 66 48 66 C42 66 34 62 32 50 Z" fill="#FFD23F" {o}/>'
+                  f'<path d="M30 28 C14 28 16 50 33 50 M66 28 C82 28 80 50 63 50" fill="none" stroke="{OUT}" '
+                  f'stroke-width="11" stroke-linecap="round"/>'
+                  f'<path d="M30 28 C14 28 16 50 33 50 M66 28 C82 28 80 50 63 50" fill="none" stroke="#FFD23F" '
+                  f'stroke-width="4.5" stroke-linecap="round"/>'
+                  f'<rect x="42" y="64" width="12" height="10" fill="#F2A923" {o}/>'
+                  f'<rect x="30" y="72" width="36" height="12" rx="4" fill="#C98C4A" {o}/>'
+                  f'<path d="M40 30 C38 40 40 48 44 52" stroke="#FFF6C0" stroke-width="5" fill="none" '
+                  f'stroke-linecap="round"/>', size)
+
+
+def medal(fill_top, fill_bot, size=72, empty=False):
+    c = size / 2
+    if empty:
+        return render(f'<circle cx="{c}" cy="{c}" r="{c - 5}" fill="#E6D3AA" stroke="#B89A6A" stroke-width="4"/>'
+                      f'<circle cx="{c}" cy="{c}" r="{c - 15}" fill="none" stroke="#CDB688" stroke-width="3"/>',
+                      size, size)
+    pts = []
+    for i in range(10):
+        a = -math.pi / 2 + i * math.pi / 5
+        r = (c - 16) if i % 2 == 0 else (c - 16) * 0.45
+        pts.append(f"{c + math.cos(a) * r:.1f},{c + 1 + math.sin(a) * r:.1f}")
+    return render(f'<defs>{grad("m", [(0, fill_top), (1, fill_bot)])}</defs>'
+                  f'<circle cx="{c}" cy="{c}" r="{c - 4}" fill="{OUT}"/>'
+                  f'<circle cx="{c}" cy="{c}" r="{c - 8}" fill="url(#m)"/>'
+                  f'<polygon points="{" ".join(pts)}" fill="#FFFFFF" opacity="0.85"/>'
+                  f'<ellipse cx="{c}" cy="{c * 0.55}" rx="{c * 0.5}" ry="{c * 0.2}" fill="#FFFFFF" opacity="0.35"/>',
+                  size, size)
+
+
+def hand(size=128):
+    """Pointing hand for the tutorial (points down, fingertip at the bottom, x = 51)."""
+    o = f'stroke="{OUT}" stroke-width="6" stroke-linejoin="round"'
+    return render(f'<defs>{shadow_filter(dy=4, blur=3, op=0.3)}{grad("h", [(0, "#FFFFFF"), (1, "#FFE6CC")])}'
+                  f'{grad("c", [(0, "#8ED0FF"), (1, "#3D8FE0")])}</defs>'
+                  f'<g filter="url(#sh)">'
+                  f'<ellipse cx="34" cy="44" rx="11" ry="19" fill="url(#h)" {o} transform="rotate(-25 34 44)"/>'
+                  f'<rect x="38" y="14" width="66" height="54" rx="20" fill="url(#h)" {o}/>'
+                  f'<circle cx="74" cy="66" r="11" fill="url(#h)" {o}/>'
+                  f'<circle cx="93" cy="62" r="10" fill="url(#h)" {o}/>'
+                  f'<rect x="40" y="40" width="23" height="80" rx="11.5" fill="url(#h)" {o}/>'
+                  f'<path d="M45 108 C48 112 56 112 59 108" stroke="#E8C3A0" stroke-width="3" fill="none"/>'
+                  f'<rect x="44" y="2" width="56" height="18" rx="6" fill="url(#c)" {o}/>'
+                  f'</g>', size, size + 8)
+
+
+def season_badge(kind, size=72):
+    c = size / 2
+    o = _o(5)
+    bg = {"spring": "#FFC4D6", "summer": "#FFE56B", "autumn": "#FFB060", "winter": "#BFE4FF"}[kind]
+    if kind == "spring":
+        petals = "".join(f'<ellipse cx="{c}" cy="{c - 11}" rx="8" ry="11" fill="#FFFFFF" {_o(3.5)} '
+                         f'transform="rotate({a} {c} {c})"/>' for a in range(0, 360, 72))
+        icon = petals + f'<circle cx="{c}" cy="{c}" r="6" fill="#FFD23F" {_o(3)}/>'
+    elif kind == "summer":
+        rays = "".join(f'<path d="M{c} {c - 26} L{c} {c - 19}" stroke="{OUT}" stroke-width="9" '
+                       f'stroke-linecap="round" transform="rotate({a} {c} {c})"/>'
+                       f'<path d="M{c} {c - 26} L{c} {c - 19}" stroke="#FFFFFF" stroke-width="4" '
+                       f'stroke-linecap="round" transform="rotate({a} {c} {c})"/>' for a in range(0, 360, 45))
+        icon = rays + f'<circle cx="{c}" cy="{c}" r="13" fill="#FFB020" {o}/>'
+    elif kind == "autumn":
+        icon = (f'<path d="M{c} {c - 22} L{c + 7} {c - 8} L{c + 20} {c - 12} L{c + 14} {c + 2} L{c + 20} {c + 8} '
+                f'L{c + 6} {c + 10} L{c} {c + 22} L{c - 6} {c + 10} L{c - 20} {c + 8} L{c - 14} {c + 2} '
+                f'L{c - 20} {c - 12} L{c - 7} {c - 8} Z" fill="#E8602A" {o}/>'
+                f'<path d="M{c} {c - 10} L{c} {c + 26}" stroke="{OUT}" stroke-width="4"/>')
+    else:
+        arms = "".join(f'<path d="M{c} {c} L{c} {c - 22} M{c} {c - 13} L{c - 7} {c - 19} M{c} {c - 13} L{c + 7} {c - 19}" '
+                       f'stroke="{OUT}" stroke-width="9" stroke-linecap="round" transform="rotate({a} {c} {c})"/>'
+                       for a in range(0, 360, 60))
+        arms += "".join(f'<path d="M{c} {c} L{c} {c - 22} M{c} {c - 13} L{c - 7} {c - 19} M{c} {c - 13} L{c + 7} {c - 19}" '
+                        f'stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" transform="rotate({a} {c} {c})"/>'
+                        for a in range(0, 360, 60))
+        icon = arms
+    return render(f'<circle cx="{c}" cy="{c}" r="{c - 3}" fill="{OUT}"/>'
+                  f'<circle cx="{c}" cy="{c}" r="{c - 7}" fill="{bg}"/>{icon}', size, size)
+
+
+def toggle(on: bool, w=120, h=64):
+    """Switch for the settings window."""
+    r = h / 2
+    knob = w - r if on else r
+    face = ("#A6EB6A", "#3FA535") if on else ("#E2D4B8", "#BBA680")
+    return render(f'<defs>{grad("t", [(0, face[0]), (1, face[1])])}</defs>'
+                  f'<rect x="3" y="3" width="{w - 6}" height="{h - 6}" rx="{r - 3}" fill="{OUT}"/>'
+                  f'<rect x="8" y="8" width="{w - 16}" height="{h - 16}" rx="{r - 8}" fill="url(#t)"/>'
+                  f'<circle cx="{knob}" cy="{r}" r="{r - 9}" fill="{OUT}"/>'
+                  f'<circle cx="{knob}" cy="{r}" r="{r - 13}" fill="#FFFDF4"/>', w, h)
+
+
+def m9_images() -> dict:
+    return {
+        "fx_fall_leaf": fx_fall_leaf(), "fx_petal": fx_petal(), "fx_snow": fx_snow(), "fx_firefly": fx_firefly(),
+        "ico_trophy": trophy(), "medal_bronze": medal("#F5C39A", "#C27A45"),
+        "medal_silver": medal("#FFFFFF", "#AFC0CF"), "medal_gold": medal("#FFF08A", "#F2A923"),
+        "medal_empty": medal("", "", empty=True), "hand": hand(),
+        "season_spring": season_badge("spring"), "season_summer": season_badge("summer"),
+        "season_autumn": season_badge("autumn"), "season_winter": season_badge("winter"),
+        "toggle_on": toggle(True), "toggle_off": toggle(False),
+    }
+
+
 def ui_images_all() -> dict:
     d = ui_images()
+    d.update(m9_images())
     d.update(fish_icons())
     for sp, (a, b) in DINO_COLORS.items():
         d[f"item_egg_{sp}"] = item_big_egg(a, b)

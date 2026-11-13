@@ -158,3 +158,53 @@ MUSEUM_DINOS	Dino-Pedia: %d / %d	Dino-pedia: %d / %d
 DONATE_FOSSIL	Fossil spenden (+5 XP)	Donate a fossil (+5 XP)
 LIBRARY_EMPTY	Die Seiten sind noch leer. Hilf den Leuten im Tal!	The pages are still empty. Help the people of the vale!
 SEA_LOCKED	Der Leuchtturm muss erst wieder leuchten.	The lighthouse has to shine again first.
+ACHIEVEMENTS	Erfolge	Achievements
+ACH_CLAIM	+%d	+%d
+ACH_DONE	Gemeistert!	Mastered!
+ACH_TOAST	Erfolg: %s (+%d Smaragde)	Achievement: %s (+%d emeralds)
+ACH_NEW	Neuer Erfolg erreicht!	New achievement reached!
+ACH_farmer_T	Grüner Daumen	Green thumb
+ACH_farmer_D	Ernte %d Feldfrüchte.	Harvest %d crops.
+ACH_wheat_T	Weizenwelle	Wheat wave
+ACH_wheat_D	Ernte %d Weizen.	Harvest %d wheat.
+ACH_rancher_T	Tierlieb	Animal friend
+ACH_rancher_D	Sammle %d Tierprodukte ein.	Collect %d animal goods.
+ACH_maker_T	Fleißige Hände	Busy hands
+ACH_maker_D	Stelle %d Waren her.	Make %d goods.
+ACH_orders_T	Zuverlässig	Reliable
+ACH_orders_D	Erfülle %d Aufträge.	Fill %d orders.
+ACH_angler_T	Petri Heil	Tight lines
+ACH_angler_D	Fange %d Fische.	Catch %d fish.
+ACH_album_T	Fischkenner	Fish expert
+ACH_album_D	Entdecke %d Fischarten.	Discover %d fish species.
+ACH_digger_T	Schatzsucher	Treasure hunter
+ACH_digger_D	Grabe %d Mal im Urzeit-Tal.	Dig %d times in the vale.
+ACH_dinos_T	Dino-Freund	Dino friend
+ACH_dinos_D	Lerne %d Dino-Arten kennen.	Meet %d dino species.
+ACH_village_T	Baumeister	Master builder
+ACH_village_D	Baue %d Häuser im Dorf wieder auf.	Rebuild %d village buildings.
+ACH_rich_T	Goldene Ernte	Golden harvest
+ACH_rich_D	Verdiene insgesamt %d Münzen.	Earn %d coins in total.
+ACH_level_T	Aufsteiger	Climber
+ACH_level_D	Erreiche Level %d.	Reach level %d.
+SEASON_spring	Frühling	Spring
+SEASON_summer	Sommer	Summer
+SEASON_autumn	Herbst	Autumn
+SEASON_winter	Winter	Winter
+SEASON_INFO	%s – %s wächst jetzt 20 % schneller.	%s – %s grows 20 % faster now.
+IN_SEASON	Saison	In season
+SET_MUSIC	Musik	Music
+SET_SFX	Geräusche	Sounds
+SET_MOTION	Weniger Bewegung	Reduce motion
+SET_TEXT	Größe der Anzeige	Interface size
+SET_LANG	Sprache	Language
+SET_LANG_VALUE	Deutsch	English
+SET_TUTORIAL	Anleitung neu starten	Restart the tutorial
+TUT_0	Willkommen in Mossglen! Tippe auf ein leeres Beet und wähle Weizen zum Säen.	Welcome to Mossglen! Tap an empty field and pick wheat to sow it.
+TUT_1	Weizen wächst in einer halben Minute. Die Hühner haben Hunger – tippe auf ein Huhn, um sie zu füttern.	Wheat grows in half a minute. The chickens are hungry – tap one to feed them.
+TUT_2	Reif! Wische mit dem Finger über die Beete, um den Weizen zu ernten.	Ripe! Swipe your finger over the fields to harvest the wheat.
+TUT_2_WAIT	Der Weizen wächst noch … gleich kannst du ernten.	The wheat is still growing … you can harvest in a moment.
+TUT_3	Am Auftragsbrett bestellen die Leute Waren gegen Münzen. Tippe darauf.	At the order board people ask for goods and pay in coins. Tap it.
+TUT_4	Müller Brumm braucht deine Hilfe. Tippe oben links auf seine Aufgabe.	Miller Brumm needs your help. Tap his task at the top left.
+TUT_DONE	Super! Jetzt gehört der Hof dir. Viel Spaß in Mossglen!	Great! The farm is yours now. Have fun in Mossglen!
+TUT_SKIP	Überspringen	Skip

@@ -27,7 +27,12 @@ godot --path game -- --bench                          # stress scene, prints fra
 godot --path game -- --demo                           # fields in mixed growth stages
 godot --path game -- --shot=/tmp/shot.png --zoom=0.52 # screenshot after 3 s, then quit
 #   extra screenshot switches: --at=x,y (grid centre) --time=0..1 (day phase) --ui=picker|barn|shop|place
-#   --settings (open settings). --smoke/--bench/--shot/--demo never read or write the save file.
+#   |prod|orders|fish|catch|album|pedia|talk|restore|ach, --settings (open settings),
+#   --season=spring|summer|autumn|winter, --tutorial (fresh farm with the guide).
+#   Always judge looks with --time=0.5 (noon), otherwise the wall clock may give dusk/night light.
+#   --smoke/--bench/--shot/--demo never read or write the save file.
+# New class_name scripts: run `godot --headless --path game --import` once, else "Could not resolve
+# external class member" parse errors (global class cache).
 ```
 
 Headless Linux (cloud session) screenshots need a virtual display and software GL:

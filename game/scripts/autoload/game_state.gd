@@ -13,6 +13,9 @@ signal fish_caught(id: String)
 signal dino_hatched(species: String)
 signal quest_changed
 signal restored_building(id: String)
+signal settings_changed
+signal achievements_changed
+signal game_event(type: String, id: String)
 
 const I18N_PATH := "res://i18n/strings.txt"
 const SAVE_PATH := "user://save.json"
@@ -42,6 +45,15 @@ var quest_progress := 0
 var quest_stage := "intro"  ## intro (talk to npc) -> active -> ready (talk to claim) ; "end" after the arc
 var restored: Dictionary = {}  ## village building -> true
 var museum_fossils := 0
+var achievements: Array = []  ## data/achievements.json
+var stats: Dictionary = {}  ## "harvest" / "harvest:wheat" / "earn" ... -> total
+var ach_claimed: Dictionary = {}  ## achievement id -> tiers already claimed (0..3)
+var tutorial_step := 0  ## see tutorial.gd; -1 = finished or skipped (old saves skip it)
+const SEASONS := ["spring", "summer", "autumn", "winter"]
+const SEASON_BONUS := 0.8  ## crops of the current season grow in 80 % of the time
+var season_override := ""
+## Player options (accessibility). text: UI scale 1.0 / 1.15 / 1.3
+var settings: Dictionary = {"text": 1.0, "reduce_motion": false, "sfx": true}  ## --season=winter for screenshots and tests
 const VALLEY_LEVEL := 4
 const MEADOW_MAX := 8
 const DIG_REGEN := 180.0
@@ -83,12 +95,17 @@ func _ready() -> void:
 	dinos = JSON.parse_string(FileAccess.get_file_as_string("res://data/dinos.json"))
 	for d in dinos:
 		dino_by_id[d["id"]] = d
+	achievements = JSON.parse_string(FileAccess.get_file_as_string("res://data/achievements.json"))
 	_load_translations()
 	var lang := OS.get_locale_language()
 	TranslationServer.set_locale(lang if lang in LOCALES else "en")
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--smoke") or a.begins_with("--bench") or a.begins_with("--shot") or a.begins_with("--demo"):
 			persist = false
+		if a.begins_with("--season="):
+			season_override = a.substr(9)
+	if not persist:
+		tutorial_step = 0 if "--tutorial" in OS.get_cmdline_user_args() else -1
 	if persist:
 		load_game()
 	ensure_orders()
@@ -117,6 +134,8 @@ func mark_dirty() -> void:
 
 func add_coins(n: int) -> void:
 	coins += n
+	if n > 0:
+		_count_stat("earn", n)
 	coins_changed.emit(coins)
 	mark_dirty()
 
@@ -211,6 +230,23 @@ func sell(item: String, n := 1) -> int:
 	var earned: int = n * price(item)
 	add_coins(earned)
 	return earned
+
+
+## Real calendar seasons (northern hemisphere): Mar-May spring, Jun-Aug summer, Sep-Nov autumn, Dec-Feb winter.
+func season() -> String:
+	if season_override != "":
+		return season_override
+	var m: int = Time.get_date_dict_from_system()["month"]
+	return SEASONS[((m + 9) % 12) / 3]
+
+
+func in_season(crop: String) -> bool:
+	return crops.get(crop, {}).get("season", "") == season()
+
+
+func grow_time(crop: String) -> float:
+	var g := float(crops[crop]["grow"])
+	return g * SEASON_BONUS if in_season(crop) else g
 
 
 func is_unlocked(crop: String) -> bool:
@@ -319,6 +355,10 @@ func npc_name(id: String) -> String:
 
 ## Game events that can advance the current quest.
 func event(type: String, id: String, n := 1) -> void:
+	_count_stat(type, n)
+	if id != "any":
+		_count_stat(type + ":" + id, n)
+	game_event.emit(type, id)
 	var q := quest()
 	if q.is_empty() or quest_stage != "active":
 		return
@@ -330,6 +370,68 @@ func event(type: String, id: String, n := 1) -> void:
 		quest_stage = "ready"
 	quest_changed.emit()
 	mark_dirty()
+
+
+# ------------------------------------------------------------------ achievements
+
+func _count_stat(key: String, n: int) -> void:
+	var before := _claimable_count()
+	stats[key] = int(stats.get(key, 0)) + n
+	if _claimable_count() != before:
+		achievements_changed.emit()
+
+
+func stat(key: String) -> int:
+	match key:
+		"#fish_species":
+			return fish_log.size()
+		"#dino_species":
+			return dino_seen.size()
+		"#level":
+			return level
+	return int(stats.get(key, 0))
+
+
+## Number of tiers (0..3) the player has reached for an achievement.
+func ach_reached(a: Dictionary) -> int:
+	var v := stat(a["stat"])
+	var t := 0
+	for need in a["tiers"]:
+		if v >= int(need):
+			t += 1
+	return t
+
+
+func ach_claimable(a: Dictionary) -> bool:
+	return ach_reached(a) > int(ach_claimed.get(a["id"], 0))
+
+
+func _claimable_count() -> int:
+	var n := 0
+	for a in achievements:
+		if ach_claimable(a):
+			n += 1
+	return n
+
+
+func claimable_achievements() -> int:
+	return _claimable_count()
+
+
+## Claims the next tier; returns the emeralds given (0 if nothing to claim).
+func claim_achievement(id: String) -> int:
+	for a in achievements:
+		if a["id"] != id or not ach_claimable(a):
+			continue
+		var tier := int(ach_claimed.get(id, 0))
+		var gems := int(a["gems"][tier])
+		ach_claimed[id] = tier + 1
+		add_emeralds(gems)
+		add_xp(5 * (tier + 1))
+		achievements_changed.emit()
+		mark_dirty()
+		return gems
+	return 0
 
 
 ## Talk to a villager. Returns the lines to show (empty if they have nothing to say right now).
@@ -461,6 +563,7 @@ func hatch(species: String) -> bool:
 		return false
 	meadow.append(species)
 	dino_seen[species] = true
+	_count_stat("hatch", 1)
 	dino_hatched.emit(species)
 	mark_dirty()
 	return true
@@ -562,8 +665,10 @@ func save_game() -> void:
 		"meadow": meadow, "dino_seen": dino_seen, "digs": digs,
 		"quest": {"i": quest_index, "p": quest_progress, "s": quest_stage}, "restored": restored,
 		"museum_fossils": museum_fossils,
+		"stats": stats, "ach_claimed": ach_claimed, "tutorial": tutorial_step,
 		"locale": TranslationServer.get_locale().substr(0, 2),
 		"music": Audio.music_enabled,
+		"settings": settings,
 		"world": world_saver.call() if world_saver.is_valid() else {},
 	}
 	var tmp := SAVE_PATH + ".tmp"
@@ -595,6 +700,11 @@ func load_game() -> bool:
 		TranslationServer.set_locale(parsed["locale"])
 	if parsed.has("music"):
 		Audio.set_music_enabled.call_deferred(bool(parsed["music"]))
+	var st: Dictionary = parsed.get("settings", {})
+	for k in st:
+		if settings.has(k):
+			settings[k] = st[k]
+	Audio.set_sfx_enabled.call_deferred(bool(settings["sfx"]))
 	saved_world = parsed.get("world", {})
 	fish_log = {}
 	for k in parsed.get("fish_log", {}):
@@ -611,6 +721,13 @@ func load_game() -> bool:
 	quest_stage = str(qd.get("s", "intro"))
 	restored = parsed.get("restored", {})
 	museum_fossils = int(parsed.get("museum_fossils", 0))
+	stats = {}
+	for k in parsed.get("stats", {}):
+		stats[k] = int(parsed["stats"][k])
+	ach_claimed = {}
+	for k in parsed.get("ach_claimed", {}):
+		ach_claimed[k] = int(parsed["ach_claimed"][k])
+	tutorial_step = int(parsed.get("tutorial", -1))
 	orders = []
 	for o in parsed.get("orders", []):
 		var need := {}
@@ -627,6 +744,14 @@ func reset_save() -> void:
 
 
 # ------------------------------------------------------------------ misc
+
+func set_setting(key: String, value: Variant) -> void:
+	settings[key] = value
+	if key == "sfx":
+		Audio.set_sfx_enabled(bool(value))
+	settings_changed.emit()
+	mark_dirty()
+
 
 func toggle_language() -> void:
 	var cur := TranslationServer.get_locale().substr(0, 2)

@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://bclmf35ucd8o3"
+path="res://.godot/imported/atlas_2_mask.png-f034fcd7c9fec2dd6f9ce9fcd020e867.image"
+
+[deps]
+
+source_file="res://art/generated/atlas_2_mask.png"
+dest_files=["res://.godot/imported/atlas_2_mask.png-f034fcd7c9fec2dd6f9ce9fcd020e867.image"]
+
+[params]
+

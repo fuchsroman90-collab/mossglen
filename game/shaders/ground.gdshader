@@ -8,6 +8,8 @@ uniform sampler2D mask_tex : filter_linear;   // r = dirt, g = water, b = primev
 uniform vec2 mask_origin = vec2(-10.0, -10.0);  // grid coord of mask pixel (0, 0)
 uniform float mask_size = 64.0;
 uniform float tex_cells = 4.0;                  // grid cells covered by one grass texture
+uniform vec3 season_tint = vec3(1.0);           // multiplies the lawn colour
+uniform float snow = 0.0;                       // 0..1 patchy snow on the lawn
 
 varying vec2 world;
 
@@ -36,6 +38,18 @@ void fragment() {
 	vec3 vale = grass * vec3(0.7, 0.9, 0.82) + vec3(0.0, 0.03, 0.05);
 	vale = mix(vale, vale * vec3(0.82, 1.05, 0.8), blotch);
 	grass = mix(grass, vale, smoothstep(0.2, 0.8, moss));
+	grass *= season_tint;
+	// winter: a soft snow blanket, thinner in hollows where grass tips poke through; paths mostly clear
+	float sn = texture(grass_tex, g / 11.0 + vec2(0.71, 0.13)).a * 0.75
+			+ texture(grass_tex, g / 3.3 + vec2(0.37, 0.52)).a * 0.25;
+	float th = mix(0.75, 0.2, snow);
+	float cover = smoothstep(th, th + 0.09, sn) * step(0.001, snow);
+	float blades = smoothstep(0.35, 0.8, dot(gr.rgb, vec3(0.2, 0.7, 0.1)) / max(0.01, dot(grass, vec3(0.2, 0.7, 0.1))) - 0.6);
+	cover *= 1.0 - 0.55 * blades * (1.0 - smoothstep(th + 0.1, th + 0.3, sn));
+	float inner = smoothstep(th + 0.04, th + 0.22, sn);
+	vec3 snowcol = mix(vec3(0.83, 0.89, 0.96), vec3(0.97, 0.98, 1.0), inner) * mix(0.96, 1.02, macro);
+	grass = mix(grass, snowcol, cover);
+	dirt = mix(dirt, snowcol * 0.97, cover * 0.3);
 	vec3 col = mix(grass, dirt, e);
 
 	// pond: sandy shore, shallow turquoise rim, deeper blue centre, moving glints

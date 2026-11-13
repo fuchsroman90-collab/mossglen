@@ -73,3 +73,11 @@ python tools/art/build.py --force      # re-render everything
 3. Fix and re-render until it does not fall behind the references. Then run the game screenshot
    (see mossglen-dev skill) and check it in context.
 4. Write what you learned into this skill and `brain/LOG.md`; Roman's reactions into `brain/taste/`.
+
+## Atlas import (M9)
+
+`pack.py` writes `atlas_N.png` + `atlas_N_mask.png` and their `.import` files: pages are VRAM compressed
+(`compress/mode=2`, high quality = BPTC/ASTC) with mipmaps; masks are imported as `Image` and used for
+pixel-exact taps (`Atlas.opaque_region`). Never read pixels from the atlas textures themselves.
+Seasonal looks are shader-only (`ground.gdshader` season_tint/snow, `sway.gdshader` foliage/autumn/frost/bloom):
+new trees/bushes get them for free if their leaves are green and they use the tree/bush sway material.

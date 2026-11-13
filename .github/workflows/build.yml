@@ -23,7 +23,8 @@ jobs:
           test -f game/art/generated/atlas.json
           test -f game/art/generated/atlas_0.png
           test -f game/art/generated/ground_grass.png
-          test -f game/audio/generated/music_meadow.wav
+          test -f game/audio/generated/music_meadow.ogg
+          test -f game/art/generated/atlas_0_mask.png
 
       - name: Install Godot
         run: |

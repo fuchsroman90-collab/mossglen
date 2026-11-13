@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from PIL import Image
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -40,6 +41,34 @@ class Shelf:
                 return pi, 0, y
         self.pages.append([[0, h, w + GAP]])
         return len(self.pages) - 1, 0, 0
+
+
+MASK_SCALE = 4
+# Atlas pages are VRAM compressed (BPTC on desktop, ASTC on phones) with mipmaps: ~4x less GPU memory.
+ATLAS_IMPORT = ('[remap]\n\nimporter="texture"\ntype="CompressedTexture2D"\n\n[params]\n\n'
+                'compress/mode=2\ncompress/high_quality=true\nmipmaps/generate=true\n'
+                'process/fix_alpha_border=true\ndetect_3d/compress_to=0\n')
+# Tap masks are loaded as plain Images (CPU side) for pixel-exact taps.
+MASK_IMPORT = '[remap]\n\nimporter="image"\ntype="Image"\n'
+
+
+def write_mask(page: np.ndarray, path: Path) -> None:
+    """Alpha of an atlas page at 1/MASK_SCALE, max-pooled so thin parts stay tappable."""
+    a = page[..., 3]
+    h, w = a.shape
+    a = a[:h - h % MASK_SCALE, :w - w % MASK_SCALE]
+    m = a.reshape(h // MASK_SCALE, MASK_SCALE, w // MASK_SCALE, MASK_SCALE).max(axis=(1, 3))
+    Image.fromarray((m > 0.5).astype(np.uint8) * 255, "L").save(path, optimize=True)
+
+
+def ensure_import(png: Path, text: str) -> None:
+    imp = png.with_name(png.name + ".import")
+    if imp.exists():
+        cur = imp.read_text()
+        want_importer = text.split("importer=")[1].split("\n")[0]
+        if f"importer={want_importer}" in cur and ("compress/mode=2" in cur or "image" in want_importer):
+            return
+    imp.write_text(text)
 
 
 def build(out_dir: Path, extra: dict | None = None) -> dict:
@@ -77,7 +106,11 @@ def build(out_dir: Path, extra: dict | None = None) -> dict:
     for i, p in enumerate(pages):
         used = max((y + sprites[n][0].shape[0] for n, (pi, x, y) in placed.items() if pi == i), default=1)
         hh = 1 << (int(used) - 1).bit_length()  # power-of-two height, trims empty space
-        post.to_pil(p[:min(PAGE, hh)]).save(out_dir / f"atlas_{i}.png", optimize=True)
+        page = p[:min(PAGE, hh)]
+        post.to_pil(page).save(out_dir / f"atlas_{i}.png", optimize=True)
+        write_mask(page, out_dir / f"atlas_{i}_mask.png")
+        ensure_import(out_dir / f"atlas_{i}.png", ATLAS_IMPORT)
+        ensure_import(out_dir / f"atlas_{i}_mask.png", MASK_IMPORT)
     (out_dir / "atlas.json").write_text(json.dumps({"pages": len(pages), "frames": data}, indent=0, sort_keys=True))
     print(f"pack: {len(data)} sprites on {len(pages)} page(s)")
     return data

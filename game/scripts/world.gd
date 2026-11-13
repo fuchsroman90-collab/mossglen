@@ -17,6 +17,7 @@ const AnimalScript := preload("res://scripts/animal.gd")
 const ProductionScript := preload("res://scripts/production.gd")
 const SwayShader := preload("res://shaders/sway.gdshader")
 const GroundShader := preload("res://shaders/ground.gdshader")
+const WeatherScript := preload("res://scripts/weather.gd")
 
 const HALF_W := 128.0
 const HALF_H := 64.0
@@ -72,7 +73,6 @@ var _combo := 0
 var _args: Dictionary = {}
 var _bench_times := PackedFloat32Array()
 var _bench_clock := 0.0
-var _page_images: Dictionary = {}
 var selected_crop := "wheat"
 var _press_time := 0.0
 var _press_pos := Vector2.ZERO
@@ -86,6 +86,8 @@ var _place_from := Vector2i.ZERO
 var _daylight: CanvasModulate
 var _sky: Gradient
 var _day_t := 0.0
+var weather: Weather
+var _sway_base: Dictionary = {}  ## material -> strength, to restore after "reduce motion"
 
 
 func _ready() -> void:
@@ -119,7 +121,9 @@ func _ready() -> void:
 	var z := float(_args.get("zoom", ZOOM_START))
 	cam.zoom = Vector2(z, z)
 	hud = HudScript.new()
+	hud.layer = 2
 	add_child(hud)
+	hud.tutorial.world = self
 	hud.shop_pressed.connect(hud.open_shop)
 	hud.seed_chosen.connect(_on_seed_chosen)
 	hud.buy_field.connect(_on_buy_field)
@@ -128,7 +132,10 @@ func _ready() -> void:
 	Game.leveled_up.connect(_on_level_up)
 	Game.world_saver = _save_world
 	_build_daylight()
+	_apply_season()
 	_update_daylight()
+	Game.settings_changed.connect(_apply_motion)
+	_apply_motion()
 
 	if _args.has("smoke"):
 		_run_smoke.call_deferred()
@@ -136,7 +143,7 @@ func _ready() -> void:
 	if _args.has("bench"):
 		_setup_bench()
 		return
-	if _args.has("demo") or _args.has("shot"):
+	if (_args.has("demo") or _args.has("shot")) and not _args.has("tutorial"):
 		_demo_state()
 	Audio.play_music()
 	if _args.has("settings"):
@@ -749,6 +756,7 @@ func _sow(f: Field, crop: String) -> bool:
 			Game.toast.emit(tr("NO_SEEDS"), "item_%s.png" % crop)
 		return false
 	f.plant(crop)
+	Game.event("plant", crop)
 	Audio.play("plant", 1.0 + 0.05 * mini(_combo, 8))
 	_combo += 1
 	_puff(f.position + Vector2(0, -20), "fx_leaf", 3)
@@ -812,6 +820,7 @@ func _animal_tap(a: Animal) -> void:
 			Game.toast.emit(tr("NEED_FEED"), "item_%s.png" % feed)
 		else:
 			_puff(a.position + Vector2(0, -40), "fx_grain", 4)
+			Game.event("feed", a.kind, fed)
 		return
 	var soonest := a
 	for x in pen:
@@ -935,16 +944,10 @@ func _tap(world: Vector2) -> void:
 
 
 func _opaque_at(s: Sprite2D, world: Vector2) -> bool:
-	var at: AtlasTexture = s.texture
-	var img: Image = _page_images.get(at.atlas)
-	if img == null:
-		img = at.atlas.get_image()
-		_page_images[at.atlas] = img
-	var local := s.to_local(world) - s.offset
-	var px := Vector2i(at.region.position + local)
-	if not Rect2i(Vector2i(at.region.position), Vector2i(at.region.size)).has_point(px):
-		return false
-	return img.get_pixelv(px).a > 0.5
+	var at := s.texture as AtlasTexture
+	if at == null:
+		return true
+	return Atlas.opaque_region(at, s.to_local(world) - s.offset)
 
 
 func zoom_at(screen_pos: Vector2, factor: float) -> void:
@@ -1126,6 +1129,50 @@ func _move_swimmers(delta: float) -> void:
 
 func _update_daylight() -> void:
 	_daylight.color = _sky.sample(day_phase())
+	if weather:
+		weather.set_light(_daylight.color, time_name() == "night")
+	Audio.set_area(_music_area())
+
+
+## Which music loop fits the current view: night everywhere after dark, else by area.
+func _music_area() -> String:
+	if time_name() == "night":
+		return "night"
+	var g := world_to_grid(cam.position) if cam else Vector2(11, 11)
+	if g.x >= 26.5:
+		return "vale"
+	if g.y < 1.0 and g.x > 4.0 and g.x < 26.0:
+		return "village"
+	return "meadow"
+
+
+# ------------------------------------------------------------------ seasons
+
+func _apply_season() -> void:
+	var s := Game.season()
+	var gm := ground.material as ShaderMaterial
+	var tint := {"spring": Vector3(0.98, 1.04, 0.92), "summer": Vector3(1.04, 1.0, 0.84),
+		"autumn": Vector3(1.12, 0.96, 0.7), "winter": Vector3(0.9, 0.96, 0.9)}
+	gm.set_shader_parameter("season_tint", tint.get(s, Vector3.ONE))
+	gm.set_shader_parameter("snow", 0.78 if s == "winter" else 0.0)
+	for m: ShaderMaterial in [_sway_tree, _sway_bush]:
+		m.set_shader_parameter("foliage", 1.0)
+		m.set_shader_parameter("bloom", 1.0 if s == "spring" else 0.0)
+		m.set_shader_parameter("autumn", 0.85 if s == "autumn" else 0.0)
+		m.set_shader_parameter("frost", 1.0 if s == "winter" else 0.0)
+	weather = WeatherScript.new()
+	add_child(weather)
+	weather.setup(s)
+
+
+func _apply_motion() -> void:
+	var calm: bool = Game.settings["reduce_motion"]
+	for m: ShaderMaterial in [_sway_crop, _sway_tree, _sway_bush]:
+		if not _sway_base.has(m):
+			_sway_base[m] = m.get_shader_parameter("strength")
+		m.set_shader_parameter("strength", 0.0 if calm else _sway_base[m])
+	if weather:
+		weather.set_motion(not calm)
 
 
 # ------------------------------------------------------------------ save
@@ -1244,7 +1291,7 @@ func _demo_state() -> void:
 	var i := 0
 	for f: Field in fields.values():
 		var crop: String = Game.crop_order[i % Game.crop_order.size()]
-		var g := float(Game.crops[crop]["grow"])
+		var g := Game.grow_time(crop)
 		f.plant(crop, Field.now() - g * float((i * 7) % 5) / 3.2)
 		i += 1
 
@@ -1283,6 +1330,12 @@ func _debug_ui(which: String) -> void:
 				Game.dino_seen[d["id"]] = true
 			hud.open_dinopedia()
 			hud._fill_pedia("trikeri")
+		"ach":
+			Game.stats = {"harvest": 1240, "harvest:wheat": 520, "collect": 75, "make": 30, "deliver": 12,
+				"catch": 8, "dig": 3, "earn": 4200}
+			Game.ach_claimed = {"farmer": 2, "wheat": 1, "rancher": 1, "maker": 0, "level": 3}
+			Game.level = 22
+			hud.meta.open_achievements()
 		"album":
 			for f in Game.fish.slice(0, 22):
 				Game.record_catch(f["id"], float(f["size"][1]) * 0.8)
@@ -1478,6 +1531,59 @@ func _run_smoke() -> void:
 		errors.append("production state not saved")
 	if tr("HINT_START") == "HINT_START" or tr("ITEM_corn") != "Mais":
 		errors.append("translations not loaded")
+	# M9: seasons
+	for se in Game.SEASONS:
+		Game.season_override = se
+		var bonus := 0
+		for c in Game.crop_order:
+			if Game.in_season(c):
+				bonus += 1
+				if Game.grow_time(c) >= float(Game.crops[c]["grow"]):
+					errors.append("season bonus missing for " + c)
+		if bonus == 0:
+			errors.append("no crop in season " + se)
+	Game.season_override = ""
+	if not Game.season() in Game.SEASONS:
+		errors.append("calendar season unknown")
+	# M9: achievements - stats count, a reached tier can be claimed once
+	var gems_before := Game.emeralds
+	Game.event("deliver", "any", 10)
+	var orders_ach: Dictionary = Game.achievements.filter(func(a: Dictionary) -> bool:
+		return a["id"] == "orders")[0]
+	if not Game.ach_claimable(orders_ach) or Game.claim_achievement("orders") <= 0 \
+			or Game.emeralds <= gems_before or Game.ach_claimable(orders_ach):
+		errors.append("achievement claim failed")
+	hud.meta.open_achievements()
+	if hud.meta._ach_list.get_child_count() != Game.achievements.size():
+		errors.append("achievement list incomplete")
+	# M9: settings
+	hud.meta.toggle_settings()
+	Game.set_setting("text", 1.3)
+	if absf(hud._root.scale.x - 0.65) > 0.001:
+		errors.append("interface size not applied")
+	Game.set_setting("text", 1.0)
+	Game.set_setting("reduce_motion", true)
+	if float(_sway_tree.get_shader_parameter("strength")) != 0.0 or weather.visible:
+		errors.append("reduce motion not applied")
+	Game.set_setting("reduce_motion", false)
+	hud.close_menus()
+	# M9: tutorial runs through all steps on game events
+	hud.tutorial.restart()
+	Game.event("plant", "wheat")
+	Game.event("feed", "chicken")
+	Game.event("harvest", "wheat")
+	hud.open_orders()
+	hud.close_menus()
+	Game.quest_index = 0
+	Game.quest_stage = "intro"
+	Game.talk("brumm")
+	if Game.tutorial_step != -1:
+		errors.append("tutorial stuck at step %d" % Game.tutorial_step)
+	# M9: music loops exist and can be switched
+	Audio.play_music("meadow")
+	Audio._crossfade("vale")
+	if Audio.track != "vale" or Audio._songs.size() != 4:
+		errors.append("music switch failed")
 	if errors.is_empty():
 		print("SMOKE OK (%d fields, %d props, %d animals, %d atlas pages, level %d)" % [
 			fields.size(), props.size(), animals.size(), Atlas.pages.size(), Game.level])

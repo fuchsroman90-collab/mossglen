@@ -11,28 +11,32 @@
 		"sell": 7,
 		"xp": 2,
 		"unlock": 2,
-		"yield": 2
+		"yield": 2,
+		"season": "autumn"
 	},
 	"carrot": {
 		"grow": 120,
 		"sell": 10,
 		"xp": 2,
 		"unlock": 3,
-		"yield": 2
+		"yield": 2,
+		"season": "winter"
 	},
 	"tomato": {
 		"grow": 240,
 		"sell": 18,
 		"xp": 3,
 		"unlock": 4,
-		"yield": 2
+		"yield": 2,
+		"season": "summer"
 	},
 	"strawberry": {
 		"grow": 420,
 		"sell": 28,
 		"xp": 4,
 		"unlock": 5,
-		"yield": 2
+		"yield": 2,
+		"season": "spring"
 	},
 	"fern": {
 		"grow": 180,

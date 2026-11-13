@@ -23,7 +23,6 @@ var _level_label: Label
 var _xp_label: Label
 var _xp_fill: NinePatchRect
 var _settings: Control
-var _music_btn: Label
 var _fps_label: Label
 var _hint: Label
 var _picker: Control
@@ -48,6 +47,8 @@ var _album_body: Control
 var fishing: FishingUI = null
 var story: StoryUI
 var extra_windows: Array[Control] = []
+var meta: MetaUI
+var tutorial: Tutorial
 var _pedia: Control
 var _pedia_body: Control
 
@@ -65,6 +66,7 @@ func _ready() -> void:
 	_root.scale = Vector2(0.5, 0.5)
 	add_child(_root)
 	get_viewport().size_changed.connect(_fit)
+	Game.settings_changed.connect(_fit)
 	_fit()
 
 	# XP bar and level star as one unit: the star's right tip reaches into the bar's left end
@@ -112,7 +114,10 @@ func _ready() -> void:
 		Audio.play("click")
 		shop_pressed.emit())
 
-	_build_settings()
+	meta = MetaUI.new()
+	add_child(meta)
+	meta.setup(self)
+	_settings = meta._settings
 	story = StoryUI.new()
 	add_child(story)
 	story.setup(self)
@@ -167,10 +172,15 @@ func _ready() -> void:
 	Game.emeralds_changed.connect(func(v: int) -> void: _set_number(_gem_label, v))
 	Game.xp_changed.connect(_on_xp)
 	_on_xp(Game.xp, Game.xp_needed(), Game.level)
+	tutorial = Tutorial.new()
+	add_child(tutorial)
+	tutorial.setup(self)
 
 
 func _fit() -> void:
-	_root.size = get_viewport().get_visible_rect().size * 2.0
+	var k := 0.5 * float(Game.settings["text"])
+	_root.scale = Vector2(k, k)
+	_root.size = get_viewport().get_visible_rect().size / k
 
 
 func _process(delta: float) -> void:
@@ -268,7 +278,7 @@ func show_seed_picker(screen_pos: Vector2, selected: String) -> void:
 	_root.add_child(_picker)
 	var n := Game.crop_order.size()
 	var w := n * 132.0
-	var p := screen_pos * 2.0 - Vector2(w * 0.5, 290)
+	var p := screen_pos / _root.scale.x - Vector2(w * 0.5, 290)
 	p.x = clampf(p.x, 20, _root.size.x - w - 20)
 	p.y = clampf(p.y, 200, _root.size.y - 300)
 	_picker.position = p
@@ -360,7 +370,7 @@ func show_field_info(screen_pos: Vector2, crop: String, seconds: int, progress: 
 	(_info.get_node("Name") as Label).text = "ITEM_" + crop
 	(_info.get_node("Fill") as Control).size.x = maxf(38.0, 256.0 * progress)
 	(_info.get_node("Time") as Label).text = "%d:%02d" % [seconds / 60, seconds % 60] if seconds > 0 else tr("READY")
-	_info.position = screen_pos * 2.0 - Vector2(170, 260)
+	_info.position = screen_pos / _root.scale.x - Vector2(170, 260)
 	_info.show()
 	_info_t = 2.2
 
@@ -869,6 +879,7 @@ func _fill_prod() -> void:
 # ------------------------------------------------------------------ orders
 
 func open_orders() -> void:
+	Game.event("open", "orders")
 	_fill_orders()
 	_open(_orders)
 	Audio.play("whoosh")
@@ -1007,40 +1018,8 @@ func show_hint(key: String) -> void:
 
 # ------------------------------------------------------------------ settings
 
-func _build_settings() -> void:
-	_settings = _patch("panel.png", 44, 44)
-	_settings.position = Vector2(170, 170)
-	_settings.size = Vector2(430, 300)
-	_settings.visible = false
-	_root.add_child(_settings)
-	var title := _dark(_label("SETTINGS", 42))
-	title.position = Vector2(0, 26)
-	title.size = Vector2(430, 60)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_settings.add_child(title)
-	var music := _text_button("BTN_MUSIC_ON", Vector2(40, 100), "ico_note.png")
-	_music_btn = music[1]
-	music[0].pressed.connect(func() -> void:
-		Audio.play("click")
-		Audio.set_music_enabled(not Audio.music_enabled)
-		_music_btn.text = "BTN_MUSIC_ON" if Audio.music_enabled else "BTN_MUSIC_OFF")
-	var lang := _text_button("BTN_LANG", Vector2(40, 186), "", "Aa")
-	lang[0].pressed.connect(func() -> void:
-		Audio.play("click")
-		Game.toggle_language())
-
-
 func _toggle_settings() -> void:
-	Audio.play("click")
-	if _settings.visible:
-		var tw := create_tween()
-		tw.tween_property(_settings, "scale", Vector2(0.85, 0.85), 0.1)
-		tw.tween_callback(_settings.hide)
-		return
-	_settings.visible = true
-	_settings.pivot_offset = Vector2(0, 0)
-	_settings.scale = Vector2(0.6, 0.6)
-	create_tween().tween_property(_settings, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	meta.toggle_settings()
 
 
 # ------------------------------------------------------------------ widgets

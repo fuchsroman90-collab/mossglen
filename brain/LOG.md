@@ -2,6 +2,26 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-13 – PC-Sitzung: M9 Teil 1 (Jahreszeiten, Erfolge, Musik, Einstellungen, Anleitung, VRAM)
+
+- Jahreszeiten (`Game.season()`, echter Kalender, `--season=` zum Testen): Boden-Shader `season_tint` + `snow`
+  (große weiche Schneeverwehungen, Wege bleiben frei), Sway-Shader färbt nur grüne Pixel von Bäumen/Büschen
+  (Herbst je Pflanze orange/rot/gold, Winter Schnee oben). `weather.gd`: Blüten, Blätter, Schnee, Glühwürmchen.
+  Saisonpflanze wächst 20 % schneller (`crops.json` → `season`). Saison-Plakette rechts oben (antippen = Info).
+- Erfolge: `data/achievements.json` (12 Stück, 3 Stufen), Zähler in `Game.stats` über `Game.event()` +
+  Münzen + Schlüpfen, Fenster mit Medaillen, Fortschrittsbalken und Abholen-Knopf.
+- Musik: `tools/audio/songs.py` (Nacht B-Dur 64 BPM, Dorf G-Dur 100 BPM, Urzeit-Tal D-dorisch 76 BPM),
+  alle Loops als Ogg (Wiese 8 MB WAV → 0,7 MB). `Audio.set_area()` blendet nach 2,5 s Verweilen über.
+  Neuer Sound `achieve`.
+- Einstellungen als eigenes Fenster (`meta_ui.gd`) mit Schaltern; Anzeigegröße skaliert die ganze HUD.
+- Anleitung `tutorial.gd` (nur neue Spielstände, alte Spielstände überspringen sie; neu startbar).
+- Atlas: VRAM-Kompression + Mipmaps über `pack.py`, Tipp-Masken `atlas_N_mask.png` (1/4, als Image importiert).
+- Smoke-Test prüft Jahreszeiten, Erfolge, Einstellungen, Anleitung, Musikwechsel.
+- Erster Winter-Versuch: Schnee fast überall, wirkte blau/flach (Screenshot lief bei Abendlicht) → weiche
+  Verwehungen mit Gras dazwischen. Screenshots immer mit `--time=0.5` beurteilen.
+
+Offen: Saison-Events, Balancing, M6 (wartet auf Romans Supabase-Entscheidung).
+
 ## 2026-11-13 – PC-Sitzung: M4 Dinos + M5 Dorf und Story
 
 M4:

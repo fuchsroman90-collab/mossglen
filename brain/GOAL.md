@@ -272,6 +272,18 @@ Entschieden: Free-to-play, Zielgruppe alle, Budget 0 €, iPhone 11 vorhanden, N
 
 ## 15. Status
 
+**M9 Inhalt und Politur – Teil 1 fertig (2026-11-13)**
+- Jahreszeiten nach echtem Kalender (Mär–Mai Frühling … Dez–Feb Winter): Boden-Tönung, Herbstlaub an Bäumen/Büschen,
+  Schnee auf Wiese und Laub, fallende Blüten/Blätter/Flocken, Glühwürmchen in Sommernächten,
+  je Saison eine Pflanze 20 % schneller (Erdbeere, Tomate, Mais, Karotte).
+- 12 Erfolge mit Bronze/Silber/Gold, Smaragd-Belohnung, Pokal-Knopf mit Zähler.
+- Musik: 4 Loops (Wiese, Nacht, Dorf, Urzeit-Tal) als Ogg, weiche Überblendung nach Ort und Tageszeit.
+- Einstellungen neu: Musik, Geräusche, Weniger Bewegung, Größe der Anzeige (100/115/130 %), Sprache, Anleitung.
+- Anleitung für neue Spieler (Zeigehand, 5 Schritte: säen, füttern, ernten, Auftragsbrett, Brumms Aufgabe).
+- Leistung: Atlas-Seiten VRAM-komprimiert (BPTC/ASTC, ~150 MB → ~40 MB Grafikspeicher), Tipp-Masken statt
+  Auslesen der Texturen.
+- Offen in M9: Saison-Events, Balancing-Durchgang, FPS-Messung auf echtem iPhone 11.
+
 **M5 Dorf und Story – fertig (2026-11-13)**
 - Moosdorf mit 5 wiederaufbaubaren Gebäuden, 4 Bewohnern, Story-Bogen 1 (10 Quests), Dialoge DE/EN, Museum.
 

@@ -2,21 +2,23 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://wh8wo4i7fhe7"
-path="res://.godot/imported/atlas_6.png-e3b2fd46dd5795fd02e2156837c0dbd3.ctex"
+uid="uid://cvydlhph7xe25"
+path.bptc="res://.godot/imported/atlas_6.png-e3b2fd46dd5795fd02e2156837c0dbd3.bptc.ctex"
+path.astc="res://.godot/imported/atlas_6.png-e3b2fd46dd5795fd02e2156837c0dbd3.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://art/generated/atlas_6.png"
-dest_files=["res://.godot/imported/atlas_6.png-e3b2fd46dd5795fd02e2156837c0dbd3.ctex"]
+dest_files=["res://.godot/imported/atlas_6.png-e3b2fd46dd5795fd02e2156837c0dbd3.bptc.ctex", "res://.godot/imported/atlas_6.png-e3b2fd46dd5795fd02e2156837c0dbd3.astc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
@@ -37,4 +39,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

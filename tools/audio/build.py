@@ -252,15 +252,48 @@ def sfx_dig():
     return normalize(dirt * 0.8 + thud, 0.6)
 
 
+def sfx_achieve():
+    """Bright rising bell arpeggio for achievements."""
+    n = int(1.6 * SR)
+    y = np.zeros(n)
+    for k, m in enumerate([72, 76, 79, 84]):
+        place(y, bell(m, 1.4, 0.9), k * 0.085, 0.5)
+        place(y, marimba(m, 0.6, 0.6), k * 0.085, 0.2)
+    return soft_limit(normalize(y + 0.0, 0.8))
+
+
+def write_ogg(name: str, x: np.ndarray, quality: int = 5) -> None:
+    """Music goes out as Ogg Vorbis (about 10x smaller than WAV)."""
+    import subprocess
+    import tempfile
+    x = np.clip(x, -1, 1)
+    with tempfile.TemporaryDirectory() as tmp:
+        wav = Path(tmp) / "x.wav"
+        wavfile.write(wav, SR, (x * 32767).astype(np.int16))
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(wav), "-c:a", "libvorbis",
+                        "-q:a", str(quality), str(OUT / f"{name}.ogg")], check=True)
+    print(f"{name}.ogg  {x.shape[0] / SR:5.2f}s  {(OUT / f'{name}.ogg').stat().st_size // 1024} KB")
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     if "--sfx" not in sys.argv:
-        write("music_meadow", compose_meadow())
+        from songs import compose_night, compose_vale, compose_village
+        for name, fn in [("music_meadow", compose_meadow), ("music_night", compose_night),
+                         ("music_village", compose_village), ("music_vale", compose_vale)]:
+            if len(sys.argv) > 1 and sys.argv[1] not in ("--music", name):
+                continue
+            write_ogg(name, fn())
+        (OUT / "music_meadow.wav").unlink(missing_ok=True)
+        (OUT / "music_meadow.wav.import").unlink(missing_ok=True)
+    if "--music" in sys.argv:
+        return
     for name, fn in [("sfx_click", sfx_click), ("sfx_pop", sfx_pop), ("sfx_plant", sfx_plant),
                      ("sfx_harvest", sfx_harvest), ("sfx_coin", sfx_coin), ("sfx_cluck", sfx_cluck),
                      ("sfx_whoosh", sfx_whoosh), ("sfx_moo", sfx_moo), ("sfx_baa", sfx_baa),
                      ("sfx_oink", sfx_oink), ("sfx_splash", sfx_splash), ("sfx_reel", sfx_reel),
-                     ("sfx_levelup", sfx_levelup), ("sfx_dig", sfx_dig)]:
+                     ("sfx_levelup", sfx_levelup), ("sfx_dig", sfx_dig),
+                     ("sfx_achieve", sfx_achieve)]:
         write(name, fn())
 
 
