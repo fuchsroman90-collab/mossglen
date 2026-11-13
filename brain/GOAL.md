@@ -270,7 +270,27 @@ Entschieden: Free-to-play, Zielgruppe alle, Budget 0 €, iPhone 11 vorhanden, N
 
 ---
 
-## 15. Status
+## 14b. M9.5 „Hay-Day-Qualität“ (nach Romans erstem Test, 2026-11-13) – Entwurf, Fragen offen
+
+Kommt **vor** M6. Ziel: Spielgefühl, Look und Progression auf Referenz-Niveau.
+
+1. **Progression & Land:** leerer Starthof (Bauernhaus, Scheune, Silo, Auftragstafel + Lieferwagen, 3 Felder),
+   der Rest der Karte liegt unter Bäumen, Büschen, Steinen und Zäunen in Parzellen. Hindernisse brauchen
+   Werkzeug (Axt, Säge, Sprengstoff, Schaufel), Parzellen brauchen Erweiterungs-Material. Werkzeuge fallen
+   zufällig beim Ernten/Herstellen/Liefern. Gebäude und Tiere schalten sich über Level frei, Felder kosten mehr.
+2. **Lager:** Silo (nur Feldfrüchte) mit sichtbarem Füllstand am Gebäude, Scheune (Waren + Werkzeuge);
+   beide Ausbau-Stufen mit eigenem Baumaterial.
+3. **Lieferwagen:** Bestellung abgeben → Wagen fährt los, kommt mit Münzen-Kiste zurück, Antippen kassiert;
+   während der Fahrt ist die Tafel gesperrt.
+4. **Bedienung wie Hay Day:** Feld antippen → Saat-/Sichel-Kreis am Finger, gedrückt halten und über Felder
+   ziehen; Hover-/Druck-Feedback an allem (Leuchtrand, Hüpfer, Klick-Sound); Blasen über Tieren stehen ruhig.
+5. **Baustellen:** Gebäude erscheinen erst als Baustelle (Gerüst, Planen, Kisten), Bauzeit, dann Enthüllung.
+6. **Tiere neu modelliert** auf Niveau `hd_animals_pets.png` (Unterteilungsflächen statt Metaballs,
+   Augenlider, Glanz, Mimik, sauberes Rig), alle Tiere inkl. Dinos.
+7. **Terrain neu** nach `hd_winter_farm.png`: Halm-Textur, hellere Flecken, Grasbüschel, Ränder, Felsen.
+8. **UI neu** mit festem Raster und gemessenen Abständen, Shop als Kartenliste mit Reitern und Laufleiste,
+   Dialoge mit Figur + Sprechblase + großen Antwortknöpfen, Ladebildschirm.
+
 
 **M9 Inhalt und Politur – fertig bis auf Gerätetest (2026-11-13)**
 - Jahreszeiten nach echtem Kalender (Mär–Mai Frühling … Dez–Feb Winter): Boden-Tönung, Herbstlaub an Bäumen/Büschen,

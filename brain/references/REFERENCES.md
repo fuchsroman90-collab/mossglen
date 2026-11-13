@@ -25,6 +25,15 @@ kein Name wird übernommen.
 | `hd_building_bakery.png` | Backofen (Kuppel) freigestellt | Ziegel, Holz, Säcke – Materialien klar unterscheidbar |
 | `hd_building_grill.png` | Grill-Ofen freigestellt | Kanten leicht gerundet, Ziegel einzeln modelliert, Stern-Akzent |
 | `hd_building_machine.png` | Saftpresse freigestellt | Glänzendes Metall, kräftiges Rot, Holzfässer mit Metallreifen |
+| `hd_animals_pets.png` | Nutztiere + Haustiere (Katzen, Hunde) | **Mindest-Qualität für Tiere** (Roman): Mimik, Glanz, freche Gesichter, klare Silhouette |
+| `hd_orderboard_truck.png` | Auftragstafel + Lieferwagen | Tafel mit Zetteln und Häkchen, roter Oldtimer-Laster mit grüner Ladefläche |
+| `hd_winter_farm.png` | Winterhof mit HUD | **Terrain-Vorbild**: Gras mit Halmen und hellen Flecken, Tannen mit Schnee, Felsen, Silo, Haus mit Lichterkette |
+| `hd_ui_redesign_hud.png` | HUD-Umbau-Studie | Stern füllt sich, Münzen/Edelsteine als dunkle Kapseln, Shop-Knopf rechts unten (Daumen), Menü statt Zahnrad |
+| `hd_ui_redesign_shop.png` | Shop als waagrechte Karten | Karten mit Bild, Name, Text, Preis; gesperrte Karten grau mit Schloss; Reiter oben; Laufleiste unten |
+| `hd_ui_redesign_shop2.png` | Shop senkrecht vs. waagrecht | Gelbe Karten, Reiter-Symbole, „5/6“-Zähler |
+| `hd_dialogs_wheel.png` | Glücksrad, Helfer, Händler-Dialoge | Sprechblase + Figur, große gelbe Antwort-Knöpfe, Tauschangebot „6 Weizen → 50 Münzen“ |
+| `hd_loading_shop_vertical.png` | Ladebildschirm, Shop senkrecht | Logo + Ladebalken mit Tipp, Shop-Kategorien Felder/Gebäude, Zähler „6/9“ |
+| `hd_popups.png` | Pop-ups: Katalog, Angebote, gesperrtes Gebiet, Belohnung | Gesperrtes Gebiet als Bild mit Schloss + Schleife, Zeitungs-/Katalog-Optik |
 
 ## Was den Look ausmacht (Regeln für Mossglen)
 

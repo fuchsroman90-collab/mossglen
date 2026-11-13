@@ -584,6 +584,10 @@ func _add_field(cell: Vector2i) -> Field:
 func _add_prop(sprite_name: String, g: Vector2, mat: Material) -> Sprite2D:
 	var s := _add_static(sprite_name, g)
 	s.material = mat
+	if mat == _sway_tree or mat == _sway_bush:
+		# per-plant random for the season shader, carried in the blue channel (see sway.gdshader)
+		var h := absf(sin(g.x * 12.9898 + g.y * 78.233) * 43758.5453)
+		s.self_modulate = Color(1, 1, 0.9 + 0.1 * (h - floorf(h)))
 	s.set_meta("squash", 0.1)
 	props.append(s)
 	return s

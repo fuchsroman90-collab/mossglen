@@ -2,6 +2,19 @@
 
 Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 
+- **2026-11-13 (Abend, erster eigener Test am PC) – großes Feedback:**
+  - **Tiere sehen „extrem schlecht“ aus** (Bild: `rejected/m9_dinos_pen.png`). Sie müssen mindestens die Stufe
+    von `references/img/hd_animals_pets.png` haben: echte Charakter-Modelle mit Mimik, Glanz, frecher Ausdruck.
+  - **Baumkronen flackern in den Herbstfarben**, wenn man mit gedrückter Maustaste zieht. → behoben (Zufall
+    pro Pflanze kommt jetzt aus dem Farbkanal statt aus der Position).
+  - **Kein Feedback**: Hover und Klick müssen überall sichtbar sein – Felder, Tiere, Gebäude.
+  - **Icons über den Tieren hüpfen**, wenn das Tier läuft (Blase wackelt mit). Muss ruhig stehen.
+  - **UI ist „so schlecht und offset“** – Abstände/Ausrichtung stimmen nicht, muss deutlich schöner werden
+    (Vorbild: `hd_ui_redesign_*.png`, `hd_dialogs_wheel.png`, `hd_popups.png`, `hd_loading_shop_vertical.png`).
+  - **Terrain muss besser werden** (Vorbild: `hd_winter_farm.png`).
+  - **Tutorial mit fertigem Hof ist falsch**: Es muss mit einem komplett leeren Hof starten, alles selber bauen.
+  - **Zu viel Platz von Anfang an**: Land muss Stück für Stück erweitert werden, dafür Werkzeug sammeln.
+
 - **2026-11-13 – HUD mit 3D-gerenderten Icons und Creme-Kapseln.** „Die UI bitte in 2d und mehr an den
   Referenzbildern orientieren.“ Bild: `rejected/m0_hud_3d.png`.
   **Folge:** UI ist ab jetzt **flach gezeichnete 2D-Grafik** (Vektor, kräftige Verläufe, dicke Kontur, Glanz),

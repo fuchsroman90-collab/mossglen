@@ -2,6 +2,17 @@
 
 Neueste oben. Format: Datum – Entscheidung – Begründung – wer.
 
+- **2026-11-13 – Wünsche aus Romans erstem Test (Pflicht für den nächsten Meilenstein „M9.5 Hay-Day-Qualität“):** – Roman
+  - Leerer Starthof, alles selbst bauen; Land in Stücken freischalten (Werkzeug sammeln).
+  - Weizen: gedrückt halten und über mehrere Felder ziehen zum Säen/Ernten (wie Hay Day).
+  - Hover- und Klick-Feedback für alles (Felder, Tiere, Gebäude, Knöpfe).
+  - **Lieferwagen** an der Auftragstafel: fährt nach Abgabe weg, kommt mit Geld zurück, Geld per Klick
+    einsammeln; solange er weg ist, keine neue Bestellung abgeben.
+  - **Silo** (Feldfrüchte) mit sichtbarem Füllstand, **Scheune** (Werkzeuge + Waren); beide haben ein Maximum
+    und müssen ausgebaut werden.
+  - Werkzeuge zum Bäume fällen und Steine sprengen (Hindernisse auf dem Land).
+  - Baustellen-Look für Gebäude im Bau.
+  - Figma für die UI.
 - **2026-11-13 – Jahreszeiten nach echtem Kalender** (Nordhalbkugel), nicht nach Spieltagen: fühlt sich an wie
   draußen, kein Grind. Jede Saison hat eine Bonus-Pflanze. – Claude
 - **2026-11-13 – Musik als Ogg Vorbis**, Soundeffekte bleiben WAV (kurz, latenzfrei). – Claude

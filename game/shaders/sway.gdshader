@@ -19,7 +19,12 @@ void vertex() {
 	float t = TIME * speed + world.x * 0.013 + world.y * 0.021;
 	float w = sin(t) * 0.7 + sin(t * 2.3 + 1.7) * 0.3;
 	float k = clamp(-VERTEX.y / height, 0.0, 1.5);
-	pick = fract(sin(dot(world, vec2(12.9898, 78.233))) * 43758.5453);
+	// per-plant random comes from the sprite's self_modulate blue channel (0.9..1.0, set by world.gd);
+	// hashing the position flickered while panning (Roman, 2026-11-13)
+	pick = clamp((COLOR.b / max(COLOR.r, 0.001) - 0.9) * 10.0, 0.0, 1.0);
+	if (foliage > 0.5) {
+		COLOR.b = COLOR.r;
+	}
 	local = VERTEX;
 	VERTEX.x += w * strength * k;
 }
