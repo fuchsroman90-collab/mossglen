@@ -272,6 +272,10 @@ Entschieden: Free-to-play, Zielgruppe alle, Budget 0 €, iPhone 11 vorhanden, N
 
 ## 15. Status
 
+**M3 Angeln – fertig (2026-11-13)**
+- Teich + Bach mit Stegen, entspanntes Timing-Minispiel ohne Scheitern, 40 Fischarten (Meer-Arten folgen mit
+  dem Dorf), Ruten-Stufen, Fischalbum, Fische im Farmteich sichtbar, Platsch-/Rollen-Sounds.
+
 **M2 Tiere und Produktion – fertig (2026-11-13)**
 - 5 Tierarten: Hühner (Ei), Kühe (Milch), Schafe (Wolle), Schweine (Trüffel), Bienen (Honig, automatisch).
 - 8 Produktionsgebäude + Bienenstock: Futtermühle, Bäckerei, Molkerei, Marmeladenküche, Webstuhl, Popcornwagen,

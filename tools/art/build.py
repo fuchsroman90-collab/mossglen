@@ -34,7 +34,7 @@ def main(argv):
     ground.grass().save(OUT / "ground_grass.png", optimize=True)
     ground.dirt().save(OUT / "ground_dirt.png", optimize=True)
     (OUT / "ui").mkdir(exist_ok=True)
-    for name, img in ui.ui_images().items():
+    for name, img in ui.ui_images_all().items():
         img.save(OUT / "ui" / f"{name}.png", optimize=True)
     print("ground + ui written to", OUT.relative_to(ROOT))
 

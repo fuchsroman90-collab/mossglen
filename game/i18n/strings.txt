@@ -68,3 +68,26 @@ BUILDING_popcorn	Popcornwagen	Popcorn Cart
 BUILDING_sauce_kitchen	Soßenküche	Sauce Kitchen
 BUILDING_candle_maker	Kerzenzieherei	Candle Maker
 BEES_WORK	Die Bienen sammeln Honig von allein.	The bees make honey on their own.
+ALBUM	Fischalbum	Fish album
+ALBUM_HINT	Tippe auf einen Fisch für Details. Angeln kannst du an den Stegen am Teich und am Bach.	Tap a fish for details. You can fish from the docks at the pond and the creek.
+FISH_WAIT	Warte auf einen Biss …	Waiting for a bite …
+FISH_BITE	Jetzt! Tippe, wenn sich die Ringe treffen!	Now! Tap when the rings meet!
+FISH_PERFECT	Perfekt!	Perfect!
+FISH_GOOD	Gut gemacht!	Nicely done!
+FISH_OK	Gefangen!	Got one!
+FISH_NEW	NEU!	NEW!
+FISH_RECORD	REKORD!	RECORD!
+FISH_RELEASE	Freilassen	Release
+FISH_EMPTY	Hier beißt gerade nichts. Komm bald wieder!	Nothing is biting here right now. Come back soon!
+LOC_pond	Teich	Pond
+LOC_river	Bach	Creek
+LOC_sea	Meer (bald mit dem Dorf)	Sea (coming with the village)
+TIME_any	jederzeit	any time
+TIME_day	tagsüber	daytime
+TIME_dusk	in der Dämmerung	at dusk and dawn
+TIME_night	nachts	at night
+BEST	Rekord	Best
+CAUGHT	gefangen	caught
+ROD_BAMBOO	Bambusrute	Bamboo rod
+ROD_GOLD	Goldrute	Golden rod
+ROD_SUB	mehr seltene Fische	more rare fish

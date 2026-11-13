@@ -43,6 +43,9 @@ var _prod_progress: Array = []  ## [fill NinePatchRect, time Label]
 var _orders: Control
 var _orders_body: Control
 var _refresh_t := 0.0
+var _album: Control
+var _album_body: Control
+var fishing: FishingUI = null
 
 ## Level star at STAR_POS; its right tip (in star.png pixels) defines where the XP bar starts.
 const STAR_POS := Vector2(14, 4)
@@ -95,6 +98,8 @@ func _ready() -> void:
 	# left column: settings
 	var gear := _round_button("ico_gear.png", Vector2(26, 190), 128)
 	gear.pressed.connect(_toggle_settings)
+	var album := _round_button("ico_book.png", Vector2(26, 340), 128)
+	album.pressed.connect(open_album)
 	# bottom left: shop (build / seeds menu)
 	var shop := _round_button("ico_shop.png", Vector2(20, -250), 196, true)
 	shop.pressed.connect(func() -> void:
@@ -108,6 +113,9 @@ func _ready() -> void:
 	_prod = _panel_window(Vector2(1180, 600), "")[0]
 	_prod_body = Control.new()
 	_prod.add_child(_prod_body)
+	_album = _panel_window(Vector2(1480, 1000), "ALBUM")[0]
+	_album_body = Control.new()
+	_album.add_child(_album_body)
 	_orders = _panel_window(Vector2(1320, 900), "ORDERS")[0]
 	_orders_body = Control.new()
 	_orders.add_child(_orders_body)
@@ -182,7 +190,8 @@ func _process(delta: float) -> void:
 
 
 func any_menu_open() -> bool:
-	return _barn.visible or _shop.visible or _settings.visible or _prod.visible or _orders.visible
+	return _barn.visible or _shop.visible or _settings.visible or _prod.visible or _orders.visible \
+			or _album.visible or fishing != null
 
 
 static func _fmt_time(sec: int) -> String:
@@ -193,7 +202,7 @@ static func _fmt_time(sec: int) -> String:
 
 
 func close_menus() -> void:
-	for m in [_barn, _shop, _settings, _prod, _orders]:
+	for m in [_barn, _shop, _settings, _prod, _orders, _album]:
 		m.hide()
 	hide_seed_picker()
 
@@ -525,39 +534,138 @@ func _build_shop() -> void:
 func open_shop() -> void:
 	for c in _shop.get_children().slice(2):
 		c.queue_free()
-	var card := Control.new()
-	card.position = Vector2(60, 120)
-	_shop.add_child(card)
-	var slot := _tex("slot.png")
-	slot.scale = Vector2(1.3, 1.3)
-	card.add_child(slot)
-	var icon := _tex("item_field.png")
-	icon.scale = Vector2(1.15, 1.15)
-	icon.position = Vector2(19, 16)
-	card.add_child(icon)
-	var name_l := _dark(_label("FIELD", 48))
-	name_l.position = Vector2(200, 10)
-	name_l.size = Vector2(300, 70)
-	card.add_child(name_l)
-	var have := _dark(_label("%d / %d" % [12 + Game.extra_fields, Game.max_fields()], 34))
-	have.position = Vector2(200, 72)
-	have.size = Vector2(300, 50)
-	card.add_child(have)
-	var buy := _pill("", Vector2(200, 140), 260, true)
-	card.add_child(buy)
-	var coin := _tex("coin.png")
-	coin.scale = Vector2(0.62, 0.62)
-	coin.position = Vector2(30, 12)
-	buy.add_child(coin)
-	var price := _label(str(Game.field_price()), 44)
-	price.position = Vector2(100, 0)
-	price.size = Vector2(140, 86)
-	buy.add_child(price)
-	buy.pressed.connect(func() -> void:
-		Audio.play("click")
-		_shop.hide()
-		buy_field.emit())
+	var cards: Array = [{"icon": "item_field.png", "name": "FIELD", "sub": "%d / %d" % [12 + Game.extra_fields,
+		Game.max_fields()], "price": Game.field_price(), "unlock": 1, "act": func() -> void: buy_field.emit()}]
+	for i in range(1, Game.RODS.size()):
+		var r: Dictionary = Game.RODS[i]
+		if Game.rod >= i:
+			continue
+		cards.append({"icon": r["id"] + ".png", "name": r["id"].to_upper(), "sub": "ROD_SUB", "price": int(r["price"]),
+			"unlock": int(r["unlock"]), "act": func() -> void:
+				if Game.buy_rod(i):
+					Audio.play("levelup")
+					Game.toast.emit(tr(r["id"].to_upper()), r["id"] + ".png")
+				else:
+					Game.toast.emit(tr("NOT_ENOUGH_COINS"), "coin.png")})
+	var w := 80.0 + cards.size() * 420.0
+	_shop.size = Vector2(w, 520)
+	_shop.offset_left = -w / 2
+	_shop.offset_right = w / 2
+	(_shop.get_child(0) as Control).size.x = w
+	(_shop.get_child(1) as Control).position.x = w - 70
+	for i in cards.size():
+		var c: Dictionary = cards[i]
+		var card := Control.new()
+		card.position = Vector2(60 + i * 420, 110)
+		_shop.add_child(card)
+		var slot := _tex("slot.png")
+		slot.scale = Vector2(1.2, 1.2)
+		slot.position = Vector2(110, 0)
+		card.add_child(slot)
+		var icon := _tex(c["icon"])
+		icon.scale = Vector2(1.05, 1.05)
+		icon.position = Vector2(128, 16)
+		card.add_child(icon)
+		var name_l := _dark(_label(c["name"], 40))
+		name_l.position = Vector2(0, 160)
+		name_l.size = Vector2(380, 60)
+		name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		card.add_child(name_l)
+		var sub := _dark(_label(c["sub"], 28))
+		sub.position = Vector2(0, 214)
+		sub.size = Vector2(380, 44)
+		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		card.add_child(sub)
+		if Game.level < int(c["unlock"]):
+			var lv := _dark(_label(tr("FROM_LEVEL") % int(c["unlock"]), 36))
+			lv.position = Vector2(0, 280)
+			lv.size = Vector2(380, 70)
+			lv.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			card.add_child(lv)
+			continue
+		var buy := _pill("", Vector2(60, 270), 260, Game.coins >= int(c["price"]))
+		card.add_child(buy)
+		var coin := _tex("coin.png")
+		coin.scale = Vector2(0.62, 0.62)
+		coin.position = Vector2(30, 12)
+		buy.add_child(coin)
+		var price := _label(str(c["price"]), 44)
+		price.position = Vector2(100, 0)
+		price.size = Vector2(140, 86)
+		buy.add_child(price)
+		var act: Callable = c["act"]
+		buy.pressed.connect(func() -> void:
+			Audio.play("click")
+			_shop.hide()
+			act.call())
 	_open(_shop)
+
+
+# ------------------------------------------------------------------ fishing
+
+func start_fishing(spot: String, place: String, time_of_day: String) -> void:
+	if fishing != null:
+		return
+	close_menus()
+	fishing = FishingUI.new()
+	_root.add_child(fishing)
+	fishing.size = _root.size
+	fishing.start(self, spot, place, time_of_day)
+	fishing.finished.connect(func() -> void: fishing = null)
+
+
+func open_album() -> void:
+	Audio.play("click")
+	_fill_album("")
+	_open(_album)
+
+
+func _fill_album(selected: String) -> void:
+	for c in _album_body.get_children():
+		c.queue_free()
+	var caught := 0
+	for i in Game.fish.size():
+		var f: Dictionary = Game.fish[i]
+		var known := Game.fish_log.has(f["id"])
+		if known:
+			caught += 1
+		var b := TextureButton.new()
+		b.texture_normal = load(UI + "slot.png")
+		b.ignore_texture_size = true
+		b.stretch_mode = TextureButton.STRETCH_SCALE
+		b.position = Vector2(56 + (i % 10) * 138, 110 + (i / 10) * 150)
+		b.size = Vector2(128, 134)
+		b.focus_mode = Control.FOCUS_NONE
+		if f["id"] == selected:
+			b.modulate = Color(1.0, 0.95, 0.7)
+		_album_body.add_child(b)
+		var ic := _tex("fish_%s.png" % f["id"])
+		ic.scale = Vector2(0.86, 0.86)
+		ic.position = Vector2(9, 22)
+		if not known:
+			ic.modulate = Color(0.1, 0.12, 0.18, 0.35)
+		b.add_child(ic)
+		var fid: String = f["id"]
+		b.pressed.connect(func() -> void:
+			Audio.play("click")
+			_fill_album(fid))
+	var title := _album.get_child(0) as Label
+	title.text = "%s  %d / %d" % [tr("ALBUM"), caught, Game.fish.size()]
+	var info := _dark(_label("ALBUM_HINT", 36))
+	info.position = Vector2(56, 730)
+	info.size = Vector2(1370, 200)
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD
+	info.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_album_body.add_child(info)
+	if selected != "":
+		var f: Dictionary = Game.fish_by_id[selected]
+		var where := tr("LOC_" + str(f["loc"])) + "  •  " + tr("TIME_" + str(f["time"]))
+		if Game.fish_log.has(selected):
+			var e: Dictionary = Game.fish_log[selected]
+			info.text = "%s\n%s\n%s %.1f cm  •  %s %d" % [Game.fish_name(selected), where, tr("BEST"),
+				float(e["best"]), tr("CAUGHT"), int(e["n"])]
+		else:
+			info.text = "???\n%s" % where
 
 
 # ------------------------------------------------------------------ production

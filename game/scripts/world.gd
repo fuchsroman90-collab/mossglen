@@ -42,6 +42,10 @@ var hud: Hud
 var fields: Dictionary = {}  # Vector2i -> Field
 var animals: Array[Animal] = []
 var production: Dictionary = {}  # building id -> ProductionBuilding
+var _swimmers_root: Node2D
+var _swimmers: Array[Sprite2D] = []
+const POND_CELLS := [Vector2i(3, 18), Vector2i(4, 18), Vector2i(3, 19), Vector2i(4, 19), Vector2i(5, 19),
+	Vector2i(4, 20)]
 var props: Array[Sprite2D] = []  # tappable scenery (barn, trees, bushes)
 var occupied: Dictionary = {}
 
@@ -88,8 +92,11 @@ func _ready() -> void:
 	_build_farm()
 	_build_ground()
 	_load_world_state.call_deferred()
+	add_child(_swimmers_root)
 	add_child(objects)
 	add_child(fx)
+	Game.fish_caught.connect(func(_id: String) -> void: _refresh_swimmers())
+	_refresh_swimmers.call_deferred()
 	cam = Camera2D.new()
 	add_child(cam)
 	cam.make_current()
@@ -168,6 +175,8 @@ func _dirt(cell: Vector2i, amount := 1.0) -> void:
 
 func _water(cell: Vector2i, amount := 1.0) -> void:
 	var p := cell - Vector2i(MAP_MIN, MAP_MIN)
+	if p.x < 0 or p.y < 0 or p.x >= MASK_SIZE or p.y >= MASK_SIZE:
+		return
 	var cur := _mask.get_pixelv(p)
 	_mask.set_pixelv(p, Color(cur.r, maxf(cur.g, amount), 0))
 	occupied[cell] = true
@@ -323,6 +332,22 @@ func _build_farm() -> void:
 	for x in range(1, 9):
 		for y in range(16, 23):
 			occupied[Vector2i(x, y)] = true
+
+	# fishing docks: pond and the creek on the east side
+	var d1 := _add_prop("dock_pond", Vector2(7.3, 18.5), null)
+	d1.set_meta("spot", "pond")
+	d1.set_meta("squash", 0.04)
+	for y in range(-9, 37):
+		var cx := 26 + int(round(sin(y * 0.33) * 1.3))
+		_water(Vector2i(cx, y), 1.0)
+		_water(Vector2i(cx + 1, y), 1.0)
+		_water(Vector2i(cx - 1, y), 0.45)
+		_water(Vector2i(cx + 2, y), 0.45)
+	var d2 := _add_prop("dock_creek", Vector2(24.4, 10.0), null)
+	d2.set_meta("spot", "river")
+	d2.set_meta("squash", 0.04)
+	occupied[Vector2i(24, 10)] = true
+	_swimmers_root = Node2D.new()
 
 	# extra flowers and bushes so the farm feels lived in
 	for spot in [Vector2(10.3, 10.5), Vector2(15.6, 14.3), Vector2(13.2, 14.6), Vector2(19.3, 16.4),
@@ -717,6 +742,14 @@ func _tap(world: Vector2) -> void:
 		if n == "order_board":
 			hud.open_orders()
 			return
+		if best.has_meta("spot"):
+			var spot: String = best.get_meta("spot")
+			if Game.spot_stock(spot) < 1:
+				Game.toast.emit(tr("FISH_EMPTY"), "bobber.png")
+			else:
+				Game.take_fish(spot)
+				hud.start_fishing(spot, spot, time_name())
+			return
 		Audio.play(best.get_meta("sound", "pop"), 1.0, 0.1)
 		if n.begins_with("tree") or n.begins_with("bush") or n.begins_with("flowers"):
 			_puff(best.position + Vector2(0, -Atlas.anchor(n).y * 0.6), "fx_leaf", 5)
@@ -855,6 +888,45 @@ func day_phase() -> float:
 	return fmod(Time.get_unix_time_from_system() / DAY_SECONDS + 0.35, 1.0)
 
 
+## "day", "dusk" (dawn counts as dusk) or "night" for the fish tables.
+func time_name() -> String:
+	var p := day_phase()
+	if p >= 0.28 and p < 0.72:
+		return "day"
+	if (p >= 0.12 and p < 0.28) or (p >= 0.72 and p < 0.88):
+		return "dusk"
+	return "night"
+
+
+## Caught species swim in the farm pond as dark shapes under the surface.
+func _refresh_swimmers() -> void:
+	var ids: Array = Game.fish_log.keys().filter(func(k: String) -> bool:
+		return Game.fish_by_id[k]["loc"] == "pond")
+	ids = ids.slice(maxi(0, ids.size() - 8))
+	while _swimmers.size() < ids.size():
+		var s := Sprite2D.new()
+		s.modulate = Color(0.12, 0.25, 0.38, 0.55)
+		s.scale = Vector2(0.42, 0.42)
+		s.position = grid_to_world(Vector2(POND_CELLS[randi() % POND_CELLS.size()]))
+		s.set_meta("target", s.position)
+		_swimmers_root.add_child(s)
+		_swimmers.append(s)
+	for i in ids.size():
+		_swimmers[i].texture = load("res://art/generated/ui/fish_%s.png" % ids[i])
+
+
+func _move_swimmers(delta: float) -> void:
+	for s in _swimmers:
+		var t: Vector2 = s.get_meta("target")
+		if s.position.distance_to(t) < 6.0:
+			var c: Vector2i = POND_CELLS[randi() % POND_CELLS.size()]
+			t = grid_to_world(Vector2(c) + Vector2(randf_range(-0.4, 0.4), randf_range(-0.4, 0.4)))
+			s.set_meta("target", t)
+		var d := (t - s.position).normalized()
+		s.position += d * 40.0 * delta
+		s.flip_h = d.x > 0.0
+
+
 func _update_daylight() -> void:
 	_daylight.color = _sky.sample(day_phase())
 
@@ -960,6 +1032,9 @@ func _parse_args() -> void:
 
 func _demo_state() -> void:
 	var now := Time.get_unix_time_from_system()
+	for f in Game.fish.slice(0, 6):
+		Game.fish_log[f["id"]] = {"n": 1, "best": float(f["size"][0])}
+	_refresh_swimmers.call_deferred()
 	var k := 0
 	for a in animals:
 		if a.produces():
@@ -996,6 +1071,17 @@ func _debug_ui(which: String) -> void:
 		"prod":
 			Game.add_item("egg", 3, true)
 			hud.open_production(production["bakery"])
+		"fish":
+			hud.start_fishing("pond", "pond", "day")
+		"catch":
+			hud.start_fishing("pond", "pond", "day")
+			hud.fishing._wait = 0.1
+			hud.fishing.set_meta("auto_tap", true)
+		"album":
+			for f in Game.fish.slice(0, 22):
+				Game.record_catch(f["id"], float(f["size"][1]) * 0.8)
+			hud.open_album()
+			hud._fill_album("moon_carp")
 		"orders":
 			Game.add_item("egg", 3, true)
 			Game.add_item("wheat", 8, true)
@@ -1124,6 +1210,22 @@ func _run_smoke() -> void:
 	for k in ["chicken", "cow", "sheep", "pig"]:
 		if not kinds.has(k):
 			errors.append("missing animal " + k)
+	# fishing: stock, roll, record, album
+	var st := Game.spot_stock("pond")
+	if st < 1 or not Game.take_fish("pond") or Game.spot_stock("pond") != st - 1:
+		errors.append("fishing spot stock broken")
+	var got := Game.roll_fish("pond", "day", 1.0)
+	if not Game.fish_by_id.has(got["id"]) or Game.fish_by_id[got["id"]]["loc"] != "pond":
+		errors.append("rolled a fish from the wrong place")
+	var rc := Game.record_catch(got["id"], got["size"])
+	if not rc["new"] or not Game.fish_log.has(got["id"]):
+		errors.append("catch not recorded")
+	for loc in ["pond", "river"]:
+		for tn in ["day", "dusk", "night"]:
+			Game.roll_fish(loc, tn, 0.5)
+	hud.start_fishing("river", "river", "night")
+	if hud.fishing == null:
+		errors.append("fishing overlay did not open")
 	var ws := _save_world()
 	if not ws.has("buildings") or not ws["pens"].has("chicken"):
 		errors.append("production state not saved")
@@ -1166,6 +1268,7 @@ func _setup_bench() -> void:
 
 func _process(delta: float) -> void:
 	_check_long_press(delta)
+	_move_swimmers(delta)
 	_day_t += delta
 	if _day_t > 1.0:
 		_day_t = 0.0

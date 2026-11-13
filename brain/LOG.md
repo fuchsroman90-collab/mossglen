@@ -2,6 +2,18 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-13 – PC-Sitzung: M3 Angeln
+
+- 40 Fischarten (`game/data/fish.json`): 14 Teich, 14 Bach, 12 Meer (Meer kommt mit dem Dorf in M5).
+  Bedingungen: Ort + Tageszeit (Tag/Dämmerung/Nacht), Seltenheit 1–4, Größenbereich, Preis.
+- Fisch-Icons werden per Code erzeugt (`ui.fish_icon`: Körperlänge, Schwanztyp, Flossen, Farben, Muster).
+- Minispiel `fishing_ui.gd`: Auswerfen → Biss → weißer Ring schrumpft auf goldenen Zielring, Tippen =
+  Qualität (seltener/größer). Kein Scheitern: ohne Tippen gibt es trotzdem einen Fisch. Fangkarte mit
+  NEU/REKORD, Verkaufen oder Freilassen (XP).
+- Pro Angelplatz 5 Fische, +1 alle 90 s (gespeichert). Ruten: Holz, Bambus (Lv 4), Gold (Lv 8) im Laden.
+- Bach am Ostrand (Wasser-Maske, mäandernd), zwei Stege (3D), gefangene Teichfische schwimmen als Schatten
+  im Farmteich. Album (Buch-Knopf links) mit Rekordgrößen.
+
 ## 2026-11-13 – PC-Sitzung: M2b (M2 komplett)
 
 Roman: „Mach weiter alles hintereinander.“ → Meilensteine nacheinander, nach jedem Push + Brain.

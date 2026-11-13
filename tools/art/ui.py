@@ -501,6 +501,143 @@ def item_candle(body="#FFF4DA", band="", size=112):
     return _item(b, size)
 
 
+def _darker(hex_c, k=0.7):
+    h = hex_c.lstrip("#")
+    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    return "#%02X%02X%02X" % (int(r * k), int(g * k), int(b * k))
+
+
+def fish_icon(f: dict, w=128, h=96):
+    """2D fish icon from the parameters in game/data/fish.json (faces left)."""
+    import random as _r
+    rng = _r.Random(f["id"])
+    cy = h / 2 + 2
+    x0, x1 = 12.0, 94.0
+    L = x1 - x0
+    bh = min(34.0, max(7.0, L / f["len"] / 2 * 1.1))
+    o = _o(4)
+    top, belly, fins = f["top"], f["belly"], f["fins"]
+    body = (f'M {x0} {cy} C {x0} {cy - bh * 1.05} {x0 + 0.45 * L} {cy - bh * 1.15} {x1} {cy - bh * 0.28} '
+            f'L {x1} {cy + bh * 0.28} C {x0 + 0.45 * L} {cy + bh * 1.1} {x0} {cy + bh} {x0} {cy} Z')
+    tail = f["tail"]
+    th = max(bh * 0.95, 10)
+    if tail == "fork":
+        tail_p = f'M {x1 - 6} {cy} L {w - 6} {cy - th - 4} L {w - 18} {cy} L {w - 6} {cy + th + 4} Z'
+    elif tail == "round":
+        tail_p = f'M {x1 - 6} {cy} C {w} {cy - th * 1.3} {w + 4} {cy + th * 1.3} {x1 - 6} {cy} Z'
+    elif tail == "flag":
+        tail_p = f'M {x1 - 6} {cy - 3} L {w - 6} {cy - th} C {w} {cy} {w} {cy} {w - 6} {cy + th} L {x1 - 6} {cy + 3} Z'
+    else:  # eel: tapering tail, long fin
+        tail_p = f'M {x1 - 4} {cy - bh * 0.3} C {w - 10} {cy - 4} {w - 2} {cy} {w - 2} {cy + 2} C {w - 10} {cy + 6} {x1} {cy + bh * 0.4} {x1 - 4} {cy + bh * 0.3} Z'
+    fin_h = min(bh * 0.9 * f["fin"] + 4, cy - bh - 6)
+    if tail == "eel":
+        dorsal = f'M {x0 + 0.25 * L} {cy - bh * 0.9} C {x0 + 0.5 * L} {cy - bh - fin_h} {x1} {cy - bh * 0.5 - fin_h * 0.4} {w - 6} {cy - 1} L {x1} {cy - bh * 0.3} Z'
+    else:
+        dorsal = (f'M {x0 + 0.32 * L} {cy - bh * 0.92} C {x0 + 0.42 * L} {cy - bh - fin_h} {x0 + 0.62 * L} '
+                  f'{cy - bh - fin_h * 0.8} {x0 + 0.74 * L} {cy - bh * 0.62} Z')
+    pect = (f'<ellipse cx="{x0 + 0.33 * L}" cy="{cy + bh * 0.35}" rx="{max(5, bh * 0.38)}" ry="{max(3, bh * 0.2)}" '
+            f'fill="{fins}" {_o(3)} transform="rotate(25 {x0 + 0.33 * L} {cy + bh * 0.35})"/>')
+    defs = (f'<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{top}"/>'
+            f'<stop offset="0.55" stop-color="{top}"/><stop offset="1" stop-color="{belly}"/></linearGradient>'
+            f'<clipPath id="cl"><path d="{body}"/></clipPath>')
+    pat = f["pattern"]
+    dark = _darker(top, 0.62)
+    pp = ""
+    if pat == "stripes":
+        for i in range(5):
+            x = x0 + 0.25 * L + i * 0.13 * L
+            pp += f'<rect x="{x}" y="{cy - bh * 1.2}" width="{L * 0.05}" height="{bh * 1.6}" fill="{dark}" opacity="0.7"/>'
+    elif pat in ("spots", "dots", "orange_spots", "lights", "stars"):
+        n = {"spots": 9, "dots": 18, "orange_spots": 10, "lights": 7, "stars": 12}[pat]
+        col = {"spots": dark, "dots": dark, "orange_spots": "#F2823A", "lights": "#FFE57A", "stars": "#FFFFFF"}[pat]
+        for i in range(n):
+            x = rng.uniform(x0 + 0.2 * L, x1 - 4)
+            y = rng.uniform(cy - bh * 0.8, cy + bh * (0.2 if pat != "lights" else 0.8))
+            r = {"spots": 3.6, "dots": 1.8, "orange_spots": 3.2, "lights": 2.6, "stars": 1.6}[pat]
+            pp += f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r}" fill="{col}" opacity="0.85"/>'
+    elif pat == "band":
+        pp += f'<rect x="{x0}" y="{cy - bh * 0.18}" width="{L}" height="{bh * 0.36}" fill="{fins}" opacity="0.75"/>'
+    elif pat == "koi":
+        for i in range(4):
+            x = rng.uniform(x0 + 0.15 * L, x1 - 10)
+            y = rng.uniform(cy - bh * 0.9, cy + bh * 0.2)
+            pp += f'<ellipse cx="{x:.1f}" cy="{y:.1f}" rx="{rng.uniform(7, 12):.1f}" ry="{rng.uniform(5, 8):.1f}" fill="#F2582A"/>'
+    elif pat == "plates":
+        for i in range(6):
+            x = x0 + 0.25 * L + i * 0.11 * L
+            pp += f'<path d="M {x} {cy - bh * 0.5} l 4 -5 l 4 5 l -4 5 Z" fill="#F0F2EE" opacity="0.9"/>'
+    elif pat == "pearl":
+        pp += (f'<ellipse cx="{x0 + 0.45 * L}" cy="{cy - bh * 0.2}" rx="{L * 0.3}" ry="{bh * 0.5}" fill="#FFFFFF" '
+               f'opacity="0.5"/><ellipse cx="{x0 + 0.55 * L}" cy="{cy}" rx="{L * 0.15}" ry="{bh * 0.25}" '
+               f'fill="#E8C8F0" opacity="0.7"/>')
+    ex, ey = x0 + 0.13 * L, cy - bh * 0.28
+    er = max(3.5, min(7.0, bh * 0.28))
+    shine = (f'<path d="M {x0 + 0.2 * L} {cy - bh * 0.7} C {x0 + 0.35 * L} {cy - bh * 0.95} {x0 + 0.6 * L} '
+             f'{cy - bh * 0.9} {x0 + 0.75 * L} {cy - bh * 0.6}" stroke="#FFFFFF" stroke-width="3" fill="none" '
+             f'stroke-linecap="round" opacity="0.5"/>')
+    svg = (f'<defs>{defs}{shadow_filter(dy=3, blur=2, op=0.3)}</defs><g filter="url(#sh)">'
+           f'<path d="{tail_p}" fill="{fins}" {o}/><path d="{dorsal}" fill="{fins}" {o}/>'
+           f'<path d="{body}" fill="url(#bg)" {o}/><g clip-path="url(#cl)">{pp}{shine}</g>'
+           f'<path d="{body}" fill="none" {o}/>{pect}'
+           f'<circle cx="{ex}" cy="{ey}" r="{er}" fill="#FFFFFF" {_o(2.5)}/>'
+           f'<circle cx="{ex - er * 0.25}" cy="{ey}" r="{er * 0.55}" fill="#1E1410"/>'
+           f'<circle cx="{ex - er * 0.45}" cy="{ey - er * 0.35}" r="{er * 0.22}" fill="#FFFFFF"/>'
+           f'<path d="M {x0 + 1} {cy + 2} l 5 1" stroke="{OUT}" stroke-width="2.5" stroke-linecap="round"/></g>')
+    return render(svg, w, h)
+
+
+def water_disc(size=520):
+    c = size / 2
+    defs = ('<radialGradient id="w" cx="0.45" cy="0.4" r="0.6"><stop offset="0" stop-color="#7FD6E8"/>'
+            '<stop offset="1" stop-color="#2E8FC0"/></radialGradient>')
+    rip = "".join(f'<ellipse cx="{c + dx}" cy="{c + dy}" rx="{r}" ry="{r * 0.45}" fill="none" stroke="#FFFFFF" '
+                  f'stroke-width="3" opacity="{op}"/>' for dx, dy, r, op in
+                  [(-90, -110, 40, 0.35), (110, -60, 30, 0.3), (-120, 90, 34, 0.3), (80, 130, 44, 0.3)])
+    return render(f'<defs>{defs}{shadow_filter(dy=6, blur=4)}</defs><g filter="url(#sh)">'
+                  f'<circle cx="{c}" cy="{c}" r="{c - 10}" fill="{OUT}"/>'
+                  f'<circle cx="{c}" cy="{c}" r="{c - 18}" fill="#C98C4A"/>'
+                  f'<circle cx="{c}" cy="{c}" r="{c - 28}" fill="url(#w)"/>{rip}</g>', size, size + 10)
+
+
+def ring(size=256, color="#FFD23F", width=14):
+    c = size / 2
+    return render(f'<circle cx="{c}" cy="{c}" r="{c - width}" fill="none" stroke="{OUT}" stroke-width="{width + 8}"/>'
+                  f'<circle cx="{c}" cy="{c}" r="{c - width}" fill="none" stroke="{color}" stroke-width="{width}"/>',
+                  size, size)
+
+
+def bobber(size=96):
+    o = _o(5)
+    return render(f'<path d="M48 4 L48 26" stroke="{OUT}" stroke-width="5"/>'
+                  f'<path d="M22 48 A26 26 0 0 1 74 48 Z" fill="#E8473B" {o}/>'
+                  f'<path d="M22 48 A26 26 0 0 0 74 48 Z" fill="#FFFFFF" {o}/>'
+                  f'<ellipse cx="38" cy="36" rx="7" ry="4" fill="#FFFFFF" opacity="0.6"/>', size, size)
+
+
+def rod_icon(size=112, color="#B07547"):
+    o = _o(5)
+    return _item(f'<path d="M20 98 L88 14" stroke="{OUT}" stroke-width="12" stroke-linecap="round"/>'
+                 f'<path d="M20 98 L88 14" stroke="{color}" stroke-width="6" stroke-linecap="round"/>'
+                 f'<circle cx="36" cy="78" r="10" fill="#C9CDD4" {o}/>'
+                 f'<path d="M88 14 C96 40 92 60 86 76" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>'
+                 f'<path d="M80 74 L92 74 L86 90 Z" fill="#E8473B" {_o(3)}/>', size)
+
+
+def book(size=96):
+    o = _o(6)
+    return _glyph(f'<path d="M14 22 C30 14 44 16 48 24 C52 16 66 14 82 22 L82 78 C66 70 52 72 48 80 C44 72 30 70 14 78 Z" '
+                  f'fill="#FFF8E4" {o}/><path d="M48 24 L48 80" stroke="{OUT}" stroke-width="5"/>'
+                  f'<path d="M22 50 C28 44 36 44 40 50 C36 56 28 56 22 50 Z M40 50 l6 -5 l0 10 Z" fill="#3FA0D8" '
+                  f'stroke="{OUT}" stroke-width="3"/>', size)
+
+
+def fish_icons() -> dict:
+    import json
+    from pathlib import Path
+    data = json.loads((Path(__file__).resolve().parents[2] / "game" / "data" / "fish.json").read_text())
+    return {f"fish_{f['id']}": fish_icon(f) for f in data}
+
+
 def slot(size=128):
     """Round cream slot for item icons in menus."""
     c = size / 2
@@ -513,6 +650,12 @@ def badge(size=56):
     c = size / 2
     return render(f'<circle cx="{c}" cy="{c}" r="{c - 3}" fill="{OUT}"/><circle cx="{c}" cy="{c}" r="{c - 7}" '
                   f'fill="#3FA535"/>', size, size)
+
+
+def ui_images_all() -> dict:
+    d = ui_images()
+    d.update(fish_icons())
+    return d
 
 
 def ui_images() -> dict:
@@ -570,6 +713,14 @@ def ui_images() -> dict:
         "item_festive_candle": item_candle("#E8473B", "#FFD23F"),
         "pill_green": pill(),
         "lock": lock(),
+        "water_disc": water_disc(),
+        "ring_target": ring(256, "#FFD23F", 16),
+        "ring_move": ring(256, "#FFFFFF", 10),
+        "bobber": bobber(),
+        "rod_wood": rod_icon(color="#B07547"),
+        "rod_bamboo": rod_icon(color="#9CC95A"),
+        "rod_gold": rod_icon(color="#FFC93C"),
+        "ico_book": book(),
     }
 
 

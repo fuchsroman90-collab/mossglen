@@ -711,6 +711,35 @@ def candle_maker():
     return root
 
 
+def dock(yaw=0.0):
+    """Wooden fishing dock. The shore end is at the origin, planks run along local -X into the water."""
+    root = kit.empty("dock", rot=(0, 0, math.radians(yaw)))
+    plank = wood("dock_plank", "#C08A55")
+    post = wood("dock_post", "#8C5A34")
+    for i in range(9):
+        x = -0.1 - i * 0.16
+        kit.box((0.14, 0.62, 0.05), plank, loc=(x, 0, 0.16), rot=(0, 0, random.Random(i).uniform(-0.03, 0.03)),
+                bevel=0.015, parent=root)
+    for x in (-0.05, -0.75, -1.4):
+        for y in (-0.33, 0.33):
+            kit.cyl(0.05, 0.35, post, loc=(x, y, -0.15), bevel=0.01, verts=10, parent=root)
+            kit.sphere(0.05, post, loc=(x, y, 0.2), scale=(1, 1, 0.6), seg=10, parent=root)
+    kit.box((1.45, 0.06, 0.06), post, loc=(-0.72, -0.33, 0.12), bevel=0.01, parent=root)
+    kit.box((1.45, 0.06, 0.06), post, loc=(-0.72, 0.33, 0.12), bevel=0.01, parent=root)
+    # bucket, lantern post, a resting rod
+    kit.cyl(0.1, 0.16, mat("bucket", "#5B9BD5", rough=0.4, spec=0.4, edge=0.4), r2=0.12, loc=(-1.2, 0.18, 0.185),
+            bevel=0.01, verts=16, parent=root)
+    kit.cyl(0.03, 0.75, post, loc=(-0.05, -0.33, 0.2), bevel=0.0, verts=8, parent=root)
+    kit.sphere(0.07, mat("lantern", "#FFD86A", rough=0.4, emit=1.5, edge=0.0), loc=(-0.05, -0.33, 0.98),
+               scale=(1, 1, 1.2), seg=12, parent=root)
+    kit.box((0.12, 0.12, 0.03), post, loc=(-0.05, -0.33, 1.08), bevel=0.01, parent=root)
+    rod = wood("rod", "#B07547")
+    kit.cyl(0.015, 1.1, rod, loc=(-0.25, 0.22, 0.2), rot=(0, math.radians(-90), math.radians(8)), bevel=0.0,
+            verts=8, parent=root)
+    kit.sphere(0.035, mat("reel", "#C9CDD4", rough=0.3, metal=0.6, edge=0.3), loc=(-0.38, 0.3, 0.22), seg=10, parent=root)
+    return root
+
+
 def building_frames():
     return {
         "barn": barn,
@@ -726,4 +755,6 @@ def building_frames():
         "popcorn": popcorn_cart,
         "sauce_kitchen": sauce_kitchen,
         "candle_maker": candle_maker,
+        "dock_pond": lambda: dock(0.0),
+        "dock_creek": lambda: dock(180.0),
     }

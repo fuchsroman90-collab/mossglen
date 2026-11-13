@@ -9,6 +9,7 @@ signal inventory_changed(item: String, count: int)
 signal leveled_up(level: int, unlocked: Array)
 signal toast(text: String, icon: String)
 signal orders_changed
+signal fish_caught(id: String)
 
 const I18N_PATH := "res://i18n/strings.txt"
 const SAVE_PATH := "user://save.json"
@@ -22,6 +23,15 @@ var items: Dictionary = {}  ## product id -> {sell}
 var buildings: Dictionary = {}  ## building id -> {slots, fx, recipes[]}
 var animal_defs: Dictionary = {}  ## animal kind -> {feed, product, time, xp, unlock}
 var orders: Array = []  ## [{need: {item: n}, coins, xp, wait_until}]
+var fish: Array = []  ## species from data/fish.json
+var fish_by_id: Dictionary = {}
+var fish_log: Dictionary = {}  ## id -> {"n": caught, "best": cm}
+var rod := 0  ## 0 wood, 1 bamboo, 2 gold
+var spots: Dictionary = {}  ## fishing spot -> {"stock": float, "t": unix}
+const SPOT_MAX := 5.0
+const SPOT_REGEN := 90.0  ## seconds per fish
+const RODS := [{"id": "rod_wood", "price": 0, "unlock": 1}, {"id": "rod_bamboo", "price": 150, "unlock": 4},
+	{"id": "rod_gold", "price": 600, "unlock": 8}]
 const ORDER_SLOTS := 6
 const ORDER_WAIT := 20.0
 var coins := 60
@@ -49,6 +59,9 @@ func _ready() -> void:
 	items = _json("res://data/items.json")
 	buildings = _json("res://data/buildings.json")
 	animal_defs = _json("res://data/animals.json")
+	fish = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish.json"))
+	for f in fish:
+		fish_by_id[f["id"]] = f
 	_load_translations()
 	var lang := OS.get_locale_language()
 	TranslationServer.set_locale(lang if lang in LOCALES else "en")
@@ -198,6 +211,79 @@ func take_all(need: Dictionary) -> bool:
 	return true
 
 
+# ------------------------------------------------------------------ fishing
+
+func spot_stock(spot: String) -> int:
+	var now := Time.get_unix_time_from_system()
+	var d: Dictionary = spots.get(spot, {"stock": SPOT_MAX, "t": now})
+	var st := minf(SPOT_MAX, float(d["stock"]) + (now - float(d["t"])) / SPOT_REGEN)
+	spots[spot] = {"stock": st, "t": now}
+	return int(floor(st))
+
+
+func take_fish(spot: String) -> bool:
+	if spot_stock(spot) < 1:
+		return false
+	spots[spot]["stock"] = float(spots[spot]["stock"]) - 1.0
+	mark_dirty()
+	return true
+
+
+## Picks a fish for a place ("pond"/"river"/"sea") and time ("day"/"dusk"/"night").
+## quality 0..1 from the timing ring: better timing -> rarer fish and bigger size.
+func roll_fish(loc: String, time: String, quality: float) -> Dictionary:
+	var weights := {1: 60.0, 2: 26.0 + 10.0 * quality, 3: 9.0 + 9.0 * quality + 6.0 * rod, 4: 1.0 + 2.0 * quality + 2.0 * rod}
+	var pool: Array = []
+	var total := 0.0
+	for f in fish:
+		if f["loc"] != loc or (f["time"] != "any" and f["time"] != time):
+			continue
+		var w: float = weights[int(f["rarity"])]
+		pool.append([f, w])
+		total += w
+	var r := randf() * total
+	var pick: Dictionary = pool[0][0]
+	for p in pool:
+		r -= p[1]
+		if r <= 0.0:
+			pick = p[0]
+			break
+	var lo: float = pick["size"][0]
+	var hi: float = pick["size"][1]
+	var size := lo + (hi - lo) * pow(randf(), 1.6 - quality)
+	return {"id": pick["id"], "size": snappedf(size, 0.1)}
+
+
+## Logs a catch. Returns {"new": bool, "record": bool}.
+func record_catch(id: String, size: float) -> Dictionary:
+	var e: Dictionary = fish_log.get(id, {"n": 0, "best": 0.0})
+	var res := {"new": int(e["n"]) == 0, "record": size > float(e["best"]) and int(e["n"]) > 0}
+	fish_log[id] = {"n": int(e["n"]) + 1, "best": maxf(float(e["best"]), size)}
+	fish_caught.emit(id)
+	mark_dirty()
+	return res
+
+
+func fish_value(id: String, size: float) -> int:
+	var f: Dictionary = fish_by_id[id]
+	var mid := (float(f["size"][0]) + float(f["size"][1])) * 0.5
+	return maxi(1, int(round(float(f["price"]) * clampf(size / mid, 0.7, 1.5))))
+
+
+func fish_name(id: String) -> String:
+	var f: Dictionary = fish_by_id[id]
+	return f["de"] if TranslationServer.get_locale().begins_with("de") else f["en"]
+
+
+func buy_rod(level_idx: int) -> bool:
+	var r: Dictionary = RODS[level_idx]
+	if rod >= level_idx or level < int(r["unlock"]) or not spend_coins(int(r["price"])):
+		return false
+	rod = level_idx
+	mark_dirty()
+	return true
+
+
 # ------------------------------------------------------------------ orders
 
 ## Items the player can currently make or grow (order candidates). Feeds are excluded.
@@ -283,6 +369,7 @@ func save_game() -> void:
 		"saved_at": Time.get_unix_time_from_system(),
 		"coins": coins, "emeralds": emeralds, "xp": xp, "level": level,
 		"inventory": inventory, "extra_fields": extra_fields, "orders": orders,
+		"fish_log": fish_log, "rod": rod, "spots": spots,
 		"locale": TranslationServer.get_locale().substr(0, 2),
 		"music": Audio.music_enabled,
 		"world": world_saver.call() if world_saver.is_valid() else {},
@@ -317,6 +404,12 @@ func load_game() -> bool:
 	if parsed.has("music"):
 		Audio.set_music_enabled.call_deferred(bool(parsed["music"]))
 	saved_world = parsed.get("world", {})
+	fish_log = {}
+	for k in parsed.get("fish_log", {}):
+		var e: Dictionary = parsed["fish_log"][k]
+		fish_log[k] = {"n": int(e["n"]), "best": float(e["best"])}
+	rod = int(parsed.get("rod", 0))
+	spots = parsed.get("spots", {})
 	orders = []
 	for o in parsed.get("orders", []):
 		var need := {}

@@ -1,0 +1,802 @@
+[
+	{
+		"id": "moss_perch",
+		"de": "Moosbarsch",
+		"en": "Moss Perch",
+		"loc": "pond",
+		"time": "any",
+		"rarity": 1,
+		"size": [
+			12,
+			26
+		],
+		"price": 6,
+		"len": 2.2,
+		"tail": "fork",
+		"fin": 1.0,
+		"top": "#6E9E3F",
+		"belly": "#E8F0B0",
+		"fins": "#E8823A",
+		"pattern": "stripes"
+	},
+	{
+		"id": "golden_crucian",
+		"de": "Goldkarausche",
+		"en": "Golden Crucian",
+		"loc": "pond",
+		"time": "day",
+		"rarity": 1,
+		"size": [
+			10,
+			22
+		],
+		"price": 6,
+		"len": 1.8,
+		"tail": "round",
+		"fin": 0.8,
+		"top": "#E8A92A",
+		"belly": "#FFE7A0",
+		"fins": "#E88A2A",
+		"pattern": "none"
+	},
+	{
+		"id": "mud_loach",
+		"de": "Schlammschmerle",
+		"en": "Mud Loach",
+		"loc": "pond",
+		"time": "any",
+		"rarity": 1,
+		"size": [
+			8,
+			18
+		],
+		"price": 5,
+		"len": 3.2,
+		"tail": "round",
+		"fin": 0.4,
+		"top": "#8A6A4A",
+		"belly": "#D8C4A0",
+		"fins": "#7A5A3A",
+		"pattern": "dots"
+	},
+	{
+		"id": "lily_rudd",
+		"de": "Seerosen-Rotfeder",
+		"en": "Lily Rudd",
+		"loc": "pond",
+		"time": "day",
+		"rarity": 1,
+		"size": [
+			14,
+			28
+		],
+		"price": 7,
+		"len": 2.2,
+		"tail": "fork",
+		"fin": 0.9,
+		"top": "#7A9AB0",
+		"belly": "#F2EEE0",
+		"fins": "#E8473B",
+		"pattern": "none"
+	},
+	{
+		"id": "pond_tench",
+		"de": "Teichschleie",
+		"en": "Pond Tench",
+		"loc": "pond",
+		"time": "dusk",
+		"rarity": 2,
+		"size": [
+			20,
+			45
+		],
+		"price": 12,
+		"len": 2.3,
+		"tail": "round",
+		"fin": 0.7,
+		"top": "#4E7A3A",
+		"belly": "#B8C878",
+		"fins": "#3E6A2A",
+		"pattern": "none"
+	},
+	{
+		"id": "moon_carp",
+		"de": "Mondkarpfen",
+		"en": "Moon Carp",
+		"loc": "pond",
+		"time": "night",
+		"rarity": 2,
+		"size": [
+			30,
+			70
+		],
+		"price": 16,
+		"len": 2.0,
+		"tail": "fork",
+		"fin": 0.9,
+		"top": "#7A86A8",
+		"belly": "#E8ECF5",
+		"fins": "#5A6688",
+		"pattern": "band"
+	},
+	{
+		"id": "firefly_minnow",
+		"de": "Glühwürmchen-Elritze",
+		"en": "Firefly Minnow",
+		"loc": "pond",
+		"time": "night",
+		"rarity": 2,
+		"size": [
+			4,
+			8
+		],
+		"price": 10,
+		"len": 2.6,
+		"tail": "fork",
+		"fin": 0.6,
+		"top": "#3E5A7A",
+		"belly": "#FFF3B0",
+		"fins": "#FFD23F",
+		"pattern": "dots"
+	},
+	{
+		"id": "bluegill",
+		"de": "Sonnenbarsch",
+		"en": "Bluegill",
+		"loc": "pond",
+		"time": "day",
+		"rarity": 1,
+		"size": [
+			10,
+			20
+		],
+		"price": 6,
+		"len": 1.7,
+		"tail": "round",
+		"fin": 1.1,
+		"top": "#3E7AB0",
+		"belly": "#FFC24A",
+		"fins": "#2E5A88",
+		"pattern": "stripes"
+	},
+	{
+		"id": "frog_goby",
+		"de": "Froschgrundel",
+		"en": "Frog Goby",
+		"loc": "pond",
+		"time": "any",
+		"rarity": 2,
+		"size": [
+			6,
+			14
+		],
+		"price": 9,
+		"len": 2.4,
+		"tail": "round",
+		"fin": 0.8,
+		"top": "#6BA84A",
+		"belly": "#E8F0C8",
+		"fins": "#4E8A3A",
+		"pattern": "spots"
+	},
+	{
+		"id": "sunny_bream",
+		"de": "Sonnen-Brachse",
+		"en": "Sunny Bream",
+		"loc": "pond",
+		"time": "day",
+		"rarity": 2,
+		"size": [
+			25,
+			50
+		],
+		"price": 12,
+		"len": 1.6,
+		"tail": "fork",
+		"fin": 1.0,
+		"top": "#B8A050",
+		"belly": "#F5EED0",
+		"fins": "#8A7A3A",
+		"pattern": "none"
+	},
+	{
+		"id": "bitterling",
+		"de": "Bitterling",
+		"en": "Bitterling",
+		"loc": "pond",
+		"time": "any",
+		"rarity": 1,
+		"size": [
+			5,
+			9
+		],
+		"price": 5,
+		"len": 1.9,
+		"tail": "fork",
+		"fin": 0.8,
+		"top": "#9AB8D0",
+		"belly": "#F5E0F0",
+		"fins": "#E070A0",
+		"pattern": "band"
+	},
+	{
+		"id": "mist_catfish",
+		"de": "Nebelwels",
+		"en": "Mist Catfish",
+		"loc": "pond",
+		"time": "night",
+		"rarity": 3,
+		"size": [
+			40,
+			120
+		],
+		"price": 28,
+		"len": 3.0,
+		"tail": "round",
+		"fin": 0.5,
+		"top": "#5A5E6A",
+		"belly": "#C8C8D0",
+		"fins": "#3E424E",
+		"pattern": "spots"
+	},
+	{
+		"id": "reed_pike",
+		"de": "Schilfhecht",
+		"en": "Reed Pike",
+		"loc": "pond",
+		"time": "dusk",
+		"rarity": 3,
+		"size": [
+			40,
+			100
+		],
+		"price": 26,
+		"len": 3.1,
+		"tail": "flag",
+		"fin": 0.6,
+		"top": "#5E8A4A",
+		"belly": "#E8E8C0",
+		"fins": "#8A6A3A",
+		"pattern": "spots"
+	},
+	{
+		"id": "crystal_koi",
+		"de": "Kristall-Koi",
+		"en": "Crystal Koi",
+		"loc": "pond",
+		"time": "any",
+		"rarity": 4,
+		"size": [
+			40,
+			80
+		],
+		"price": 60,
+		"len": 2.3,
+		"tail": "flag",
+		"fin": 1.0,
+		"top": "#FFFFFF",
+		"belly": "#FFFFFF",
+		"fins": "#FF8A6A",
+		"pattern": "koi"
+	},
+	{
+		"id": "brook_trout",
+		"de": "Bachforelle",
+		"en": "Brook Trout",
+		"loc": "river",
+		"time": "any",
+		"rarity": 1,
+		"size": [
+			18,
+			40
+		],
+		"price": 8,
+		"len": 2.6,
+		"tail": "fork",
+		"fin": 0.8,
+		"top": "#7A8A5A",
+		"belly": "#F2E8D0",
+		"fins": "#E8823A",
+		"pattern": "dots"
+	},
+	{
+		"id": "rainbow_trout",
+		"de": "Regenbogenforelle",
+		"en": "Rainbow Trout",
+		"loc": "river",
+		"time": "day",
+		"rarity": 2,
+		"size": [
+			25,
+			60
+		],
+		"price": 14,
+		"len": 2.7,
+		"tail": "fork",
+		"fin": 0.8,
+		"top": "#6A8AA0",
+		"belly": "#F5ECE0",
+		"fins": "#E070A0",
+		"pattern": "band"
+	},
+	{
+		"id": "grayling",
+		"de": "Äsche",
+		"en": "Grayling",
+		"loc": "river",
+		"time": "day",
+		"rarity": 2,
+		"size": [
+			25,
+			50
+		],
+		"price": 13,
+		"len": 2.6,
+		"tail": "fork",
+		"fin": 1.6,
+		"top": "#8A96A8",
+		"belly": "#ECEEF2",
+		"fins": "#B05A9A",
+		"pattern": "dots"
+	},
+	{
+		"id": "sculpin",
+		"de": "Groppe",
+		"en": "Sculpin",
+		"loc": "river",
+		"time": "any",
+		"rarity": 1,
+		"size": [
+			8,
+			16
+		],
+		"price": 6,
+		"len": 2.2,
+		"tail": "round",
+		"fin": 1.0,
+		"top": "#7A6A50",
+		"belly": "#D8CCB0",
+		"fins": "#5A4A3A",
+		"pattern": "spots"
+	},
+	{
+		"id": "barbel",
+		"de": "Flussbarbe",
+		"en": "Barbel",
+		"loc": "river",
+		"time": "dusk",
+		"rarity": 2,
+		"size": [
+			30,
+			70
+		],
+		"price": 14,
+		"len": 2.8,
+		"tail": "fork",
+		"fin": 0.8,
+		"top": "#A08A5A",
+		"belly": "#F0E6C8",
+		"fins": "#C8784A",
+		"pattern": "none"
+	},
+	{
+		"id": "chub",
+		"de": "Döbel",
+		"en": "Chub",
+		"loc": "river",
+		"time": "any",
+		"rarity": 1,
+		"size": [
+			20,
+			45
+		],
+		"price": 8,
+		"len": 2.3,
+		"tail": "fork",
+		"fin": 0.8,
+		"top": "#5A6A7A",
+		"belly": "#E8ECEE",
+		"fins": "#E8823A",
+		"pattern": "none"
+	},
+	{
+		"id": "river_minnow",
+		"de": "Bachelritze",
+		"en": "River Minnow",
+		"loc": "river",
+		"time": "any",
+		"rarity": 1,
+		"size": [
+			5,
+			10
+		],
+		"price": 4,
+		"len": 2.5,
+		"tail": "fork",
+		"fin": 0.6,
+		"top": "#6A7A5A",
+		"belly": "#F2F0D8",
+		"fins": "#C83A3A",
+		"pattern": "stripes"
+	},
+	{
+		"id": "huchen",
+		"de": "Huchen",
+		"en": "Huchen",
+		"loc": "river",
+		"time": "dusk",
+		"rarity": 3,
+		"size": [
+			60,
+			140
+		],
+		"price": 34,
+		"len": 3.2,
+		"tail": "fork",
+		"fin": 0.6,
+		"top": "#8A6A5A",
+		"belly": "#F0E0D8",
+		"fins": "#B04A4A",
+		"pattern": "dots"
+	},
+	{
+		"id": "silver_salmon",
+		"de": "Silberlachs",
+		"en": "Silver Salmon",
+		"loc": "river",
+		"time": "day",
+		"rarity": 3,
+		"size": [
+			50,
+			90
+		],
+		"price": 30,
+		"len": 2.8,
+		"tail": "fork",
+		"fin": 0.7,
+		"top": "#8AA0B8",
+		"belly": "#F5F7FA",
+		"fins": "#6A80A0",
+		"pattern": "none"
+	},
+	{
+		"id": "spined_loach",
+		"de": "Steinbeißer",
+		"en": "Spined Loach",
+		"loc": "river",
+		"time": "night",
+		"rarity": 2,
+		"size": [
+			7,
+			12
+		],
+		"price": 9,
+		"len": 3.4,
+		"tail": "round",
+		"fin": 0.4,
+		"top": "#C8B080",
+		"belly": "#F5EED8",
+		"fins": "#8A6A3A",
+		"pattern": "dots"
+	},
+	{
+		"id": "nase",
+		"de": "Nase",
+		"en": "Nase",
+		"loc": "river",
+		"time": "day",
+		"rarity": 1,
+		"size": [
+			25,
+			45
+		],
+		"price": 8,
+		"len": 2.4,
+		"tail": "fork",
+		"fin": 0.8,
+		"top": "#7A8A9A",
+		"belly": "#F0F0EC",
+		"fins": "#E89A5A",
+		"pattern": "none"
+	},
+	{
+		"id": "char",
+		"de": "Saibling",
+		"en": "Char",
+		"loc": "river",
+		"time": "dusk",
+		"rarity": 2,
+		"size": [
+			25,
+			55
+		],
+		"price": 15,
+		"len": 2.6,
+		"tail": "fork",
+		"fin": 0.8,
+		"top": "#4E6A5A",
+		"belly": "#FF9A6A",
+		"fins": "#FFFFFF",
+		"pattern": "dots"
+	},
+	{
+		"id": "star_eel",
+		"de": "Sternenaal",
+		"en": "Star Eel",
+		"loc": "river",
+		"time": "night",
+		"rarity": 3,
+		"size": [
+			50,
+			110
+		],
+		"price": 32,
+		"len": 5.0,
+		"tail": "eel",
+		"fin": 0.3,
+		"top": "#3A3E6A",
+		"belly": "#9AA0D8",
+		"fins": "#2A2E5A",
+		"pattern": "stars"
+	},
+	{
+		"id": "ancient_sturgeon",
+		"de": "Urzeit-Stör",
+		"en": "Ancient Sturgeon",
+		"loc": "river",
+		"time": "any",
+		"rarity": 4,
+		"size": [
+			120,
+			260
+		],
+		"price": 80,
+		"len": 3.4,
+		"tail": "flag",
+		"fin": 0.6,
+		"top": "#6A7A7A",
+		"belly": "#D8DCD8",
+		"fins": "#4E5A5A",
+		"pattern": "plates"
+	},
+	{
+		"id": "mackerel",
+		"de": "Makrele",
+		"en": "Mackerel",
+		"loc": "sea",
+		"time": "day",
+		"rarity": 1,
+		"size": [
+			25,
+			40
+		],
+		"price": 9,
+		"len": 2.8,
+		"tail": "fork",
+		"fin": 0.6,
+		"top": "#3E7AA0",
+		"belly": "#F2F5F8",
+		"fins": "#2E5A7A",
+		"pattern": "stripes"
+	},
+	{
+		"id": "herring",
+		"de": "Hering",
+		"en": "Herring",
+		"loc": "sea",
+		"time": "any",
+		"rarity": 1,
+		"size": [
+			18,
+			30
+		],
+		"price": 7,
+		"len": 2.6,
+		"tail": "fork",
+		"fin": 0.6,
+		"top": "#5A7A9A",
+		"belly": "#F5F7FA",
+		"fins": "#7A8AA0",
+		"pattern": "none"
+	},
+	{
+		"id": "sea_bass",
+		"de": "Wolfsbarsch",
+		"en": "Sea Bass",
+		"loc": "sea",
+		"time": "dusk",
+		"rarity": 2,
+		"size": [
+			35,
+			70
+		],
+		"price": 15,
+		"len": 2.5,
+		"tail": "fork",
+		"fin": 1.0,
+		"top": "#7A8A9A",
+		"belly": "#F0F2F5",
+		"fins": "#5A6A7A",
+		"pattern": "none"
+	},
+	{
+		"id": "plaice",
+		"de": "Scholle",
+		"en": "Plaice",
+		"loc": "sea",
+		"time": "any",
+		"rarity": 2,
+		"size": [
+			25,
+			50
+		],
+		"price": 13,
+		"len": 1.4,
+		"tail": "round",
+		"fin": 1.4,
+		"top": "#A08A6A",
+		"belly": "#F5EED8",
+		"fins": "#8A7A5A",
+		"pattern": "orange_spots"
+	},
+	{
+		"id": "redfish",
+		"de": "Rotbarsch",
+		"en": "Redfish",
+		"loc": "sea",
+		"time": "any",
+		"rarity": 2,
+		"size": [
+			30,
+			55
+		],
+		"price": 14,
+		"len": 2.2,
+		"tail": "fork",
+		"fin": 1.2,
+		"top": "#E8473B",
+		"belly": "#FFC8B8",
+		"fins": "#C8302A",
+		"pattern": "none"
+	},
+	{
+		"id": "lanternfish",
+		"de": "Laternenfisch",
+		"en": "Lanternfish",
+		"loc": "sea",
+		"time": "night",
+		"rarity": 3,
+		"size": [
+			6,
+			15
+		],
+		"price": 24,
+		"len": 2.4,
+		"tail": "fork",
+		"fin": 0.6,
+		"top": "#2E3A5A",
+		"belly": "#5A6A9A",
+		"fins": "#2A2E4A",
+		"pattern": "lights"
+	},
+	{
+		"id": "tuna",
+		"de": "Thunfisch",
+		"en": "Tuna",
+		"loc": "sea",
+		"time": "day",
+		"rarity": 3,
+		"size": [
+			80,
+			200
+		],
+		"price": 36,
+		"len": 2.6,
+		"tail": "fork",
+		"fin": 0.9,
+		"top": "#2E4A7A",
+		"belly": "#E8ECF2",
+		"fins": "#FFD23F",
+		"pattern": "none"
+	},
+	{
+		"id": "pufferfish",
+		"de": "Kugelfisch",
+		"en": "Pufferfish",
+		"loc": "sea",
+		"time": "day",
+		"rarity": 2,
+		"size": [
+			15,
+			30
+		],
+		"price": 16,
+		"len": 1.3,
+		"tail": "round",
+		"fin": 0.6,
+		"top": "#E8C86A",
+		"belly": "#FFF5D8",
+		"fins": "#C89A3A",
+		"pattern": "spots"
+	},
+	{
+		"id": "seahorse",
+		"de": "Seepferdchen",
+		"en": "Seahorse",
+		"loc": "sea",
+		"time": "any",
+		"rarity": 3,
+		"size": [
+			8,
+			18
+		],
+		"price": 28,
+		"len": 1.5,
+		"tail": "round",
+		"fin": 0.8,
+		"top": "#FF9A6A",
+		"belly": "#FFE0C8",
+		"fins": "#E8784A",
+		"pattern": "band"
+	},
+	{
+		"id": "swordfish",
+		"de": "Schwertfisch",
+		"en": "Swordfish",
+		"loc": "sea",
+		"time": "dusk",
+		"rarity": 3,
+		"size": [
+			150,
+			300
+		],
+		"price": 40,
+		"len": 3.4,
+		"tail": "fork",
+		"fin": 1.4,
+		"top": "#3E5A8A",
+		"belly": "#E8ECF2",
+		"fins": "#2E4A7A",
+		"pattern": "none"
+	},
+	{
+		"id": "ocean_sunfish",
+		"de": "Mondfisch",
+		"en": "Ocean Sunfish",
+		"loc": "sea",
+		"time": "day",
+		"rarity": 3,
+		"size": [
+			150,
+			280
+		],
+		"price": 42,
+		"len": 1.1,
+		"tail": "round",
+		"fin": 2.0,
+		"top": "#9AA0B0",
+		"belly": "#F0F2F5",
+		"fins": "#7A808E",
+		"pattern": "none"
+	},
+	{
+		"id": "pearl_ray",
+		"de": "Perlmuttrochen",
+		"en": "Pearl Ray",
+		"loc": "sea",
+		"time": "night",
+		"rarity": 4,
+		"size": [
+			100,
+			220
+		],
+		"price": 90,
+		"len": 1.2,
+		"tail": "eel",
+		"fin": 0.2,
+		"top": "#B8C8E8",
+		"belly": "#F8F4FF",
+		"fins": "#E8C8F0",
+		"pattern": "pearl"
+	}
+]
