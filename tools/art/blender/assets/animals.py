@@ -109,18 +109,26 @@ def chicken(yaw: float, body_z=0.0, body_pitch=0.0, head=(0.0, 0.0), legs=(0.0, 
 
     # comb (four lobes, front ones smaller), wattles and a wide two-part beak
     red = mat("comb", "#F0402F", rough=0.38, spec=0.45, coat=0.25, edge=0.45, edge_color="#8A1A10", sss=0.1)
-    # comb: lobes standing on the head surface along its curve (each one points out along the normal),
-    # joined by a ridge that hugs the skull
-    hr_top = 0.13 * 1.02
-    for deg, r in [(42, 0.034), (20, 0.046), (-2, 0.052), (-24, 0.048), (-46, 0.036)]:
+    # comb: every lobe and the ridge under it is placed on the real head surface (ray cast), so nothing floats
+    head_w = kit.world(body, head_c)
+    to_local = body.matrix_world.inverted()
+    up_w = kit.world(root, (0, 0, 0))
+
+    def on_head(t):
+        d = Vector((math.sin(t), 0, math.cos(t)))
+        p, _n = surf.toward(head_w, kit.world(root, d) - up_w)
+        return (to_local @ p) if p is not None else head_c + d * 0.11
+
+    for deg, r in [(40, 0.044), (18, 0.06), (-4, 0.068), (-26, 0.061), (-48, 0.047)]:
         t = math.radians(deg)
-        nrm = Vector((math.sin(t), 0, math.cos(t)))
-        kit.sphere(r, red, loc=head_c + nrm * (hr_top + r * 0.55), scale=(0.75, 0.48, 1.15), rot=(0, t, 0), seg=18,
+        base = on_head(t)
+        nrm = (base - head_c).normalized()
+        kit.sphere(r, red, loc=base + nrm * (r * 0.62), scale=(0.75, 0.48, 1.15), rot=(0, t, 0), seg=18,
                    parent=body)
-    for k in range(9):
-        t = math.radians(48 - k * 12)
-        kit.sphere(0.03, red, loc=head_c + Vector((math.sin(t), 0, math.cos(t))) * (hr_top - 0.008),
-                   scale=(1.0, 0.55, 0.8), rot=(0, t, 0), seg=12, parent=body)
+    for k in range(11):
+        t = math.radians(50 - k * 10.5)
+        base = on_head(t)
+        kit.sphere(0.034, red, loc=base, scale=(1.0, 0.55, 0.85), rot=(0, t, 0), seg=12, parent=body)
     for side in (-1, 1):
         kit.sphere(0.034, red, loc=head_c + Vector((0.11, side * 0.022, -0.1)), scale=(0.75, 0.6, 1.35), seg=14,
                    parent=body)

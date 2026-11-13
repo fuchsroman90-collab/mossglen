@@ -44,6 +44,9 @@ Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 - Roman: Version 1 war besser → zurück auf V1 + Korrekturen: Flügel 32° nach hinten-unten geneigt und tiefer,
   Schnabel wächst aus dem Kopf (Basis im Kopf versenkt), Kamm-Lappen stehen entlang der Kopfrundung
   (Normalen-Ausrichtung) auf einem Grat, der dem Schädel folgt. (`feather_mat` wieder entfernt.)
+- Roman: hinterer Kamm schwebte noch → Kamm-Lappen und Grat werden per Raycast (`Surface.toward`) auf die echte
+  Kopf-Oberfläche gesetzt (Metaball-Fläche liegt innerhalb des Radius), Lappen etwas größer.
+  Lehre: **Anbauteile immer per Raycast auf die Fläche setzen, nie mit geschätztem Radius.**
 - M9.5c Bedienung: Hover am PC (aufhellen, kleiner Hüpfer, Hand-Cursor) für alles Antippbare, Druck-Feedback
   beim Drücken, **Saat aus dem Saat-Kreis gedrückt halten und über Felder ziehen** (Hay-Day-Art), Saat-/Sichel-
   Symbol folgt dem Finger beim Säen/Ernten, Blasen über Tieren stehen ruhig (kein Wippen mehr).

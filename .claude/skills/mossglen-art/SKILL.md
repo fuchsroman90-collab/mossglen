@@ -88,3 +88,9 @@ Item icons (crops, goods, tools, materials, eggs) are Blender renders, never fla
 `assets/items.py` (`item_frames`, name `uiitem_<id>`), keep it simple and chunky, put labels on `_front(root)`
 so they face the camera, lean flat things with `_lean`. `build.py` exports them to `ui/item_<id>.png`.
 Reference: `brain/references/img/hd_item_icons_3d.png`. HUD frames, buttons and glyphs stay 2D (`ui.py`).
+
+## Attached parts sit ON the surface (Roman, 2026-11-13)
+
+Combs, ears, horns, beaks etc. must touch the body: find the spot with `kit.Surface(...).toward(center, dir)`
+(metaball surfaces are well inside the element radius) and embed the base a little. Never place them by an
+estimated radius. Animal style = cartoon like hen prototype 1 (`brain/taste/hen_v1_preferred.png`).
