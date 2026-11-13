@@ -270,7 +270,7 @@ Entschieden: Free-to-play, Zielgruppe alle, Budget 0 €, iPhone 11 vorhanden, N
 
 ---
 
-## 14b. M9.5 „Hay-Day-Qualität“ (nach Romans erstem Test, 2026-11-13) – Entwurf, Fragen offen
+## 14b. M9.5 „Hay-Day-Qualität“ (nach Romans erstem Test, 2026-11-13) – beschlossen, Antworten in DECISIONS
 
 Kommt **vor** M6. Ziel: Spielgefühl, Look und Progression auf Referenz-Niveau.
 
@@ -288,7 +288,8 @@ Kommt **vor** M6. Ziel: Spielgefühl, Look und Progression auf Referenz-Niveau.
 6. **Tiere neu modelliert** auf Niveau `hd_animals_pets.png` (Unterteilungsflächen statt Metaballs,
    Augenlider, Glanz, Mimik, sauberes Rig), alle Tiere inkl. Dinos.
 7. **Terrain neu** nach `hd_winter_farm.png`: Halm-Textur, hellere Flecken, Grasbüschel, Ränder, Felsen.
-8. **UI neu** mit festem Raster und gemessenen Abständen, Shop als Kartenliste mit Reitern und Laufleiste,
+8. **Extras:** Besucher-Händler, Haustiere (Katze, Hund), Glücksrad (täglich), Helfer (für Tage anheuerbar).
+9. **UI neu** mit festem Raster und gemessenen Abständen, Shop als Kartenliste mit Reitern und Laufleiste,
    Dialoge mit Figur + Sprechblase + großen Antwortknöpfen, Ladebildschirm.
 
 

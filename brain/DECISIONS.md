@@ -2,6 +2,15 @@
 
 Neueste oben. Format: Datum – Entscheidung – Begründung – wer.
 
+- **2026-11-13 – Antworten zu M9.5:** – Roman
+  - Reihenfolge: zuerst **Spielgefühl + Progression**, dann Tiere, Terrain, UI.
+  - Tiere: **selbst in Blender modellieren** (kein CC0-Paket), Niveau `hd_animals_pets.png`.
+  - Shop: **waagrechte Karten unten** mit Reitern oben (Redesign-Bild).
+  - Extras: **Besucher-Händler, Haustiere, Glücksrad, Helfer** – alle gewünscht.
+  - Alte Spielstände dürfen **zurückgesetzt** werden (Neustart mit leerem Hof).
+  - Steine: **Dynamit mit Comic-Puff**.
+  - Figma: Roman **verbindet den Figma-Connector** und bringt ein UI-Kit/Layouts mit.
+  - Startfläche: **klein** (etwa ein Viertel der heutigen Fläche).
 - **2026-11-13 – Wünsche aus Romans erstem Test (Pflicht für den nächsten Meilenstein „M9.5 Hay-Day-Qualität“):** – Roman
   - Leerer Starthof, alles selbst bauen; Land in Stücken freischalten (Werkzeug sammeln).
   - Weizen: gedrückt halten und über mehrere Felder ziehen zum Säen/Ernten (wie Hay Day).
