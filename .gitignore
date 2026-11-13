@@ -1,0 +1,23 @@
+# Godot
+.godot/
+*.translation
+/game/export/
+/build/
+
+# Secrets (never commit)
+.env
+*.env
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+export_credentials.cfg
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+Thumbs.db
+.DS_Store

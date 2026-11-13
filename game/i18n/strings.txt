@@ -1,0 +1,7 @@
+key	de	en
+HINT_START	Tippe auf ein Beet zum Säen. Wische über reifen Weizen zum Ernten.	Tap a field to sow. Swipe over ripe wheat to harvest.
+BTN_LANG	EN	DE
+BTN_MUSIC_ON	Musik an	Music on
+BTN_MUSIC_OFF	Musik aus	Music off
+COINS	Münzen	Coins
+EMERALDS	Smaragde	Emeralds
