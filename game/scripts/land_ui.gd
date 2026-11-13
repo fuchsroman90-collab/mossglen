@@ -98,11 +98,9 @@ func _tile(id: String) -> Control:
 	b.custom_minimum_size = Vector2(TILE, TILE)
 	b.focus_mode = Control.FOCUS_NONE
 	hud._press_feedback(b)
-	if id == _store_sel:
-		var glow := hud._tex("ring_target.png")
-		glow.scale = Vector2(TILE, TILE) / glow.texture.get_size()
-		glow.modulate = Color(1, 1, 1, 0.55)
-		b.add_child(glow)
+	var cell := hud._tex("slot_selected.png" if id == _store_sel else "slot.png")
+	cell.scale = Vector2(TILE, TILE) / Vector2(128, 128)
+	b.add_child(cell)
 	var icon := hud._item_icon(id, TILE - 24)
 	icon.position = Vector2(4, 0)
 	b.add_child(icon)

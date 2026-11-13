@@ -13,6 +13,8 @@ Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
     (Vorbild: `hd_ui_redesign_*.png`, `hd_dialogs_wheel.png`, `hd_popups.png`, `hd_loading_shop_vertical.png`).
   - **Terrain muss besser werden** (Vorbild: `hd_winter_farm.png`).
   - **Tutorial mit fertigem Hof ist falsch**: Es muss mit einem komplett leeren Hof starten, alles selber bauen.
+  - **Runde Item-Rahmen** (Kreis-Slots, Ring als Auswahl): „die Item rahmen dürfen nicht rund sein sondern müssen
+    so wie in den Referenzen sein“ → weiche, abgerundete Quadrate ohne dunkle Kontur, Auswahl gelb hinterlegt.
   - **Flache SVG-Item-Icons** (Werkzeuge, Waren) – sollen 3D-gerendert sein wie `hd_item_icons_3d.png`.
   - **Zu viel Platz von Anfang an**: Land muss Stück für Stück erweitert werden, dafür Werkzeug sammeln.
 

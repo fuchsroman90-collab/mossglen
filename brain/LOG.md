@@ -29,6 +29,11 @@ Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
   Werkzeuge, Material), Frames `uiitem_<id>` werden nicht in den Atlas gepackt, sondern von
   `build.export_item_icons()` mit Kontur als `ui/item_<id>.png` (112 px) geschrieben – überschreiben die 2D-Icons.
   Lager-Raster nach Referenz: kein Kästchen, große Zahl mit Kontur über der Ecke.
+- Item-Felder eckig statt rund (Roman): `slot.png` = weiches abgerundetes Quadrat ohne dunkle Kontur,
+  `slot_selected.png` gelb für die Auswahl – gilt überall, wo Slots benutzt werden.
+- Tiere Durchgang 1: Augen mit Oberlid (Hautfarbe, „droop“), zwei Glanzpunkte, größere Pupille; Schwein mit
+  großem Rüssel, Mund, Schlappohren, kräftigen Beinen mit Hufen; Schaf mit dickeren Beinen, Hufen, größeren
+  Ohren. Gilt für alle Tiere/Dinos/NPCs über `eye()`. Vollständige Neumodellierung folgt (Aufgabe M9.5d).
 - M9.5c Bedienung: Hover am PC (aufhellen, kleiner Hüpfer, Hand-Cursor) für alles Antippbare, Druck-Feedback
   beim Drücken, **Saat aus dem Saat-Kreis gedrückt halten und über Felder ziehen** (Hay-Day-Art), Saat-/Sichel-
   Symbol folgt dem Finger beim Säen/Ernten, Blasen über Tieren stehen ruhig (kein Wippen mehr).

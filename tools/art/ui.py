@@ -709,11 +709,24 @@ def dino_glyph(size=96):
 
 
 def slot(size=128):
-    """Round cream slot for item icons in menus."""
-    c = size / 2
-    defs = grad("s", [(0, "#FFFDF4"), (1, "#EEDCB4")]) + shadow_filter(dy=4, blur=2, op=0.3)
-    return render(f'<defs>{defs}</defs><g filter="url(#sh)"><circle cx="{c}" cy="{c}" r="{c - 6}" fill="{OUT}"/>'
-                  f'<circle cx="{c}" cy="{c}" r="{c - 11}" fill="url(#s)"/></g>', size, size + 6)
+    """Item cell (Roman: no round frames). A soft, slightly darker rounded square on the cream panel."""
+    r = size * 0.18
+    defs = grad("s", [(0, "#F1DFB8"), (1, "#E9D2A4")])
+    return render(f'<defs>{defs}</defs>'
+                  f'<rect x="4" y="6" width="{size - 8}" height="{size - 8}" rx="{r}" fill="#D9BD88" opacity="0.55"/>'
+                  f'<rect x="4" y="4" width="{size - 8}" height="{size - 9}" rx="{r}" fill="url(#s)"/>'
+                  f'<rect x="10" y="8" width="{size - 20}" height="{size * 0.18}" rx="{r * 0.6}" fill="#FFFFFF" '
+                  f'opacity="0.35"/>', size, size + 6)
+
+
+def slot_selected(size=128):
+    """Selected item cell: warm yellow rounded square with a light rim."""
+    r = size * 0.18
+    defs = grad("y", [(0, "#FFF2B0"), (1, "#FFD86A")])
+    return render(f'<defs>{defs}</defs>'
+                  f'<rect x="3" y="3" width="{size - 6}" height="{size - 6}" rx="{r}" fill="#F2A923"/>'
+                  f'<rect x="7" y="7" width="{size - 14}" height="{size - 14}" rx="{r * 0.8}" fill="url(#y)"/>',
+                  size, size + 6)
 
 
 def badge(size=56):
@@ -1088,6 +1101,7 @@ def ui_images() -> dict:
         "ico_check": check(),
         "ico_barn": barn_glyph(),
         "slot": slot(),
+        "slot_selected": slot_selected(),
         "badge": badge(),
         "item_wheat": item_wheat(),
         "item_corn": item_corn(),

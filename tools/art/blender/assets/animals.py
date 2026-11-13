@@ -12,10 +12,11 @@ from ..kit import mat
 # ---------------------------------------------------------------- shared
 
 def eye(head_c: Vector, head_r: float, direction: Vector, r: float, parent, look=None, lid=0.0,
-        sclera="#FFFFFF", pupil="#2B1D16", lid_color=None):
+        sclera="#FFFFFF", pupil="#2B1D16", lid_color=None, droop=0.2, brow=None):
     """Cartoon eye on the surface of a head sphere.
 
-    lid: 0 open .. 1 closed (blink).
+    lid: 0 open .. 1 closed (blink).  droop: how far the upper lid hangs over the eye when open
+    (gives the cheeky Hay-Day look instead of round googly eyes).  brow: colour of a small eyebrow.
     """
     d = direction.normalized()
     c = head_c + d * (head_r - r * 0.62)
@@ -31,13 +32,27 @@ def eye(head_c: Vector, head_r: float, direction: Vector, r: float, parent, look
         kit.sphere(1.0, mat("lash", "#3A2A20", rough=0.5, edge=0.0), loc=c + d * (r * 0.72) - b * (r * 0.1),
                    scale=(r * 0.75, r * 0.13, r * 0.4), rot=basis.to_euler(), seg=16, parent=parent)
         return
-    kit.sphere(r, m_white, loc=c, seg=24, parent=parent)
+    kit.sphere(r, m_white, loc=c, scale=(1.0, 1.0, 1.0), seg=28, parent=parent)
     look = (look if look is not None else kit.TO_CAM).normalized()
     pd = (look * 0.55 + d * 0.45).normalized()
-    pc = c + pd * (r * 0.6)
-    kit.sphere(r * 0.52, m_pupil, loc=pc, seg=20, parent=parent)
+    pc = c + pd * (r * 0.58)
+    kit.sphere(r * 0.56, m_pupil, loc=pc, seg=24, parent=parent)
     glint_dir = (pd + kit.LIGHT_DIR * 0.8).normalized()
-    kit.sphere(r * 0.17, m_glint, loc=c + glint_dir * (r * 0.98), seg=12, parent=parent)
+    kit.sphere(r * 0.2, m_glint, loc=c + glint_dir * (r * 1.0), seg=12, parent=parent)
+    kit.sphere(r * 0.09, m_glint, loc=c + (pd - kit.LIGHT_DIR * 0.5).normalized() * (r * 1.0), seg=8, parent=parent)
+    t = Vector((0, 0, 1)).cross(d).normalized()
+    b = d.cross(t)
+    basis = Matrix((t, b, d)).transposed()
+    if lid_color is not None and droop > 0.0:
+        # upper lid: a flattened shell in skin colour resting on the top of the eye
+        lm = mat("lid_" + lid_color, lid_color, rough=0.5, spec=0.25, edge=0.45)
+        off = r * (1.0 - 2.0 * droop) + r * 0.62
+        kit.sphere(1.0, lm, loc=c + b * off + d * (r * 0.08), scale=(r * 1.12, r * 0.66, r * 1.08),
+                   rot=basis.to_euler(), seg=24, parent=parent)
+    if brow is not None:
+        bm = mat("brow_" + brow, brow, rough=0.6, edge=0.2)
+        kit.sphere(1.0, bm, loc=c + b * (r * 1.45) + d * (r * 0.35), scale=(r * 0.85, r * 0.2, r * 0.25),
+                   rot=basis.to_euler(), seg=12, parent=parent)
 
 
 def _rotz(v: Vector, deg: float) -> Vector:
@@ -467,14 +482,18 @@ def sheep(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, s
         p, n = surf.toward(hw, kit.world(root, dl) - kit.world(root, (0, 0, 0)))
         if p is not None:
             hr = (body.matrix_world.inverted() @ p - head_c).length
-            eye(head_c, hr, dl, 0.055, body, look=look, lid=blink, lid_color="#4C4645")
-        kit.sphere(0.06, face, loc=head_c + Vector((-0.04, side * 0.17, 0.0)), scale=(0.6, 1.5, 0.4),
-                   rot=(side * -0.3, 0, 0), seg=14, parent=body)
+            eye(head_c, hr, dl, 0.066, body, look=look, lid=blink, lid_color="#4C4645", droop=0.24)
+        kit.sphere(0.075, face, loc=head_c + Vector((-0.04, side * 0.2, 0.01)), scale=(0.55, 1.6, 0.4),
+                   rot=(side * -0.35, 0, 0), seg=14, parent=body)
+        kit.sphere(0.05, mat("sheep_ear_in", "#E89A9A", rough=0.6), loc=head_c + Vector((-0.02, side * 0.21, 0.012)),
+                   scale=(0.4, 1.2, 0.2), rot=(side * -0.35, 0, 0), seg=12, parent=body)
     kit.sphere(0.025, mat("sheep_nose", "#2A2424", rough=0.5, edge=0.0), loc=head_c + Vector((0.2, 0, -0.04)),
                scale=(0.6, 1.2, 0.7), seg=10, parent=body)
     for (lx, ly, ang) in ((0.14, -0.1, legs[0]), (0.14, 0.1, legs[1]), (-0.18, -0.1, legs[1]), (-0.18, 0.1, legs[0])):
-        hip = kit.empty("hip", loc=(lx, ly, 0.25), rot=(0, math.radians(ang), 0), parent=root)
-        kit.cyl(0.035, 0.24, face, loc=(0, 0, -0.24), bevel=0.0, verts=10, parent=hip)
+        hip = kit.empty("hip", loc=(lx, ly, 0.27), rot=(0, math.radians(ang), 0), parent=root)
+        kit.cyl(0.05, 0.25, face, r2=0.042, loc=(0, 0, -0.25), bevel=0.02, verts=14, parent=hip)
+        kit.cyl(0.05, 0.05, mat("sheep_hoof", "#2A2424", rough=0.4, spec=0.4), r2=0.046, loc=(0, 0, -0.27),
+                bevel=0.012, verts=14, parent=hip)
     return root
 
 
@@ -515,12 +534,15 @@ def pig(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squ
         + [{"co": tuple(head_c), "r": 0.22, "type": "ELLIPSOID", "size": (0.95, 1.0, 0.95), "stiff": 2.0}],
         skin, name="pig", parent=body))
     surf = kit.Surface([bo])
-    snout_m = mat("pig_snout", "#FF9AA2", rough=0.45, spec=0.3, edge=0.5, edge_color="#A8505C")
-    sn = head_c + Vector((0.17, 0, -0.03))
-    kit.cyl(0.075, 0.06, snout_m, loc=sn, rot=(0, math.radians(90), 0), bevel=0.02, verts=20, parent=body)
-    nos = mat("pig_nostril", "#B0505C", rough=0.6, edge=0.0)
+    snout_m = mat("pig_snout", "#FF9AA2", rough=0.4, spec=0.35, edge=0.5, edge_color="#A8505C")
+    sn = head_c + Vector((0.16, 0, -0.04))
+    kit.cyl(0.1, 0.1, snout_m, r2=0.095, loc=sn, rot=(0, math.radians(90), 0), bevel=0.035, verts=28, parent=body)
+    nos = mat("pig_nostril", "#8A3442", rough=0.6, edge=0.0)
     for side in (-1, 1):
-        kit.sphere(0.016, nos, loc=sn + Vector((0.062, side * 0.028, 0)), scale=(0.5, 1, 1.3), seg=8, parent=body)
+        kit.sphere(0.024, nos, loc=sn + Vector((0.1, side * 0.038, 0.005)), scale=(0.45, 1, 1.4), seg=10, parent=body)
+    # a happy mouth under the snout
+    kit.curve_tube([tuple(sn + Vector((0.05, -0.07, -0.085))), tuple(sn + Vector((0.08, 0.0, -0.105))),
+                    tuple(sn + Vector((0.05, 0.07, -0.085)))], r=0.008, m=nos, parent=body)
     look = _rotz(kit.TO_CAM, -yaw)
     hw = kit.world(body, head_c)
     for side in (-1, 1):
@@ -528,10 +550,11 @@ def pig(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squ
         p, n = surf.toward(hw, kit.world(root, dl) - kit.world(root, (0, 0, 0)))
         if p is not None:
             hr = (body.matrix_world.inverted() @ p - head_c).length
-            eye(head_c, hr, dl, 0.052, body, look=look, lid=blink, lid_color=PIG_PINK)
-        # floppy ears
-        kit.sphere(0.075, skin, loc=head_c + Vector((-0.02, side * 0.12, 0.12)), scale=(0.9, 0.7, 0.3),
-                   rot=(side * 0.45, 0.45, 0), seg=14, parent=body)
+            eye(head_c, hr, dl, 0.062, body, look=look, lid=blink, lid_color=PIG_PINK, droop=0.22)
+        # big floppy ears folding forward
+        ear = kit.empty("ear", loc=head_c + Vector((0.0, side * 0.12, 0.15)), rot=(side * -0.35, 1.25, 0),
+                        parent=body)
+        kit.sphere(0.1, skin, loc=(0.06, 0, 0), scale=(1.0, 0.75, 0.22), seg=16, parent=ear)
         kit.sphere(0.035, mat("pig_cheek", "#FF8A96", rough=0.6, edge=0.2),
                    loc=head_c + Vector((0.1, side * 0.12, -0.06)), scale=(1, 1, 0.5), seg=10, parent=body)
     # curly tail
@@ -543,9 +566,10 @@ def pig(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squ
     hoof = mat("pig_hoof", "#C77882", rough=0.5, edge=0.3)
     for (lx, ly, ang) in ((0.14, -0.12, legs[0]), (0.14, 0.12, legs[1]), (-0.16, -0.12, legs[1]),
                           (-0.16, 0.12, legs[0])):
-        hip = kit.empty("hip", loc=(lx, ly, 0.17), rot=(0, math.radians(ang), 0), parent=root)
-        kit.cyl(0.055, 0.15, skin, loc=(0, 0, -0.15), bevel=0.02, verts=12, parent=hip)
-        kit.cyl(0.056, 0.035, hoof, loc=(0, 0, -0.17), bevel=0.01, verts=12, parent=hip)
+        hip = kit.empty("hip", loc=(lx, ly, 0.2), rot=(0, math.radians(ang), 0), parent=root)
+        kit.cyl(0.075, 0.17, skin, r2=0.06, loc=(0, 0, -0.17), bevel=0.03, verts=16, parent=hip)
+        kit.sphere(0.075, skin, loc=(0, 0, 0.0), seg=14, parent=hip)
+        kit.cyl(0.062, 0.045, hoof, r2=0.058, loc=(0, 0, -0.2), bevel=0.015, verts=16, parent=hip)
     return root
 
 
