@@ -37,8 +37,12 @@ var _info: Control
 var _info_t := 0.0
 var _toasts: Control
 
-const XP_X := 150.0
-const XP_W := 440.0
+## Level star at STAR_POS; its right tip (in star.png pixels) defines where the XP bar starts.
+const STAR_POS := Vector2(14, 4)
+const STAR_TIP := Vector2(148.5, 62.0)
+const XP_W := 470.0
+const XP_H := 72.0
+const XP_TUCK := 24.0  ## how far the star tip reaches into the bar
 
 
 func _ready() -> void:
@@ -49,25 +53,28 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_fit)
 	_fit()
 
-	# XP bar with the level star overlapping its left end
-	var back := _patch("bar_back.png", 32, 30)
-	back.position = Vector2(XP_X, 34)
-	back.size = Vector2(XP_W, 68)
-	_root.add_child(back)
+	# XP bar and level star as one unit: the star's right tip reaches into the bar's left end
+	var tip := STAR_POS + STAR_TIP
+	var xp := Control.new()
+	xp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	xp.position = Vector2(tip.x - XP_TUCK, tip.y - XP_H / 2).round()
+	_root.add_child(xp)
+	var frame := _tex("xp_frame.png")
+	xp.add_child(frame)
 	_xp_fill = _patch("bar_fill.png", 20, 18)
-	_xp_fill.position = Vector2(XP_X + 13, 47)
-	_xp_fill.size = Vector2(40, 42)
-	_root.add_child(_xp_fill)
+	_xp_fill.position = Vector2(13, 14)
+	_xp_fill.size = Vector2(44, 44)
+	xp.add_child(_xp_fill)
 	_xp_label = _label("", 36)
-	_xp_label.position = Vector2(XP_X + 60, 32)
-	_xp_label.size = Vector2(XP_W - 70, 70)
+	_xp_label.position = Vector2(XP_TUCK + 10, 0)
+	_xp_label.size = Vector2(XP_W - XP_TUCK - 20, XP_H)
 	_xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_root.add_child(_xp_label)
+	xp.add_child(_xp_label)
 	var star := _tex("star.png")
-	star.position = Vector2(14, 4)
+	star.position = STAR_POS
 	_root.add_child(star)
 	_level_label = _label(str(Game.level), 62)
-	_level_label.position = Vector2(14, 34)
+	_level_label.position = STAR_POS + Vector2(0, 30)
 	_level_label.size = Vector2(160, 100)
 	_level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_root.add_child(_level_label)
@@ -154,7 +161,8 @@ func hide_hint() -> void:
 
 
 func _on_xp(xp: int, needed: int, level: int) -> void:
-	var w := maxf(40.0, (XP_W - 26.0) * float(xp) / float(needed))
+	# fill starts hidden under the star tip so even 0 XP shows a small blue cap
+	var w := XP_TUCK + 20.0 + (XP_W - 26.0 - XP_TUCK - 20.0) * float(xp) / float(needed)
 	create_tween().tween_property(_xp_fill, "size:x", w, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_xp_label.text = "%d / %d" % [xp, needed]
 	if _level_label.text != str(level):

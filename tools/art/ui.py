@@ -125,6 +125,20 @@ def capsule_back(w=128, h=64):
     return render(f"<defs>{defs}</defs>{body}", w, h)
 
 
+def xp_frame(w=470, h=72):
+    """Fixed-size XP bar frame (no 9-slice, so it scales cleanly at every resolution).
+
+    Its left end sits under the level star; the star's right tip points into it.
+    """
+    r = h / 2
+    defs = grad("rim", [(0, "#FFFFFF"), (1, "#E9E0CA")]) + grad("in", [(0, "#1B3154"), (1, "#2C4A78")])
+    body = (f'<rect x="1" y="1" width="{w - 2}" height="{h - 2}" rx="{r - 1}" fill="{OUT_BLUE}"/>'
+            f'<rect x="6" y="6" width="{w - 12}" height="{h - 12}" rx="{r - 6}" fill="url(#rim)"/>'
+            f'<rect x="13" y="13" width="{w - 26}" height="{h - 26}" rx="{r - 13}" fill="url(#in)"/>'
+            f'<rect x="13" y="13" width="{w - 26}" height="6" rx="3" fill="#000000" opacity="0.25"/>')
+    return render(f"<defs>{defs}</defs>{body}", w, h)
+
+
 def capsule_fill(w=64, h=40, top="#9DEBFF", mid="#3FB3F5", bottom="#1F7FD6"):
     r = h / 2
     defs = grad("f", [(0, top), (0.5, mid), (1, bottom)])
@@ -351,6 +365,7 @@ def ui_images() -> dict:
         "gem": gem(104),
         "bar_back": capsule_back(128, 64),
         "bar_fill": capsule_fill(64, 40),
+        "xp_frame": xp_frame(),
         "panel": panel(),
         "ico_gear": gear(),
         "ico_note": note(),
