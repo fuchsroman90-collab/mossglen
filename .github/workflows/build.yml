@@ -1,0 +1,84 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate art and audio from code
+        run: |
+          pip install numpy scipy pillow resvg-py
+          python tools/art/build.py
+          python tools/audio/build.py
+
+      - name: Install Godot
+        run: |
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q Godot_v*.zip
+          sudo mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot
+
+      - name: Import and smoke test
+        run: |
+          godot --headless --path game --import || true
+          godot --headless --path game -- --smoke
+
+      - name: Cache export templates
+        id: templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates
+          key: godot-templates-${{ env.GODOT_VERSION }}
+
+      - name: Download export templates
+        if: steps.templates.outputs.cache-hit != 'true'
+        run: |
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -q Godot_v*_export_templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          mv templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+
+      - name: Export Windows
+        run: |
+          mkdir -p game/export/windows
+          godot --headless --path game --export-release "Windows" export/windows/Mossglen.exe
+
+      - name: Export Android (debug APK)
+        run: |
+          mkdir -p game/export/android ~/.config/godot
+          keytool -genkeypair -v -keystore "$RUNNER_TEMP/debug.keystore" -storepass android -alias androiddebugkey \
+            -keypass android -keyalg RSA -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          cat > ~/.config/godot/editor_settings-${GODOT_VERSION%.*}.tres <<EOF
+          [gd_resource type="EditorSettings" format=3]
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_SDK_ROOT"
+          export/android/java_sdk_path = "$JAVA_HOME_17_X64"
+          EOF
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$RUNNER_TEMP/debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android
+          godot --headless --path game --export-debug "Android" export/android/Mossglen.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mossglen-windows
+          path: game/export/windows/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mossglen-android
+          path: game/export/android/*.apk
