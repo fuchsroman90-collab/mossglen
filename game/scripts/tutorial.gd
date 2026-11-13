@@ -1,10 +1,11 @@
 class_name Tutorial
 extends Node
 ## First-time guide: a pointing hand over the thing to tap and a short text box.
-## Steps: 0 sow wheat, 1 feed chickens, 2 harvest, 3 open the order board, 4 open Brumm's quest.
+## Steps (M9.5, empty farm): 0 sow wheat, 1 clear a tree with the axe, 2 harvest, 3 build a chicken coop,
+## 4 deliver an order with the truck, 5 collect the truck's coins, 6 open Brumm's quest.
 ## Progress is Game.tutorial_step (-1 = done or skipped). Each step advances on a game event.
 
-const STEPS := 5
+const STEPS := 7
 
 var hud: Hud
 var world: Node  ## world.gd, set by the world
@@ -42,7 +43,7 @@ func setup(h: Hud) -> void:
 	_box.mouse_filter = Control.MOUSE_FILTER_PASS
 	Game.game_event.connect(_on_event)
 	Game.quest_changed.connect(func() -> void:
-		if Game.tutorial_step == 4 and (Game.quest_stage != "intro" or Game.quest_index > 0):
+		if Game.tutorial_step == 6 and (Game.quest_stage != "intro" or Game.quest_index > 0):
 			_advance())
 	_show()
 
@@ -57,19 +58,10 @@ func restart() -> void:
 
 
 func _on_event(type: String, _id: String) -> void:
-	match Game.tutorial_step:
-		0:
-			if type == "plant":
-				_advance()
-		1:
-			if type == "feed":
-				_advance()
-		2:
-			if type == "harvest":
-				_advance()
-		3:
-			if type == "open":
-				_advance()
+	var want: Array = [["plant"], ["clear"], ["harvest"], ["build"], ["deliver"], ["truck"]]
+	var st := Game.tutorial_step
+	if st >= 0 and st < want.size() and type in want[st]:
+		_advance()
 
 
 func _advance() -> void:
@@ -110,7 +102,8 @@ func _process(delta: float) -> void:
 	if not active() or world == null:
 		return
 	# the guide steps aside while a menu is open (except for the step that is about the menu)
-	var busy: bool = hud.any_menu_open()
+	var shop_step: bool = Game.tutorial_step == 3 and hud.land.is_shop_open()
+	var busy: bool = hud.any_menu_open() and not shop_step
 	_box.visible = not busy
 	_t += delta
 	var target := _target()
@@ -133,31 +126,61 @@ func _target() -> Vector2:
 	var none := Vector2(-9999, -9999)
 	match Game.tutorial_step:
 		0:
+			return _nearest_field(Field.State.EMPTY)
+		1:
 			var best := none
 			var centre: Vector2 = hud._root.size * 0.5
-			for f: Field in world.fields.values():
-				if f.state == Field.State.EMPTY:
-					var p := _screen(f.position)
+			for o: Sprite2D in world.farm.obstacles.values():
+				if o.get_meta("tool") == "axe" and Farm.cell_open(world.cell_at(o.position)):
+					var p := _screen(o.position + Vector2(0, -80))
 					if p.distance_to(centre) < best.distance_to(centre):
 						best = p
 			return best
-		1:
-			for a: Animal in world.animals:
-				if a.kind == "chicken":
-					return _screen(a.position + Vector2(0, -60))
 		2:
 			_text.text = "TUT_2" if _field_ripe() else "TUT_2_WAIT"
-			for f: Field in world.fields.values():
-				if f.state == Field.State.RIPE:
-					return _screen(f.position)
-			return none
+			return _nearest_field(Field.State.RIPE)
 		3:
-			for s in world.props:
-				if s.get_meta("sprite", "") == "order_board":
-					return _screen(s.position + Vector2(0, -120))
+			# shop button -> coop card (animals tab) -> place it -> tap the finished site
+			for i in world.farm.sites:
+				if Game.placed[i]["k"] == "coop":
+					var site: Sprite2D = world.farm.sites[i]
+					var ready: bool = world.farm.site_left(i) <= 0.0
+					_text.text = "TUT_3_DONE" if ready else "TUT_3_WAIT"
+					return _screen(site.position + Vector2(0, -60)) if ready else none
+			if world._place_kind != "":
+				_text.text = "TUT_3_PLACE"
+				return none
+			if hud.land.is_shop_open():
+				_text.text = "TUT_3_SHOP"
+				if hud.land._shop_tab != "animals":
+					hud.land._shop_tab = "animals"
+					hud.land._fill_shop()
+				return Vector2(205, hud._root.size.y - 90)
+			_text.text = "TUT_3"
+			return Vector2(150, hud._root.size.y - 150)
 		4:
+			var b: Sprite2D = world.farm.fixed.get("order_board")
+			return _screen(b.position + Vector2(0, -120)) if b else none
+		5:
+			if not world.farm.truck_waiting():
+				_text.text = "TUT_5_WAIT"
+				return none
+			_text.text = "TUT_5"
+			return _screen(world.farm.truck.position + Vector2(0, -90))
+		6:
 			return Vector2(330, 240)
 	return none
+
+
+func _nearest_field(state: Field.State) -> Vector2:
+	var best := Vector2(-9999, -9999)
+	var centre: Vector2 = hud._root.size * 0.5
+	for f: Field in world.fields.values():
+		if f.state == state:
+			var p := _screen(f.position)
+			if p.distance_to(centre) < best.distance_to(centre):
+				best = p
+	return best
 
 
 func _field_ripe() -> bool:

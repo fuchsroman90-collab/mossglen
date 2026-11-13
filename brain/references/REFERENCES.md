@@ -33,6 +33,8 @@ kein Name wird übernommen.
 | `hd_ui_redesign_shop2.png` | Shop senkrecht vs. waagrecht | Gelbe Karten, Reiter-Symbole, „5/6“-Zähler |
 | `hd_dialogs_wheel.png` | Glücksrad, Helfer, Händler-Dialoge | Sprechblase + Figur, große gelbe Antwort-Knöpfe, Tauschangebot „6 Weizen → 50 Münzen“ |
 | `hd_loading_shop_vertical.png` | Ladebildschirm, Shop senkrecht | Logo + Ladebalken mit Tipp, Shop-Kategorien Felder/Gebäude, Zähler „6/9“ |
+| `hd_item_icons_3d.png` | Scheunen-Inhalt: Werkzeuge + Waren | **Icon-Vorbild** (Roman): 3D-gerenderte Objekte, große weiße Zahl mit Kontur, kein Kästchen |
+| `hd_upgrade_dialog.png` | Ausbau-Dialog Scheune | Senkrechte Liste: 3D-Material-Icon, große Zahl „82/82“ mit Kontur, grüner Haken rechts wenn genug; runder gelber Bestätigen-Knopf mit grünem Haken; Kopfzeile „Kapazität auf X erhöhen“ |
 | `hd_popups.png` | Pop-ups: Katalog, Angebote, gesperrtes Gebiet, Belohnung | Gesperrtes Gebiet als Bild mit Schloss + Schleife, Zeitungs-/Katalog-Optik |
 
 ## Was den Look ausmacht (Regeln für Mossglen)

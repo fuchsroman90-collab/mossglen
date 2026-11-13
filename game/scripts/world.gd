@@ -81,6 +81,9 @@ var _picker_field: Field = null
 var _no_seed_warned := false
 var _placing: Field = null
 var _placing_new := false
+var _place_kind := ""  ## building/pen being placed from the shop
+var _ghost: Sprite2D
+var _ghost_floor: Polygon2D
 var _place_cell := Vector2i.ZERO
 var _place_from := Vector2i.ZERO
 var _daylight: CanvasModulate
@@ -88,6 +91,8 @@ var _sky: Gradient
 var _day_t := 0.0
 var weather: Weather
 var _sway_base: Dictionary = {}  ## material -> strength, to restore after "reduce motion"
+var farm: Farm
+var pens: Dictionary = {}  ## animal kind -> {"rect": Rect2i, "p": entry in Game.placed}
 
 
 func _ready() -> void:
@@ -100,6 +105,9 @@ func _ready() -> void:
 	objects.y_sort_enabled = true
 	fx = Node2D.new()
 	fx.z_index = 100
+	farm = Farm.new()
+	add_child(farm)
+	farm.setup(self)
 	_build_farm()
 	_build_ground()
 	_load_world_state.call_deferred()
@@ -114,7 +122,7 @@ func _ready() -> void:
 	cam = Camera2D.new()
 	add_child(cam)
 	cam.make_current()
-	cam.position = grid_to_world(Vector2(11.5, 11.0))
+	cam.position = grid_to_world(Vector2(13.5, 8.0))
 	if _args.has("at"):
 		var p: PackedStringArray = str(_args["at"]).split(",")
 		cam.position = grid_to_world(Vector2(float(p[0]), float(p[1])))
@@ -124,6 +132,7 @@ func _ready() -> void:
 	hud.layer = 2
 	add_child(hud)
 	hud.tutorial.world = self
+	hud.land.world = self
 	hud.shop_pressed.connect(hud.open_shop)
 	hud.seed_chosen.connect(_on_seed_chosen)
 	hud.buy_field.connect(_on_buy_field)
@@ -227,6 +236,7 @@ func _build_ground() -> void:
 	m.set_shader_parameter("grass_tex", load("res://art/generated/ground_grass.png"))
 	m.set_shader_parameter("dirt_tex", load("res://art/generated/ground_dirt.png"))
 	m.set_shader_parameter("mask_tex", ImageTexture.create_from_image(_mask))
+	m.set_shader_parameter("land_tex", farm.land_texture())
 	m.set_shader_parameter("mask_origin", Vector2(MAP_MIN, MAP_MIN))
 	m.set_shader_parameter("mask_size", float(MASK_SIZE))
 	ground.material = m
@@ -237,113 +247,22 @@ func _build_farm() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
 
-	# paths
+	# main road across the farm (the village road at x = 13 is added with the village)
 	for x in range(2, 24):
 		_dirt(Vector2i(x, 9))
 		occupied[Vector2i(x, 9)] = true
-	for y in range(10, 22):
-		_dirt(Vector2i(9, y))
-		occupied[Vector2i(9, y)] = true
-	for y in range(5, 9):
-		_dirt(Vector2i(20, y))
-		occupied[Vector2i(20, y)] = true
 
-	# fields: from the save, or the default 4 x 3 block
+	# fields: from the save, or the three starter fields of a new farm
 	var saved: Array = Game.saved_world.get("fields", [])
 	if saved.is_empty():
-		for x in range(11, 15):
-			for y in range(11, 14):
-				_add_field(Vector2i(x, y))
+		for c: Vector2i in Farm.START_FIELDS:
+			_add_field(c)
 	else:
 		for d in saved:
 			var f := _add_field(Vector2i(int(d["x"]), int(d["y"])))
 			if str(d["crop"]) != "" and Game.crops.has(str(d["crop"])):
 				f.plant(str(d["crop"]), float(d["t"]))
-
-	# barn on a dirt pad, hay and barrels are part of the sprite
-	_dirt_rect(Rect2i(14, 3, 6, 5))
-	_dirt(Vector2i(13, 4), 0.6)
-	var barn := _add_prop("barn", Vector2(16, 5), null)
-	barn.set_meta("squash", 0.04)
-	barn.set_meta("sound", "whoosh")
-	for x in range(14, 20):
-		for y in range(3, 8):
-			occupied[Vector2i(x, y)] = true
-
-	# chicken pen: dirt floor, fence, trough
-	var pen := Rect2i(3, 12, 4, 4)
-	_dirt_rect(pen, 0.85)
-	_fence_rect(pen, Vector2i(pen.position.x + 1, pen.end.y))
-	_add_static("trough", Vector2(4.6, 12.4))
-	_add_static("hay", Vector2(6.2, 12.3))
-	for i in 5:
-		_add_animal("chicken", pen, rng)
-
-	# dino meadow (grass floor, a rock, a lazy baby dino)
-	var meadow := Rect2i(16, 11, 4, 4)
-	_fence_rect(meadow, Vector2i(meadow.position.x, meadow.end.y))
-	_add_prop("rock", Vector2(18.9, 11.6), null)
-	_add_prop("bush", Vector2(16.2, 11.3), _sway_bush)
-	_meadow_rect = Rect2i(meadow.position + Vector2i(0, 1), meadow.size - Vector2i(1, 1))
-	for i in Game.meadow.size():
-		_add_animal("dino_" + str(Game.meadow[i]), _meadow_rect, rng,
-				Vector2(16.4 + (i % 3) * 1.2, 11.8 + (i / 3) * 1.0 + (i % 2) * 0.4))
-
-	# production buildings on dirt pads
-	_add_building("feed_mill", Vector2i(5, 5))
-	_add_building("bakery", Vector2i(11, 5))
-	_add_building("dairy", Vector2i(17, 17))
-	_add_building("jam_kitchen", Vector2i(22, 2))
-	_add_building("loom", Vector2i(2, 2))
-	_add_building("popcorn", Vector2i(8, 2))
-	_add_building("sauce_kitchen", Vector2i(13, 20))
-	_add_building("candle_maker", Vector2i(18, 21))
-	var hive := _add_building("beehive", Vector2i(7, 12), Vector2i(1, 1))
-	hive.position = grid_to_world(Vector2(7.6, 12.4))
-
-	# sheep and pig pens
-	var sheep := Rect2i(21, 12, 3, 3)
-	_dirt_rect(sheep, 0.45)
-	_fence_rect(sheep, Vector2i(sheep.position.x, sheep.end.y))
-	for i in 3:
-		_add_animal("sheep", sheep, rng, Vector2(21.3 + i * 0.8, 12.6 + (i % 2) * 1.0))
-	var pigs := Rect2i(20, 17, 3, 3)
-	_dirt_rect(pigs, 0.95)
-	_fence_rect(pigs, Vector2i(pigs.position.x + 1, pigs.end.y))
-	_add_static("trough", Vector2(21.4, 17.2))
-	for i in 2:
-		_add_animal("pig", pigs, rng, Vector2(20.5 + i * 1.2, 18.2 + i * 0.5))
-
-	# cow pasture below the fields
-	var cows := Rect2i(11, 16, 4, 3)
-	_dirt_rect(cows, 0.7)
-	_fence_rect(cows, Vector2i(cows.position.x + 2, cows.position.y - 1), true)
-	_add_static("trough", Vector2(13.6, 16.3))
-	for i in 2:
-		_add_animal("cow", cows, rng, Vector2(11.6 + i * 1.6, 17.0 + i * 0.6))
-
-	# order board at the crossroads
-	var board := _add_prop("order_board", Vector2(7.6, 7.7), null)
-	board.set_meta("squash", 0.06)
-	for c in [Vector2i(7, 7), Vector2i(8, 7), Vector2i(8, 8)]:
-		occupied[c] = true
-
-	# flower borders along the main path
-	var kinds := ["flowers_lavender", "flowers_sun", "flowers_rose", "flowers_white"]
-	for x in range(3, 23, 2):
-		for y in [8, 10]:
-			var cell := Vector2i(x, y)
-			if occupied.has(cell) or (x >= 10 and x <= 15 and y == 10) or (x >= 14 and y == 8):
-				continue
-			if rng.randf() < 0.55:
-				_add_prop(kinds[rng.randi() % kinds.size()], Vector2(cell), _sway_bush)
-				occupied[cell] = true
-
-	# decoration near the barn and fields
-	for spot in [Vector2(21.3, 4.2), Vector2(21.6, 5.6)]:
-		_add_static("barrel" if spot.y < 5 else "crate", spot)
-	for spot in [Vector2(10.4, 14.6), Vector2(15.4, 10.4)]:
-		_add_prop("bush_berry", spot, _sway_bush)
+	farm.spawn_placed()
 
 	# pond in the south-west with stones, reeds and flowers on the shore
 	var pond := {Vector2i(3, 18): 1.0, Vector2i(4, 18): 1.0, Vector2i(5, 18): 0.9, Vector2i(3, 19): 1.0,
@@ -412,14 +331,24 @@ func _build_farm() -> void:
 		d.set_meta("squash", 0.12)
 		_dig_sprites.append(d)
 	_add_building("nest", Vector2i(34, 13))
+	var meadow := Rect2i(29, 15, 4, 3)
+	_fence_rect(meadow, Vector2i(meadow.position.x + 1, meadow.position.y - 1), true)
+	_meadow_rect = Rect2i(meadow.position + Vector2i(0, 1), meadow.size - Vector2i(1, 1))
+	var around := meadow.grow(1)
+	for i in Game.meadow.size():
+		_add_animal("dino_" + str(Game.meadow[i]), _meadow_rect, rng,
+				Vector2(29.4 + (i % 3) * 1.0, 15.4 + (i / 3) * 0.8 + (i % 2) * 0.3))
 	for spot in [Vector2(29.0, 1.5), Vector2(35.5, 2.5), Vector2(35.8, 8.5), Vector2(29.2, 14.6), Vector2(31.6, 15.8),
 			Vector2(35.6, 16.5), Vector2(30.0, 17.5), Vector2(34.4, 0.2)]:
-		_add_prop("cycad" if int(spot.x * 10) % 3 == 0 else "cycad_b", spot, _sway_tree)
+		if not around.has_point(Vector2i(spot.round())):
+			_add_prop("cycad" if int(spot.x * 10) % 3 == 0 else "cycad_b", spot, _sway_tree)
 	for spot in [Vector2(31.0, 1.0), Vector2(33.6, 1.8), Vector2(29.0, 4.4), Vector2(35.4, 6.4), Vector2(31.8, 7.4),
 			Vector2(29.4, 9.4), Vector2(35.2, 11.0), Vector2(32.0, 13.4), Vector2(30.0, 14.0), Vector2(33.0, 16.0)]:
-		_add_prop("fern_big", spot, _sway_bush)
+		if not around.has_point(Vector2i(spot.round())):
+			_add_prop("fern_big", spot, _sway_bush)
 	for spot in [Vector2(33.5, 9.8), Vector2(29.6, 16.0), Vector2(36.0, 13.5)]:
-		_add_prop("rock", spot, null)
+		if not around.has_point(Vector2i(spot.round())):
+			_add_prop("rock", spot, null)
 
 	# fishing docks: pond and the creek on the east side
 	var d1 := _add_prop("dock_pond", Vector2(7.3, 18.5), null)
@@ -436,21 +365,6 @@ func _build_farm() -> void:
 	d2.set_meta("squash", 0.04)
 	occupied[Vector2i(24, 10)] = true
 	_swimmers_root = Node2D.new()
-
-	# extra flowers and bushes so the farm feels lived in
-	for spot in [Vector2(10.3, 10.5), Vector2(15.6, 14.3), Vector2(13.2, 14.6), Vector2(19.3, 16.4),
-			Vector2(8.2, 12.2), Vector2(8.3, 16.4), Vector2(12.6, 7.7), Vector2(21.4, 10.6),
-			Vector2(17.6, 8.2), Vector2(10.4, 17.5), Vector2(14.5, 16.6), Vector2(7.8, 10.5)]:
-		var cell := Vector2i(spot.round())
-		if occupied.has(cell):
-			continue
-		_add_prop(kinds[rng.randi() % kinds.size()], spot, _sway_bush)
-		occupied[cell] = true
-	for spot in [Vector2(2.3, 11.4), Vector2(7.6, 15.6), Vector2(20.6, 13.0), Vector2(15.4, 17.2)]:
-		var cell := Vector2i(spot.round())
-		if not occupied.has(cell):
-			_add_prop("bush" if rng.randf() < 0.5 else "bush_berry", spot, _sway_bush)
-			occupied[cell] = true
 
 	# trees and scenery around the farm, denser towards the edge
 	var inner := Rect2i(0, 1, 24, 22)
@@ -472,20 +386,8 @@ func _build_farm() -> void:
 			_add_prop("rock" if rng.randf() < 0.5 else "rock_small", Vector2(cell) + off, null)
 		occupied[cell] = true
 		placed += 1
-	for spot in [Vector2(12, 3.5), Vector2(21.5, 18.5), Vector2(1.5, 5.5), Vector2(15.5, 21.5),
-			Vector2(23.5, 9.8)]:
-		var cell := Vector2i(spot.round())
-		if occupied.has(cell) or occupied.has(Vector2i(spot)):
-			continue
-		_add_prop("tree_apple", spot, _sway_tree)
-		occupied[cell] = true
-	for i in 16:
-		var cell := Vector2i(rng.randi_range(2, 22), rng.randi_range(3, 21))
-		if occupied.has(cell) or cell.y >= 11 and cell.y <= 16 and cell.x >= 2 and cell.x <= 20:
-			continue
-		var kind: String = ["bush", "rock_small", "flowers_white", "flowers_lavender"][rng.randi() % 4]
-		_add_prop(kind, Vector2(cell), null if kind.begins_with("rock") else _sway_bush)
-		occupied[cell] = true
+	# land parcels, obstacles and signs on the farm itself
+	farm.build_land(occupied)
 
 
 func _fence_rect(r: Rect2i, gate: Vector2i, gate_on_top := false) -> void:
@@ -516,6 +418,60 @@ func _add_building(id: String, cell: Vector2i, size := Vector2i(3, 3)) -> Produc
 		for y in range(r.position.y, r.end.y):
 			occupied[Vector2i(x, y)] = true
 	return b
+
+
+## A fenced pen with dirt floor, trough and n animals (M9.5: pens are bought and placed).
+func _add_pen(kind: String, cell: Vector2i, n: int) -> void:
+	var d: Dictionary = Game.placeables[kind]
+	var animal: String = d["animal"]
+	var r := Farm.footprint(kind, cell)
+	var p: Dictionary = {}
+	for e in Game.placed:
+		if e["k"] == kind and int(e["x"]) == cell.x and int(e["y"]) == cell.y:
+			p = e
+	pens[animal] = {"rect": r, "p": p}
+	_dirt_rect(r, float(d.get("pad", 0.7)))
+	_fence_rect(r, Vector2i(r.position.x + 1, r.end.y))
+	_add_static("trough", Vector2(r.position) + Vector2(1.6, 0.4))
+	if animal == "chicken":
+		_add_static("hay", Vector2(r.end.x - 0.8, r.position.y + 0.3))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(kind)
+	var inner := Rect2i(r.position + Vector2i(0, 1), r.size - Vector2i(1, 1))
+	for i in n:
+		_add_animal(animal, inner, rng)
+
+
+## Buys one more animal for its pen; returns false if there is no pen or it is full.
+func buy_animal(animal: String) -> String:
+	if not pens.has(animal):
+		return tr("NEED_PEN")
+	var pen: Dictionary = pens[animal]
+	var p: Dictionary = pen["p"]
+	var cap := int(Game.placeables[p["k"]]["cap"])
+	if int(p.get("n", 0)) >= cap:
+		return tr("PEN_FULL")
+	var price := animal_price(animal)
+	if Game.coins < price:
+		return tr("NOT_ENOUGH_COINS")
+	Game.add_coins(-price)
+	p["n"] = int(p.get("n", 0)) + 1
+	var r: Rect2i = pen["rect"]
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var a := _add_animal(animal, Rect2i(r.position + Vector2i(0, 1), r.size - Vector2i(1, 1)), rng)
+	_puff(a.position, "fx_smoke", 5)
+	Audio.play(a._cfg["sound"])
+	Game.mark_dirty()
+	return ""
+
+
+func animal_price(animal: String) -> int:
+	var base := {"chicken": 10, "cow": 60, "sheep": 150, "pig": 220}
+	var n := 0
+	if pens.has(animal):
+		n = int(pens[animal]["p"].get("n", 0))
+	return int(base.get(animal, 50)) * (1 + n / 2)
 
 
 func _add_npc(id: String, g: Vector2) -> void:
@@ -650,7 +606,7 @@ func _on_press(pos: Vector2) -> void:
 	_press_pos = pos
 	_stroke_cells.clear()
 	_no_seed_warned = false
-	if _placing != null:
+	if _placing != null or _place_kind != "":
 		_mode = Mode.PLACE
 		_move_ghost(pos)
 		return
@@ -772,10 +728,10 @@ func _sow(f: Field, crop: String) -> bool:
 func _harvest(f: Field) -> void:
 	var crop := f.crop
 	var amount: int = int(Game.crops[crop]["yield"])
-	if Game.space() < amount:
+	if Game.space(crop) < amount:
 		if not _no_seed_warned:
 			_no_seed_warned = true
-			Game.toast.emit(tr("BARN_FULL"), "ico_barn.png")
+			Game.toast.emit(tr("SILO_FULL"), "ico_silo.png")
 		return
 	f.harvest()
 	Game.add_item(crop, amount)
@@ -799,7 +755,7 @@ func _animal_tap(a: Animal) -> void:
 	if not ready.is_empty():
 		var got := 0
 		for x: Animal in ready:
-			if Game.space() < 1:
+			if Game.space(x.product()) < 1:
 				Game.toast.emit(tr("BARN_FULL"), "ico_barn.png")
 				break
 			var item := x.collect()
@@ -846,6 +802,8 @@ func _on_seed_chosen(crop: String) -> void:
 
 
 func _tap(world: Vector2) -> void:
+	if farm.truck_tap(world):
+		return
 	for id in npcs:
 		var n: Node2D = npcs[id]
 		if world.distance_to(n.position + Vector2(0, -110)) < 90.0:
@@ -892,8 +850,28 @@ func _tap(world: Vector2) -> void:
 	if best != null:
 		Field.squash(best, best.get_meta("squash", 0.1))
 		var n: String = best.get_meta("sprite", "")
-		if n == "barn":
-			hud.open_barn()
+		if best.has_meta("site"):
+			farm.tap_site(best)
+			return
+		if best.has_meta("parcel"):
+			Audio.play("click")
+			hud.land.open_parcel(best.get_meta("parcel"))
+			return
+		if best.has_meta("obstacle"):
+			Audio.play("click")
+			hud.land.open_obstacle(best)
+			return
+		if best.has_meta("fixed"):
+			match str(best.get_meta("fixed")):
+				"barn":
+					hud.open_barn(false)
+				"silo":
+					hud.open_barn(true)
+				"order_board":
+					hud.open_orders()
+				"farmhouse":
+					Audio.play("pop")
+					_puff(best.position + Vector2(0, -200), "fx_smoke", 3)
 			return
 		if n == "order_board":
 			hud.open_orders()
@@ -970,7 +948,7 @@ func _clamp_cam() -> void:
 # ------------------------------------------------------------------ build mode
 
 func _on_buy_field() -> void:
-	if 12 + Game.extra_fields >= Game.max_fields():
+	if fields.size() >= Game.max_fields():
 		Game.toast.emit(tr("MAX_FIELDS"), "item_field.png")
 		return
 	if Game.coins < Game.field_price():
@@ -1002,11 +980,60 @@ func _move_ghost(screen_pos: Vector2) -> void:
 	var c := cell_at(screen_to_world(screen_pos))
 	if c != _place_cell:
 		_place_cell = c
-		_update_ghost()
+		if _place_kind != "":
+			_update_kind_ghost()
+		else:
+			_update_ghost()
 
 
 func can_place(c: Vector2i) -> bool:
-	return c.x >= 0 and c.y >= 0 and c.x < 24 and c.y < 23 and not occupied.has(c)
+	return c.x >= 0 and c.y >= 1 and c.x < 24 and c.y < 23 and not occupied.has(c) and Farm.cell_open(c)
+
+
+func can_place_rect(r: Rect2i) -> bool:
+	for x in range(r.position.x, r.end.x):
+		for y in range(r.position.y, r.end.y):
+			if not can_place(Vector2i(x, y)):
+				return false
+	return true
+
+
+## Shop: start placing a building or pen (paid on confirm, then built as a construction site).
+func start_place_kind(kind: String) -> void:
+	_place_kind = kind
+	_place_cell = cell_at(cam.position)
+	var d: Dictionary = Game.placeables[kind]
+	var spr: String = kind if d.get("building", false) else "site_big"
+	_ghost = Atlas.sprite(spr if Atlas.has(spr) else "site_big")
+	_ghost.modulate = Color(1, 1, 1, 0.75)
+	_ghost.z_index = 50
+	_ghost_floor = Polygon2D.new()
+	_ghost_floor.z_index = 49
+	add_child(_ghost_floor)
+	add_child(_ghost)
+	_update_kind_ghost()
+	hud.set_placing(true)
+
+
+func _update_kind_ghost() -> void:
+	var r := Farm.footprint(_place_kind, _place_cell)
+	var ok := can_place_rect(r)
+	_ghost.position = grid_to_world(Vector2(_place_cell))
+	var a := grid_to_world(Vector2(r.position) - Vector2(0.5, 0.5))
+	var b := grid_to_world(Vector2(r.end.x, r.position.y) - Vector2(0.5, 0.5))
+	var c := grid_to_world(Vector2(r.end) - Vector2(0.5, 0.5))
+	var d := grid_to_world(Vector2(r.position.x, r.end.y) - Vector2(0.5, 0.5))
+	_ghost_floor.polygon = PackedVector2Array([a, b, c, d])
+	_ghost_floor.color = Color(0.45, 1.0, 0.4, 0.35) if ok else Color(1.0, 0.3, 0.25, 0.4)
+
+
+func _end_place_kind() -> void:
+	_place_kind = ""
+	if _ghost:
+		_ghost.queue_free()
+		_ghost_floor.queue_free()
+	_ghost = null
+	hud.set_placing(false)
 
 
 func _update_ghost() -> void:
@@ -1016,6 +1043,20 @@ func _update_ghost() -> void:
 
 
 func _on_place_confirm() -> void:
+	if _place_kind != "":
+		var r := Farm.footprint(_place_kind, _place_cell)
+		if not can_place_rect(r):
+			Audio.play("pop", 0.7)
+			Field.squash(_ghost, 0.15)
+			return
+		var price := int(Game.placeables[_place_kind].get("price", 0))
+		if not Game.spend_coins(price):
+			Game.toast.emit(tr("NOT_ENOUGH_COINS"), "coin.png")
+			_end_place_kind()
+			return
+		farm.start_build(_place_kind, _place_cell)
+		_end_place_kind()
+		return
 	if _placing == null:
 		return
 	if not can_place(_place_cell):
@@ -1033,6 +1074,9 @@ func _on_place_confirm() -> void:
 
 
 func _on_place_cancel() -> void:
+	if _place_kind != "":
+		_end_place_kind()
+		return
 	if _placing == null:
 		return
 	if _placing_new:
@@ -1289,9 +1333,11 @@ func _demo_state() -> void:
 			a.feed(now - float(a.def()["time"]) * (1.2 if k % 2 == 0 else 0.4))
 			k += 1
 	Game.add_item("wheat", 12, true)
-	production["bakery"].start(0)
-	production["bakery"].queue[0]["end"] = now - 1.0
-	production["feed_mill"].start(0)
+	if production.has("bakery"):
+		production["bakery"].start(0)
+		production["bakery"].queue[0]["end"] = now - 1.0
+	if production.has("feed_mill"):
+		production["feed_mill"].start(0)
 	var i := 0
 	for f: Field in fields.values():
 		var crop: String = Game.crop_order[i % Game.crop_order.size()]
@@ -1369,6 +1415,15 @@ func _take_shot(path: String) -> void:
 	get_tree().quit()
 
 
+## First free spot for a placeable on open land (smoke tests).
+func _find_spot(kind: String) -> Vector2i:
+	for y in range(2, 22):
+		for x in range(1, 23):
+			if can_place_rect(Farm.footprint(kind, Vector2i(x, y))):
+				return Vector2i(x, y)
+	return Vector2i(-1, -1)
+
+
 func _run_smoke() -> void:
 	var errors: Array[String] = []
 	var need := ["field", "barn", "chicken_walk_se_0", "chicken_peck_ne_5", "dino_moosaurus_idle_se_0", "dig_full", "nest", "bridge", "tree_oak",
@@ -1404,21 +1459,91 @@ func _run_smoke() -> void:
 	Game.add_xp(Game.xp_needed())
 	if Game.level < 2 or not Game.is_unlocked("corn") or Game.count("corn") < 2:
 		errors.append("level up / unlock failed")
+	# M9.5 progression: a new farm has the fixed buildings and three fields, the rest is locked land
+	for k in ["farmhouse", "barn", "silo", "order_board"]:
+		if not farm.fixed.has(k):
+			errors.append("new farm misses " + k)
+	var frontier := Farm.all_parcels().filter(func(id: String) -> bool:
+		return not Farm.is_open_parcel(id) and Farm.on_frontier(id)).size()
+	if fields.size() != 3 or farm.signs.size() != frontier or frontier != 8:
+		errors.append("new farm layout wrong (%d fields, %d signs)" % [fields.size(), farm.signs.size()])
+	if can_place(Vector2i(2, 20)):
+		errors.append("could place on locked land")
+	# clear an obstacle with its tool (and fail without it)
+	var obst: Sprite2D = null
+	for key in farm.obstacles:
+		var o: Sprite2D = farm.obstacles[key]
+		if Farm.cell_open(cell_at(o.position)):
+			obst = o
+			break
+	if obst == null:
+		errors.append("no obstacle on open land")
+	else:
+		var tool: String = obst.get_meta("tool")
+		Game.inventory.erase(tool)
+		if farm.clear_obstacle(obst):
+			errors.append("cleared an obstacle without a tool")
+		Game.add_item(tool, 1, true)
+		if not farm.clear_obstacle(obst) or Game.count(tool) != 0 or farm.obstacles.has(obst.get_meta("obstacle")):
+			errors.append("clearing an obstacle failed")
+	# buy the next parcel with land items
+	Game.add_coins(100000)
+	var pid := "p1_1"
+	if farm.buy_parcel(pid):
+		errors.append("bought land without the items")
+	for it in Game.LAND_ITEMS:
+		Game.add_item(it, 3, true)
+	Game.level = maxi(Game.level, 3)
+	if not farm.buy_parcel(pid) or farm.signs.has(pid) or not Farm.cell_open(Vector2i(5, 5)):
+		errors.append("buying land failed")
+	# open and clear everything else so the rest of the test has room
+	for id in Farm.all_parcels():
+		Game.land[id] = true
+	for key in farm.obstacles.keys():
+		var o: Sprite2D = farm.obstacles[key]
+		Game.add_item(o.get_meta("tool"), 1, true)
+		farm.clear_obstacle(o)
+	farm._place_signs()
+	# silo and barn are separate stores with their own capacity and upgrades
+	if not Game.in_silo("wheat") or Game.in_silo("egg") or Game.capacity(true) != Game.STORE_BASE:
+		errors.append("store split wrong")
+	for it in Game.UPGRADE_ITEMS["silo"]:
+		Game.add_item(it, 1, true)
+	if not Game.upgrade_store("silo") or Game.capacity(true) != Game.STORE_BASE + Game.STORE_STEP:
+		errors.append("silo upgrade failed")
+	# build everything from the shop: construction site first, finished on tap after the build time
+	for kind in Game.placeables:
+		var pd: Dictionary = Game.placeables[kind]
+		if pd.get("fixed", false):
+			continue
+		var spot := _find_spot(kind)
+		if spot.x < 0:
+			errors.append("no room for " + kind)
+			continue
+		farm.start_build(kind, spot)
+		var si := Game.placed.size() - 1
+		var site: Sprite2D = farm.sites[si]
+		farm.tap_site(site)
+		if not farm.sites.has(si):
+			errors.append("site finished too early: " + kind)
+		Game.placed[si]["done"] = Time.get_unix_time_from_system() - 1.0
+		farm.tap_site(site)
+		if farm.sites.has(si):
+			errors.append("site did not finish: " + kind)
+	if buy_animal("chicken") != "" or pens["chicken"]["p"]["n"] != 2:
+		errors.append("buying a hen failed")
 	# buy and place a field, then move it
-	Game.add_coins(500)
 	var before_fields := fields.size()
 	_on_buy_field()
-	var free := Vector2i(20, 20)
-	while not can_place(free):
-		free.x -= 1
+	var free := _find_spot("field")
 	_place_cell = free
 	_on_place_confirm()
 	if fields.size() != before_fields + 1 or not fields.has(free) or Game.extra_fields != 1:
 		errors.append("field placement failed")
 	_start_move(fields[free])
-	var to := free + Vector2i(-1, 0)
-	while not can_place(to):
-		to.x -= 1
+	occupied[free] = true
+	var to := _find_spot("field")
+	occupied.erase(free)
 	_place_cell = to
 	_on_place_confirm()
 	if not fields.has(to) or fields.has(free):
@@ -1462,8 +1587,14 @@ func _run_smoke() -> void:
 	for k in Game.orders[0]["need"]:
 		Game.add_item(k, int(Game.orders[0]["need"][k]), true)
 	var c0 := Game.coins
-	if not Game.deliver(0) or Game.coins <= c0:
-		errors.append("order delivery failed")
+	if not Game.deliver(0) or not Game.truck_away() or Game.truck_cargo <= 0:
+		errors.append("order did not go onto the truck")
+	if Game.deliver(1):
+		errors.append("delivered while the truck was away")
+	Game.truck_back_at = Time.get_unix_time_from_system() - 1.0
+	farm.collect_truck()
+	if Game.coins <= c0 or Game.truck_cargo != 0:
+		errors.append("truck brought no coins back")
 	# bees work on their own
 	var hive: ProductionBuilding = production["beehive"]
 	if hive.queue.is_empty():
@@ -1585,11 +1716,8 @@ func _run_smoke() -> void:
 	hud.close_menus()
 	# M9: tutorial runs through all steps on game events
 	hud.tutorial.restart()
-	Game.event("plant", "wheat")
-	Game.event("feed", "chicken")
-	Game.event("harvest", "wheat")
-	hud.open_orders()
-	hud.close_menus()
+	for ev in ["plant", "clear", "harvest", "build", "deliver", "truck"]:
+		Game.event(ev, "any")
 	Game.quest_index = 0
 	Game.quest_stage = "intro"
 	Game.talk("brumm")

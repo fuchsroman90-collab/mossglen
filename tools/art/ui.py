@@ -869,9 +869,190 @@ def m9_images() -> dict:
     }
 
 
+# ---------------------------------------------------------------- M9.5: tools, materials, progression glyphs
+
+def _o2(w=5):
+    return f'stroke="{OUT}" stroke-width="{w}" stroke-linejoin="round" stroke-linecap="round"'
+
+
+def item_axe(size=112):
+    o = _o2()
+    return _item(f'<path d="M28 100 L70 22" stroke="{OUT}" stroke-width="16" stroke-linecap="round"/>'
+                 f'<path d="M28 100 L70 22" stroke="#C48D58" stroke-width="9" stroke-linecap="round"/>'
+                 f'<path d="M56 14 L76 26 C96 26 106 48 98 66 C86 58 72 52 62 40 Z" fill="#C9D3DA" {o}/>'
+                 f'<path d="M80 32 C92 36 98 48 96 58" stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round"/>',
+                 size)
+
+
+def item_saw(size=112):
+    o = _o2()
+    p0, p1 = (82.0, 60.0), (16.0, 94.0)
+    nx, ny = 0.46, 0.89  # outward normal of the toothed edge
+    pts = []
+    for i in range(11):
+        t = i / 10
+        x = p0[0] + (p1[0] - p0[0]) * t
+        y = p0[1] + (p1[1] - p0[1]) * t
+        k = 6.0 if i % 2 else 0.0
+        pts.append(f"L{x + nx * k:.1f} {y + ny * k:.1f}")
+    return _item(f'<path d="M12 72 L78 38 {" ".join(pts)} Z" fill="#C9D3DA" {o}/>'
+                 f'<path d="M22 72 L74 46" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>'
+                 f'<rect x="74" y="24" width="30" height="46" rx="11" fill="#E0453A" {o} transform="rotate(-28 89 47)"/>'
+                 f'<ellipse cx="90" cy="45" rx="6" ry="11" fill="#FFF4E2" {o} transform="rotate(-28 90 45)"/>', size)
+
+
+def item_dynamite(size=112):
+    o = _o2()
+    return _item(f'<rect x="28" y="36" width="20" height="60" rx="8" fill="#E0453A" {o}/>'
+                 f'<rect x="46" y="32" width="20" height="64" rx="8" fill="#E8574A" {o}/>'
+                 f'<rect x="64" y="36" width="20" height="60" rx="8" fill="#E0453A" {o}/>'
+                 f'<rect x="24" y="58" width="64" height="12" rx="4" fill="#F2C14E" {o}/>'
+                 f'<path d="M56 32 C56 18 70 18 72 10" stroke="{OUT}" stroke-width="7" fill="none" stroke-linecap="round"/>'
+                 f'<path d="M56 32 C56 18 70 18 72 10" stroke="#B9A48A" stroke-width="3" fill="none" stroke-linecap="round"/>'
+                 f'<circle cx="74" cy="9" r="7" fill="#FFD23F" stroke="#F07A2A" stroke-width="3"/>', size)
+
+
+def item_shovel(size=112):
+    o = _o2()
+    return _item(f'<path d="M78 18 L46 70" stroke="{OUT}" stroke-width="15" stroke-linecap="round"/>'
+                 f'<path d="M78 18 L46 70" stroke="#C48D58" stroke-width="8" stroke-linecap="round"/>'
+                 f'<rect x="66" y="6" width="28" height="12" rx="5" fill="#C48D58" {o} transform="rotate(32 80 12)"/>'
+                 f'<path d="M36 62 L58 76 L44 102 C34 108 18 98 22 88 Z" fill="#C9D3DA" {o}/>'
+                 f'<path d="M38 70 L28 88" stroke="#FFFFFF" stroke-width="4"/>', size)
+
+
+def item_stake(size=112):
+    o = _o2()
+    return _item(f'<path d="M46 20 L66 20 L66 82 L56 104 L46 82 Z" fill="#C48D58" {o}/>'
+                 f'<rect x="42" y="16" width="28" height="18" rx="4" fill="#E0453A" {o}/>'
+                 f'<path d="M52 40 L52 80" stroke="#E2B07A" stroke-width="4"/>', size)
+
+
+def item_land_map(size=112):
+    o = _o2()
+    return _item(f'<path d="M14 28 L42 18 L70 28 L98 18 L98 86 L70 96 L42 86 L14 96 Z" fill="#F6EBCF" {o}/>'
+                 f'<path d="M42 18 L42 86 M70 28 L70 96" stroke="#C8B48A" stroke-width="3"/>'
+                 f'<path d="M22 70 C34 50 50 66 62 46 C70 34 82 44 90 34" stroke="#4FA65A" stroke-width="6" fill="none" '
+                 f'stroke-dasharray="7 6"/>'
+                 f'<path d="M80 52 L92 64 M92 52 L80 64" stroke="#E0453A" stroke-width="6" stroke-linecap="round"/>', size)
+
+
+def item_tape(size=112):
+    o = _o2()
+    return _item(f'<circle cx="50" cy="56" r="34" fill="#FFD23F" {o}/>'
+                 f'<circle cx="50" cy="56" r="12" fill="#B9A48A" {o}/>'
+                 f'<path d="M78 74 L104 74 L104 88 L76 88" fill="#FFF4E2" {o}/>'
+                 + "".join(f'<path d="M{82 + i * 6} 74 L{82 + i * 6} 80" stroke="{OUT}" stroke-width="2"/>'
+                           for i in range(4)), size)
+
+
+def item_rivet(size=112):
+    o = _o2()
+    return _item(f'<path d="M30 46 C30 22 82 22 82 46 Z" fill="#C9D3DA" {o}/>'
+                 f'<rect x="48" y="44" width="16" height="50" rx="5" fill="#AEB8BF" {o}/>'
+                 f'<path d="M40 38 C44 30 56 28 62 30" stroke="#FFFFFF" stroke-width="4" fill="none"/>', size)
+
+
+def item_plank(size=112):
+    o = _o2()
+    return _item(f'<rect x="10" y="62" width="92" height="22" rx="5" fill="#C48D58" {o} transform="rotate(-12 56 73)"/>'
+                 f'<rect x="10" y="34" width="92" height="22" rx="5" fill="#D9A066" {o} transform="rotate(-12 56 45)"/>'
+                 f'<path d="M22 46 C40 40 60 44 84 36" stroke="#B07547" stroke-width="3" fill="none"/>', size)
+
+
+def item_rope(size=112):
+    o = _o2()
+    return _item(f'<ellipse cx="56" cy="58" rx="40" ry="34" fill="#E2C48A" {o}/>'
+                 f'<ellipse cx="56" cy="58" rx="28" ry="22" fill="none" stroke="#C9A060" stroke-width="5"/>'
+                 f'<ellipse cx="56" cy="58" rx="14" ry="10" fill="#B9925A" {o}/>'
+                 f'<path d="M92 66 C100 80 96 96 84 102" stroke="{OUT}" stroke-width="12" fill="none" stroke-linecap="round"/>'
+                 f'<path d="M92 66 C100 80 96 96 84 102" stroke="#E2C48A" stroke-width="6" fill="none" stroke-linecap="round"/>',
+                 size)
+
+
+def item_nail(size=112):
+    o = _o2()
+    return _item(f'<rect x="28" y="18" width="56" height="14" rx="5" fill="#AEB8BF" {o}/>'
+                 f'<path d="M50 32 L62 32 L60 92 L56 104 L52 92 Z" fill="#C9D3DA" {o}/>'
+                 f'<path d="M54 38 L54 88" stroke="#FFFFFF" stroke-width="3"/>', size)
+
+
+def item_hinge(size=112):
+    o = _o2()
+    return _item(f'<path d="M14 40 L50 40 L50 76 L14 76 Z" fill="#AEB8BF" {o}/>'
+                 f'<path d="M62 40 L98 40 L98 76 L62 76 Z" fill="#C9D3DA" {o}/>'
+                 f'<rect x="48" y="34" width="16" height="48" rx="7" fill="#8E989F" {o}/>'
+                 + "".join(f'<circle cx="{x}" cy="58" r="5" fill="#6E7880" {o}/>' for x in (26, 38, 74, 86)), size)
+
+
+def item_paint(size=112):
+    o = _o2()
+    return _item(f'<path d="M24 40 L88 40 L82 98 L30 98 Z" fill="#C9D3DA" {o}/>'
+                 f'<ellipse cx="56" cy="40" rx="32" ry="10" fill="#4FA65A" {o}/>'
+                 f'<path d="M34 42 C34 60 42 58 42 70 C42 78 50 78 50 70 L50 46" fill="#4FA65A" {o}/>'
+                 f'<path d="M24 40 C24 10 88 10 88 40" stroke="{OUT}" stroke-width="5" fill="none"/>', size)
+
+
+def silo_glyph(size=112):
+    o = _o2(6)
+    return _glyph(f'<rect x="34" y="34" width="44" height="66" rx="6" fill="#D2493A" {o}/>'
+                  f'<path d="M30 38 C30 10 82 10 82 38 Z" fill="#C9D3DA" {o}/>'
+                  f'<rect x="50" y="48" width="12" height="40" rx="4" fill="#F2C14E" {o}/>', size)
+
+
+def truck_glyph(size=112):
+    o = _o2(6)
+    return _glyph(f'<rect x="12" y="44" width="54" height="30" rx="5" fill="#3FA54A" {o}/>'
+                  f'<path d="M64 74 L64 34 L86 34 L100 54 L100 74 Z" fill="#E0453A" {o}/>'
+                  f'<rect x="72" y="40" width="14" height="14" rx="3" fill="#8FC8F0" {o}/>'
+                  f'<circle cx="32" cy="80" r="11" fill="#3A3A40" {o}/><circle cx="82" cy="80" r="11" fill="#3A3A40" {o}/>',
+                  size)
+
+
+def hammer_glyph(size=112):
+    o = _o2(6)
+    return _glyph(f'<path d="M36 96 L66 46" stroke="{OUT}" stroke-width="15" stroke-linecap="round"/>'
+                  f'<path d="M36 96 L66 46" stroke="#C48D58" stroke-width="8" stroke-linecap="round"/>'
+                  f'<rect x="44" y="18" width="52" height="24" rx="6" fill="#AEB8BF" {o} transform="rotate(30 70 30)"/>',
+                  size)
+
+
+def tab(icon_svg: str, size=(150, 136)):
+    w, h = size
+    return render(f'<defs>{grad("t", [(0, "#FFE680"), (1, "#F5B724")])}</defs>'
+                  f'<rect x="4" y="4" width="{w - 8}" height="{h - 8}" rx="24" fill="{OUT}"/>'
+                  f'<rect x="10" y="10" width="{w - 20}" height="{h - 22}" rx="19" fill="url(#t)"/>'
+                  f'<rect x="20" y="16" width="{w - 40}" height="16" rx="8" fill="#FFFFFF" opacity="0.4"/>'
+                  f'<g transform="translate({w / 2 - 44} {h / 2 - 48}) scale(0.8)">{icon_svg}</g>', w, h)
+
+
+def m95_images() -> dict:
+    o = _o2()
+    field_svg = (f'<path d="M56 30 L104 56 L56 82 L8 56 Z" fill="#9A6236" {o}/>'
+                 + "".join(f'<path d="M{20 + i * 12} {50 + i * 6} L{68 + i * 12} {24 + i * 6}" stroke="#7A4A26" '
+                           f'stroke-width="4"/>' for i in range(4))
+                 + f'<path d="M50 40 L50 22 M62 46 L62 28" stroke="#5DB33C" stroke-width="7" stroke-linecap="round"/>')
+    house_svg = (f'<rect x="22" y="52" width="68" height="46" rx="4" fill="#F4E6C8" {o}/>'
+                 f'<path d="M12 56 L56 18 L100 56 Z" fill="#D2493A" {o}/>'
+                 f'<rect x="48" y="70" width="18" height="28" rx="3" fill="#9C5A32" {o}/>')
+    hen_svg = (f'<ellipse cx="54" cy="64" rx="34" ry="28" fill="#FFFFFF" {o}/>'
+               f'<circle cx="80" cy="38" r="16" fill="#FFFFFF" {o}/>'
+               f'<path d="M74 22 C76 12 86 14 84 24" fill="#E0453A" {o}/>'
+               f'<path d="M94 38 L106 42 L94 46 Z" fill="#F2B21E" {o}/><circle cx="84" cy="36" r="3" fill="{OUT}"/>')
+    return {
+        "item_axe": item_axe(), "item_saw": item_saw(), "item_dynamite": item_dynamite(),
+        "item_shovel": item_shovel(), "item_stake": item_stake(), "item_land_map": item_land_map(),
+        "item_tape": item_tape(), "item_rivet": item_rivet(), "item_plank": item_plank(), "item_rope": item_rope(),
+        "item_nail": item_nail(), "item_hinge": item_hinge(), "item_paint": item_paint(),
+        "ico_silo": silo_glyph(), "ico_truck": truck_glyph(), "ico_build": hammer_glyph(), "ico_lock": lock(96),
+        "tab_fields": tab(field_svg), "tab_buildings": tab(house_svg), "tab_animals": tab(hen_svg),
+    }
+
+
 def ui_images_all() -> dict:
     d = ui_images()
     d.update(m9_images())
+    d.update(m95_images())
     d.update(fish_icons())
     for sp, (a, b) in DINO_COLORS.items():
         d[f"item_egg_{sp}"] = item_big_egg(a, b)

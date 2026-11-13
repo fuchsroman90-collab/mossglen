@@ -1,0 +1,19 @@
+{
+	"farmhouse": {"size": [3, 3], "sprite": "farmhouse", "fixed": true},
+	"barn": {"size": [4, 3], "sprite": "barn", "fixed": true},
+	"silo": {"size": [2, 2], "sprite": "silo_0", "fixed": true},
+	"order_board": {"size": [2, 2], "sprite": "order_board", "fixed": true},
+	"coop": {"size": [4, 4], "animal": "chicken", "cap": 6, "price": 40, "unlock": 1, "build": 15, "pad": 0.85},
+	"cow_pasture": {"size": [4, 3], "animal": "cow", "cap": 5, "price": 300, "unlock": 3, "build": 120, "pad": 0.7},
+	"sheep_pen": {"size": [3, 3], "animal": "sheep", "cap": 5, "price": 900, "unlock": 5, "build": 300, "pad": 0.45},
+	"pig_pen": {"size": [3, 3], "animal": "pig", "cap": 5, "price": 1400, "unlock": 6, "build": 420, "pad": 0.95},
+	"feed_mill": {"size": [3, 3], "building": true, "price": 50, "unlock": 1, "build": 20},
+	"bakery": {"size": [3, 3], "building": true, "price": 120, "unlock": 2, "build": 60},
+	"dairy": {"size": [3, 3], "building": true, "price": 400, "unlock": 3, "build": 180},
+	"popcorn": {"size": [3, 3], "building": true, "price": 600, "unlock": 2, "build": 180},
+	"beehive": {"size": [1, 1], "building": true, "price": 250, "unlock": 3, "build": 60},
+	"sauce_kitchen": {"size": [3, 3], "building": true, "price": 900, "unlock": 4, "build": 300},
+	"candle_maker": {"size": [3, 3], "building": true, "price": 1100, "unlock": 4, "build": 360},
+	"jam_kitchen": {"size": [3, 3], "building": true, "price": 1500, "unlock": 5, "build": 420},
+	"loom": {"size": [3, 3], "building": true, "price": 1800, "unlock": 5, "build": 480}
+}

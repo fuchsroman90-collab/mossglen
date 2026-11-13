@@ -128,7 +128,7 @@ func collect() -> Array:
 			Game.add_xp(int(rec["xp"]))
 			got.append([rec["out"], 1])
 			continue
-		if Game.space() < n:
+		if Game.space(rec["out"]) < n:
 			break
 		done.pop_front()
 		Game.add_item(rec["out"], n)

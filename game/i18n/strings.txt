@@ -200,13 +200,6 @@ SET_TEXT	Größe der Anzeige	Interface size
 SET_LANG	Sprache	Language
 SET_LANG_VALUE	Deutsch	English
 SET_TUTORIAL	Anleitung neu starten	Restart the tutorial
-TUT_0	Willkommen in Mossglen! Tippe auf ein leeres Beet und wähle Weizen zum Säen.	Welcome to Mossglen! Tap an empty field and pick wheat to sow it.
-TUT_1	Weizen wächst in einer halben Minute. Die Hühner haben Hunger – tippe auf ein Huhn, um sie zu füttern.	Wheat grows in half a minute. The chickens are hungry – tap one to feed them.
-TUT_2	Reif! Wische mit dem Finger über die Beete, um den Weizen zu ernten.	Ripe! Swipe your finger over the fields to harvest the wheat.
-TUT_2_WAIT	Der Weizen wächst noch … gleich kannst du ernten.	The wheat is still growing … you can harvest in a moment.
-TUT_3	Am Auftragsbrett bestellen die Leute Waren gegen Münzen. Tippe darauf.	At the order board people ask for goods and pay in coins. Tap it.
-TUT_4	Müller Brumm braucht deine Hilfe. Tippe oben links auf seine Aufgabe.	Miller Brumm needs your help. Tap his task at the top left.
-TUT_DONE	Super! Jetzt gehört der Hof dir. Viel Spaß in Mossglen!	Great! The farm is yours now. Have fun in Mossglen!
 TUT_SKIP	Überspringen	Skip
 FEST_spring	Blütenfest	Blossom festival
 FEST_summer	Sommer-Angelfest	Summer fishing festival
@@ -219,3 +212,94 @@ FEST_GOAL_winter	Stelle Waren in deinen Werkstätten her.	Make goods in your wor
 FEST_INFO	Das Fest läuft die ganze Jahreszeit. %s wächst jetzt 20 %% schneller.	The festival lasts all season. %s grows 20 %% faster now.
 FEST_CLAIM	Abholen	Claim
 FEST_TOAST	%s: Stufe %d geschafft!	%s: stage %d done!
+SILO	Silo	Silo
+SILO_FULL	Silo voll! Verkaufe Ernte oder baue das Silo aus.	Silo full! Sell crops or upgrade the silo.
+STORE_EMPTY	Hier ist noch nichts gelagert.	Nothing stored here yet.
+UPGRADE	Ausbauen	Upgrade
+UPGRADE_SILO	Silo ausbauen: %d → %d	Upgrade silo: %d → %d
+UPGRADE_BARN	Scheune ausbauen: %d → %d	Upgrade barn: %d → %d
+UPGRADED	Ausgebaut! Jetzt passen %d Sachen hinein.	Upgraded! It now holds %d items.
+LAND_TITLE	Neues Land	New land
+LAND_INFO	Mit Grenzpflock, Landkarte und Maßband gehört dir dieses Stück Land.	With a stake, a land map and a measuring tape this piece of land is yours.
+LAND_BUY	Kaufen	Buy
+LAND_DONE	Neues Land! Räume Bäume und Steine mit Werkzeug weg.	New land! Clear trees and rocks with tools.
+LAND_LOCKED	Dieses Land gehört dir noch nicht.	This land isn't yours yet.
+LAND_LEVEL	Ab Level %d	From level %d
+NEED_ITEMS	Dir fehlen noch Sachen.	You still need some items.
+NEED_TOOL	Du brauchst: %s	You need: %s
+OBSTACLE_axe	Baum fällen	Chop the tree
+OBSTACLE_saw	Tanne zersägen	Saw the fir
+OBSTACLE_dynamite	Stein sprengen	Blast the rock
+OBSTACLE_shovel	Busch ausgraben	Dig out the bush
+TOOL_HINT	Werkzeug findest du beim Ernten, Herstellen und Liefern.	You find tools while harvesting, making and delivering.
+USE_TOOL	Benutzen	Use
+BUILD_LEFT	Noch %s Bauzeit.	%s left to build.
+BUILD_DONE	%s ist fertig!	%s is finished!
+OWNED	Schon gebaut	Already built
+UNLOCK_AT	Ab Level %d	From level %d
+FREE	Gratis	Free
+NEED_PEN	Baue zuerst das passende Gehege.	Build the right pen first.
+PEN_FULL	Das Gehege ist voll.	The pen is full.
+TRUCK_AWAY	Der Lieferwagen ist noch unterwegs.	The truck is still on its way.
+TRUCK_GONE	Der Lieferwagen fährt los! Tippe ihn an, wenn er zurück ist.	The truck is off! Tap it when it's back.
+PLACE_farmhouse	Bauernhaus	Farmhouse
+PLACE_barn	Scheune	Barn
+PLACE_silo	Silo	Silo
+PLACE_order_board	Auftragstafel	Order board
+PLACE_coop	Hühnerstall	Chicken coop
+PLACE_cow_pasture	Kuhweide	Cow pasture
+PLACE_sheep_pen	Schafweide	Sheep pen
+PLACE_pig_pen	Schweinekoben	Pig pen
+PLACE_feed_mill	Futtermühle	Feed mill
+PLACE_bakery	Bäckerei	Bakery
+PLACE_dairy	Molkerei	Dairy
+PLACE_popcorn	Popcornwagen	Popcorn cart
+PLACE_beehive	Bienenstock	Beehive
+PLACE_sauce_kitchen	Soßenküche	Sauce kitchen
+PLACE_candle_maker	Kerzenzieherei	Candle maker
+PLACE_jam_kitchen	Marmeladenküche	Jam kitchen
+PLACE_loom	Webstuhl	Loom
+BUILD_SUB_coop	Mit erstem Huhn, Platz für 6	Comes with a hen, room for 6
+BUILD_SUB_cow_pasture	Mit erster Kuh, Platz für 5	Comes with a cow, room for 5
+BUILD_SUB_sheep_pen	Mit erstem Schaf, Platz für 5	Comes with a sheep, room for 5
+BUILD_SUB_pig_pen	Mit erstem Schwein, Platz für 5	Comes with a pig, room for 5
+BUILD_SUB_feed_mill	Macht Tierfutter	Makes animal feed
+BUILD_SUB_bakery	Backt Brot und Kuchen	Bakes bread and cakes
+BUILD_SUB_dairy	Macht Sahne, Butter, Käse	Makes cream, butter, cheese
+BUILD_SUB_popcorn	Macht Popcorn	Makes popcorn
+BUILD_SUB_beehive	Bienen machen Honig	Bees make honey
+BUILD_SUB_sauce_kitchen	Kocht Soßen	Cooks sauces
+BUILD_SUB_candle_maker	Zieht Kerzen	Makes candles
+BUILD_SUB_jam_kitchen	Kocht Marmelade	Cooks jam
+BUILD_SUB_loom	Webt Stoff und Schals	Weaves cloth and scarves
+ANIMAL_chicken	Huhn	Hen
+ANIMAL_cow	Kuh	Cow
+ANIMAL_sheep	Schaf	Sheep
+ANIMAL_pig	Schwein	Pig
+ITEM_axe	Axt	Axe
+ITEM_saw	Säge	Saw
+ITEM_dynamite	Dynamit	Dynamite
+ITEM_shovel	Schaufel	Shovel
+ITEM_stake	Grenzpflock	Boundary stake
+ITEM_land_map	Landkarte	Land map
+ITEM_tape	Maßband	Measuring tape
+ITEM_rivet	Niete	Rivet
+ITEM_plank	Brett	Plank
+ITEM_rope	Seil	Rope
+ITEM_nail	Nagel	Nail
+ITEM_hinge	Scharnier	Hinge
+ITEM_paint	Farbeimer	Paint bucket
+TUT_0	Willkommen auf deinem Hof! Tippe auf ein leeres Beet und wähle Weizen zum Säen.	Welcome to your farm! Tap an empty field and pick wheat to sow it.
+TUT_1	Der Weizen wächst. Mach solange Platz: Tippe auf den Baum und fälle ihn mit der Axt.	The wheat is growing. Make some room meanwhile: tap the tree and chop it with the axe.
+TUT_2	Reif! Wische mit dem Finger über die Beete, um den Weizen zu ernten.	Ripe! Swipe your finger over the fields to harvest the wheat.
+TUT_2_WAIT	Der Weizen wächst noch … gleich kannst du ernten.	The wheat is still growing … you can harvest in a moment.
+TUT_3	Zeit für Tiere! Öffne den Laden.	Time for animals! Open the shop.
+TUT_3_SHOP	Kaufe den Hühnerstall.	Buy the chicken coop.
+TUT_3_PLACE	Ziehe den Stall auf einen freien, hellen Platz und tippe auf den Haken.	Drag the coop onto a free, bright spot and tap the tick.
+TUT_3_WAIT	Der Stall wird gebaut … das dauert einen Moment.	The coop is being built … this takes a moment.
+TUT_3_DONE	Fertig! Tippe auf die Baustelle, um den Stall zu enthüllen.	Done! Tap the building site to reveal the coop.
+TUT_4	Am Auftragsbrett wartet eine Bestellung über Weizen. Tippe darauf und liefere sie.	An order for wheat waits at the order board. Tap it and deliver.
+TUT_5	Der Lieferwagen ist zurück! Tippe ihn an und sammle die Münzen ein.	The truck is back! Tap it to collect the coins.
+TUT_5_WAIT	Der Lieferwagen bringt die Ware ins Dorf … gleich ist er zurück.	The truck takes the goods to the village … it will be back soon.
+TUT_6	Müller Brumm braucht deine Hilfe. Tippe oben links auf seine Aufgabe.	Miller Brumm needs your help. Tap his task at the top left.
+TUT_DONE	Super! Jetzt gehört der Hof dir. Viel Spaß in Mossglen!	Great! The farm is yours now. Have fun in Mossglen!

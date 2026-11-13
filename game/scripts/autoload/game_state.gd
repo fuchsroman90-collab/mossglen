@@ -19,7 +19,7 @@ signal game_event(type: String, id: String)
 
 const I18N_PATH := "res://i18n/strings.txt"
 const SAVE_PATH := "user://save.json"
-const SAVE_VERSION := 1
+const SAVE_VERSION := 2  ## 2 = M9.5 progression (empty farm); older saves start fresh
 const LOCALES := ["de", "en"]
 const AUTOSAVE_SECONDS := 5.0
 
@@ -69,8 +69,26 @@ var coins := 60
 var emeralds := 5
 var xp := 0
 var level := 1
-var inventory: Dictionary = {"wheat": 6, "feed_chicken": 3}
-var barn_capacity := 80
+var inventory: Dictionary = {"wheat": 3, "axe": 1, "shovel": 1}
+## Storage: crops go to the silo, everything else (goods, tools, materials) to the barn.
+var silo_level := 0
+var barn_level := 0
+const STORE_BASE := 50
+const STORE_STEP := 25
+const UPGRADE_ITEMS := {"silo": ["rivet", "plank", "rope"], "barn": ["nail", "hinge", "paint"]}
+const LAND_ITEMS := ["stake", "land_map", "tape"]
+const TOOLS := ["axe", "saw", "dynamite", "shovel"]
+## Random finds while playing: item -> weight
+const DROPS := {"axe": 10, "saw": 7, "dynamite": 7, "shovel": 10, "stake": 6, "land_map": 6, "tape": 6,
+	"rivet": 5, "plank": 5, "rope": 5, "nail": 5, "hinge": 5, "paint": 5}
+var placeables: Dictionary = {}  ## data/placeables.json
+var land: Dictionary = {}  ## unlocked parcel id -> true (the start parcels are always open)
+var cleared: Dictionary = {}  ## obstacle key "x,y" -> true
+var placed: Array = []  ## [{"k": kind, "x": cell x, "y": cell y, "done": unix time the build finishes}]
+const TRUCK_TRIP := 45.0  ## seconds for the delivery round trip
+var truck_back_at := 0.0  ## unix time the delivery truck returns; 0 = parked
+var truck_cargo := 0  ## coins waiting on the returned truck
+var truck_xp := 0
 var extra_fields := 0
 var font_bold: FontVariation
 var font_regular: FontVariation
@@ -99,6 +117,7 @@ func _ready() -> void:
 		dino_by_id[d["id"]] = d
 	achievements = JSON.parse_string(FileAccess.get_file_as_string("res://data/achievements.json"))
 	season_events = _json("res://data/events.json")
+	placeables = _json("res://data/placeables.json")
 	_load_translations()
 	var lang := OS.get_locale_language()
 	TranslationServer.set_locale(lang if lang in LOCALES else "en")
@@ -182,20 +201,32 @@ func count(item: String) -> int:
 	return int(inventory.get(item, 0))
 
 
-func stored() -> int:
+func in_silo(item: String) -> bool:
+	return crops.has(item)
+
+
+func capacity(silo: bool) -> int:
+	return STORE_BASE + STORE_STEP * (silo_level if silo else barn_level)
+
+
+## Items stored in the silo (true) or the barn (false).
+func stored(silo := false) -> int:
 	var n := 0
-	for v in inventory.values():
-		n += int(v)
+	for k in inventory:
+		if in_silo(k) == silo:
+			n += int(inventory[k])
 	return n
 
 
-func space() -> int:
-	return barn_capacity - stored()
+## Free room for an item in its store.
+func space(item := "") -> int:
+	var silo := in_silo(item)
+	return capacity(silo) - stored(silo)
 
 
-## Adds items; returns how many fit. force ignores the barn limit (gifts).
+## Adds items; returns how many fit. force ignores the store limit (gifts, rewards).
 func add_item(item: String, n: int, force := false) -> int:
-	var fit := n if force else mini(n, space())
+	var fit := n if force else mini(n, space(item))
 	if fit <= 0:
 		return 0
 	inventory[item] = count(item) + fit
@@ -375,6 +406,66 @@ func event(type: String, id: String, n := 1) -> void:
 		quest_stage = "ready"
 	quest_changed.emit()
 	mark_dirty()
+
+
+# ------------------------------------------------------------------ storage upgrades, finds, land
+
+func upgrade_need(which: String) -> int:
+	return 1 + (silo_level if which == "silo" else barn_level)
+
+
+func can_upgrade(which: String) -> bool:
+	for it in UPGRADE_ITEMS[which]:
+		if count(it) < upgrade_need(which):
+			return false
+	return true
+
+
+func upgrade_store(which: String) -> bool:
+	if not can_upgrade(which):
+		return false
+	var n := upgrade_need(which)
+	for it in UPGRADE_ITEMS[which]:
+		take_item(it, n)
+	if which == "silo":
+		silo_level += 1
+	else:
+		barn_level += 1
+	add_xp(10 * n)
+	inventory_changed.emit("", 0)
+	mark_dirty()
+	return true
+
+
+## Rolls a random find (tool or material) with the given chance; returns the item id or "".
+func roll_find(chance: float) -> String:
+	if randf() >= chance:
+		return ""
+	var total := 0
+	for k in DROPS:
+		total += int(DROPS[k])
+	var r := randi() % total
+	for k in DROPS:
+		r -= int(DROPS[k])
+		if r < 0:
+			if add_item(k, 1) > 0:
+				return k
+			return ""
+	return ""
+
+
+func placed_count(kind: String) -> int:
+	var n := 0
+	for p in placed:
+		if p["k"] == kind:
+			n += 1
+	return n
+
+
+## Price of the next field: grows with every field you own.
+func next_field_price() -> int:
+	var n := placed_count("field")
+	return 0 if n < 3 else 10 + (n - 3) * 15 + (n - 3) * (n - 3) * 2
 
 
 # ------------------------------------------------------------------ seasonal festival
@@ -647,15 +738,29 @@ func dino_name(id: String) -> String:
 # ------------------------------------------------------------------ orders
 
 ## Items the player can currently make or grow (order candidates). Feeds are excluded.
+## True if a building or pen of this kind is built (and finished).
+func owns(kind: String) -> bool:
+	for p in placed:
+		if p["k"] == kind and float(p.get("done", 0.0)) <= 0.0:
+			return true
+	return false
+
+
+## Only goods the farm can actually make right now (M9.5: buildings and pens are bought).
 func orderable_items() -> Array:
 	var out: Array = []
 	for c in crop_order:
 		if is_unlocked(c):
 			out.append(c)
-	for a in animal_defs:
-		if level >= int(animal_defs[a]["unlock"]):
-			out.append(animal_defs[a]["product"])
+	for k in placeables:
+		var d: Dictionary = placeables[k]
+		if d.has("animal") and owns(k):
+			out.append(animal_defs[d["animal"]]["product"])
+	if not meadow.is_empty():
+		out.append("primeval_egg")
 	for b in buildings:
+		if b == "nest" or not owns(b):
+			continue
 		for r in buildings[b]["recipes"]:
 			if level >= int(r["unlock"]) and not str(r["out"]).begins_with("feed_") \
 					and not str(r["out"]).begins_with("dino_"):
@@ -664,6 +769,8 @@ func orderable_items() -> Array:
 
 
 func make_order() -> Dictionary:
+	if tutorial_step >= 0 and stats.get("deliver", 0) == 0 and orders.is_empty():
+		return {"need": {"wheat": 2}, "coins": 12, "xp": 3, "wait_until": 0.0}
 	var pool := orderable_items()
 	pool.shuffle()
 	var kinds := mini(pool.size(), 1 + randi() % 3)
@@ -687,12 +794,18 @@ func order_ready(i: int) -> bool:
 	return orders[i]["wait_until"] <= Time.get_unix_time_from_system()
 
 
+func truck_away() -> bool:
+	return truck_back_at > Time.get_unix_time_from_system()
+
+
+## Hands an order to the delivery truck: it drives off and brings the coins and XP back (M9.5).
 func deliver(i: int) -> bool:
 	var o: Dictionary = orders[i]
-	if not order_ready(i) or not take_all(o["need"]):
+	if truck_away() or not order_ready(i) or not take_all(o["need"]):
 		return false
-	add_coins(int(o["coins"]))
-	add_xp(int(o["xp"]))
+	truck_cargo += int(o["coins"])
+	truck_xp += int(o["xp"])
+	truck_back_at = Time.get_unix_time_from_system() + TRUCK_TRIP
 	event("deliver", "any")
 	var fresh := make_order()
 	fresh["wait_until"] = Time.get_unix_time_from_system() + 4.0  # a short pause before the next truck arrives
@@ -712,11 +825,11 @@ func discard(i: int) -> void:
 
 
 func max_fields() -> int:
-	return 12 + 3 * level
+	return 6 + 3 * level
 
 
 func field_price() -> int:
-	return 15 + 10 * extra_fields
+	return next_field_price()
 
 
 # ------------------------------------------------------------------ save
@@ -736,6 +849,8 @@ func save_game() -> void:
 		"quest": {"i": quest_index, "p": quest_progress, "s": quest_stage}, "restored": restored,
 		"museum_fossils": museum_fossils,
 		"stats": stats, "ach_claimed": ach_claimed, "tutorial": tutorial_step, "festival": festival,
+		"silo_level": silo_level, "barn_level": barn_level, "land": land, "cleared": cleared, "placed": placed,
+		"truck": {"back": truck_back_at, "cargo": truck_cargo, "xp": truck_xp},
 		"locale": TranslationServer.get_locale().substr(0, 2),
 		"music": Audio.music_enabled,
 		"settings": settings,
@@ -797,7 +912,16 @@ func load_game() -> bool:
 	ach_claimed = {}
 	for k in parsed.get("ach_claimed", {}):
 		ach_claimed[k] = int(parsed["ach_claimed"][k])
-	tutorial_step = int(parsed.get("tutorial", -1))
+	tutorial_step = int(parsed.get("tutorial", 0))
+	silo_level = int(parsed.get("silo_level", 0))
+	barn_level = int(parsed.get("barn_level", 0))
+	land = parsed.get("land", {})
+	cleared = parsed.get("cleared", {})
+	placed = parsed.get("placed", [])
+	var tr_d: Dictionary = parsed.get("truck", {})
+	truck_back_at = float(tr_d.get("back", 0.0))
+	truck_cargo = int(tr_d.get("cargo", 0))
+	truck_xp = int(tr_d.get("xp", 0))
 	festival = {}
 	for k in parsed.get("festival", {}):
 		var fe: Dictionary = parsed["festival"][k]

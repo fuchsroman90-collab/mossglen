@@ -13,6 +13,7 @@ Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
     (Vorbild: `hd_ui_redesign_*.png`, `hd_dialogs_wheel.png`, `hd_popups.png`, `hd_loading_shop_vertical.png`).
   - **Terrain muss besser werden** (Vorbild: `hd_winter_farm.png`).
   - **Tutorial mit fertigem Hof ist falsch**: Es muss mit einem komplett leeren Hof starten, alles selber bauen.
+  - **Flache SVG-Item-Icons** (Werkzeuge, Waren) – sollen 3D-gerendert sein wie `hd_item_icons_3d.png`.
   - **Zu viel Platz von Anfang an**: Land muss Stück für Stück erweitert werden, dafür Werkzeug sammeln.
 
 - **2026-11-13 – HUD mit 3D-gerenderten Icons und Creme-Kapseln.** „Die UI bitte in 2d und mehr an den

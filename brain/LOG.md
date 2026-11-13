@@ -2,6 +2,30 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-13 – Abend: Romans erster Test → M9.5 begonnen (Progression)
+
+- Romans Feedback komplett ins Brain (DISLIKES, DECISIONS, 11 neue Referenzen, `rejected/m9_dinos_pen.png`).
+- Herbstfarben-Flackern behoben (Zufall pro Pflanze im Blau-Kanal von self_modulate statt Positions-Hash).
+- **Progression neu** (`farm.gd`, `land_ui.gd`, Spielstand-Version 2 → alte Stände starten neu):
+  - Starthof: Bauernhaus, Scheune, Silo, Auftragstafel + Lieferwagen, 3 Felder; Startfläche = 4 von 25 Parzellen.
+  - Parzellen-Raster (`Farm.COLS/ROWS`), gesperrtes Land im Boden-Shader abgedunkelt (`land_tex`),
+    Verkaufsschild nur an Parzellen, die an eigenes Land grenzen. Kauf mit Grenzpflock, Landkarte, Maßband + Münzen.
+  - Hindernisse (Bäume, Tannen, Steine, Büsche) auf allem Land, deterministisch; Axt/Säge/Dynamit/Schaufel.
+  - Werkzeuge + Ausbau-Material als Funde (`Game.roll_find`): Ernte 5 %, Hindernis 30 %, Lieferwagen 35 %.
+  - Silo (Feldfrüchte) und Scheune (Rest) getrennt, je 50 + 25 pro Ausbaustufe, Ausbau mit eigenen Materialien.
+    Silo-Sprite zeigt Füllstand (4 Stufen).
+  - Gebäude und Gehege kauft man im neuen Karten-Shop (Reiter Felder/Gebäude/Tiere, Karten unten), platziert sie
+    (Grundriss grün/rot), dann **Baustelle** mit Bauzeit, Antippen enthüllt. Gehege mit 1 Tier, weitere im Shop.
+  - **Lieferwagen**: Abgabe lädt Münzen+XP auf den Wagen, er fährt die Dorfstraße hoch, kommt nach 45 s mit
+    Münzkiste zurück; Tafel bis dahin gesperrt; Antippen kassiert.
+  - Aufträge nur noch für Waren, die der Hof wirklich herstellen kann.
+  - Dino-Weide ins Urzeit-Tal verlegt.
+  - Anleitung neu für den leeren Hof (7 Schritte: säen, Baum fällen, ernten, Hühnerstall, liefern, kassieren, Brumm).
+- Neue 3D-Assets (`assets/progress.py`): Bauernhaus, Silo 0–3, Lieferwagen (3 Richtungen), Münzkiste,
+  Baustelle groß/klein, Land-Schild. 2D-Icons für Werkzeuge/Material (werden noch 3D, s. u.).
+- Roman: **Item-Icons müssen 3D-gerendert sein** (`hd_item_icons_3d.png`), Ausbau-Dialog-Vorbild `hd_upgrade_dialog.png`.
+- Figma-Connector ist verbunden.
+
 ## 2026-11-13 – PC-Sitzung: M9 Teil 1 (Jahreszeiten, Erfolge, Musik, Einstellungen, Anleitung, VRAM)
 
 - Jahreszeiten (`Game.season()`, echter Kalender, `--season=` zum Testen): Boden-Shader `season_tint` + `snow`

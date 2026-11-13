@@ -48,6 +48,7 @@ var fishing: FishingUI = null
 var story: StoryUI
 var extra_windows: Array[Control] = []
 var meta: MetaUI
+var land: LandUI
 var tutorial: Tutorial
 var _pedia: Control
 var _pedia_body: Control
@@ -117,6 +118,9 @@ func _ready() -> void:
 	meta = MetaUI.new()
 	add_child(meta)
 	meta.setup(self)
+	land = LandUI.new()
+	add_child(land)
+	land.setup(self)
 	_settings = meta._settings
 	story = StoryUI.new()
 	add_child(story)
@@ -146,8 +150,7 @@ func _ready() -> void:
 	_root.add_child(_toasts)
 	Game.toast.connect(toast)
 	Game.inventory_changed.connect(func(_i: String, _c: int) -> void:
-		if _barn.visible:
-			_fill_barn()
+		_fill_barn()
 		if _prod.visible:
 			_fill_prod()
 		if _orders.visible:
@@ -452,82 +455,12 @@ func _build_barn() -> void:
 	_barn.add_child(_barn_rows)
 
 
-func open_barn() -> void:
-	Audio.play("whoosh")
-	_fill_barn()
-	_open(_barn)
+func open_barn(silo := false) -> void:
+	land.open_store(silo)
 
 
 func _fill_barn() -> void:
-	_barn_title.text = "%s  %d / %d" % [tr("BARN"), Game.stored(), Game.barn_capacity]
-	for c in _barn_rows.get_children():
-		c.queue_free()
-	var y := 0.0
-	var col := 0
-	var shown := 0
-	for crop in Game.item_order():
-		if Game.count(crop) > 0 or (Game.crops.has(crop) and Game.is_unlocked(crop)):
-			shown += 1
-	var two := shown > 5
-	_barn.size.x = 1900.0 if two else 980.0
-	_barn.offset_left = -_barn.size.x / 2
-	_barn.offset_right = _barn.size.x / 2
-	(_barn.get_child(0) as Control).size.x = _barn.size.x
-	(_barn.get_child(1) as Control).position.x = _barn.size.x - 70
-	var idx := 0
-	for crop in Game.item_order():
-		if Game.count(crop) == 0 and (not Game.crops.has(crop) or not Game.is_unlocked(crop)):
-			continue
-		var row := Control.new()
-		if two:
-			col = idx % 2
-			row.position = Vector2(col * 920.0, float(idx / 2) * 140.0)
-		else:
-			row.position = Vector2(0, y)
-		idx += 1
-		_barn_rows.add_child(row)
-		var slot := _tex("slot.png")
-		slot.scale = Vector2(0.95, 0.95)
-		row.add_child(slot)
-		var icon := _tex("item_%s.png" % crop)
-		icon.scale = Vector2(0.82, 0.82)
-		icon.position = Vector2(14, 10)
-		row.add_child(icon)
-		var name_l := _dark(_label("ITEM_" + crop, 40))
-		name_l.position = Vector2(140, 6)
-		name_l.size = Vector2(300, 60)
-		row.add_child(name_l)
-		var cnt := _dark(_label("× %d" % Game.count(crop), 36))
-		cnt.position = Vector2(140, 58)
-		cnt.size = Vector2(160, 56)
-		row.add_child(cnt)
-		var coin := _tex("coin.png")
-		coin.scale = Vector2(0.5, 0.5)
-		coin.position = Vector2(300, 64)
-		row.add_child(coin)
-		var price := _dark(_label(str(Game.price(crop)), 36))
-		price.position = Vector2(360, 58)
-		price.size = Vector2(80, 56)
-		row.add_child(price)
-		var one := _pill("SELL_ONE", Vector2(470, 18), 240, Game.count(crop) > 0)
-		row.add_child(one)
-		one.pressed.connect(func() -> void: _sell(crop, 1))
-		var all := _pill("SELL_ALL", Vector2(730, 18), 150, Game.count(crop) > 0)
-		row.add_child(all)
-		all.pressed.connect(func() -> void: _sell(crop, Game.count(crop)))
-		y += 140.0
-	# fit the window to its rows
-	var h: float = 150.0 + (ceilf(idx / 2.0) * 140.0 if two else y)
-	_barn.offset_top = -h / 2
-	_barn.offset_bottom = h / 2
-	_barn.size.y = h
-
-
-func _sell(crop: String, n: int) -> void:
-	var earned := Game.sell(crop, n)
-	if earned > 0:
-		Audio.play("coin", 1.0, 0.05)
-		_fill_barn()
+	land.refresh_store()
 
 
 ## Green capsule button with a text label.
@@ -557,76 +490,7 @@ func _build_shop() -> void:
 
 
 func open_shop() -> void:
-	for c in _shop.get_children().slice(2):
-		c.queue_free()
-	var cards: Array = [{"icon": "item_field.png", "name": "FIELD", "sub": "%d / %d" % [12 + Game.extra_fields,
-		Game.max_fields()], "price": Game.field_price(), "unlock": 1, "act": func() -> void: buy_field.emit()}]
-	for i in range(1, Game.RODS.size()):
-		var r: Dictionary = Game.RODS[i]
-		if Game.rod >= i:
-			continue
-		cards.append({"icon": r["id"] + ".png", "name": r["id"].to_upper(), "sub": "ROD_SUB", "price": int(r["price"]),
-			"unlock": int(r["unlock"]), "act": func() -> void:
-				if Game.buy_rod(i):
-					Audio.play("levelup")
-					Game.toast.emit(tr(r["id"].to_upper()), r["id"] + ".png")
-				else:
-					Game.toast.emit(tr("NOT_ENOUGH_COINS"), "coin.png")})
-	var w := 80.0 + cards.size() * 420.0
-	_shop.size = Vector2(w, 520)
-	_shop.offset_left = -w / 2
-	_shop.offset_right = w / 2
-	(_shop.get_child(0) as Control).size.x = w
-	(_shop.get_child(1) as Control).position.x = w - 70
-	for i in cards.size():
-		var c: Dictionary = cards[i]
-		var card := Control.new()
-		card.position = Vector2(60 + i * 420, 110)
-		_shop.add_child(card)
-		var slot := _tex("slot.png")
-		slot.scale = Vector2(1.2, 1.2)
-		slot.position = Vector2(110, 0)
-		card.add_child(slot)
-		var icon := _tex(c["icon"])
-		icon.scale = Vector2(1.05, 1.05)
-		icon.position = Vector2(128, 16)
-		card.add_child(icon)
-		var name_l := _dark(_label(c["name"], 40))
-		name_l.position = Vector2(0, 160)
-		name_l.size = Vector2(380, 60)
-		name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		card.add_child(name_l)
-		var sub := _dark(_label(c["sub"], 28))
-		sub.position = Vector2(0, 214)
-		sub.size = Vector2(380, 44)
-		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		card.add_child(sub)
-		if Game.level < int(c["unlock"]):
-			var lv := _dark(_label(tr("FROM_LEVEL") % int(c["unlock"]), 36))
-			lv.position = Vector2(0, 280)
-			lv.size = Vector2(380, 70)
-			lv.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			card.add_child(lv)
-			continue
-		var buy := _pill("", Vector2(60, 270), 260, Game.coins >= int(c["price"]))
-		card.add_child(buy)
-		var coin := _tex("coin.png")
-		coin.scale = Vector2(0.62, 0.62)
-		coin.position = Vector2(30, 12)
-		buy.add_child(coin)
-		var price := _label(str(c["price"]), 44)
-		price.position = Vector2(100, 0)
-		price.size = Vector2(140, 86)
-		buy.add_child(price)
-		var act: Callable = c["act"]
-		buy.pressed.connect(func() -> void:
-			Audio.play("click")
-			_shop.hide()
-			act.call())
-	_open(_shop)
-
-
-# ------------------------------------------------------------------ dino-pedia
+	land.open_shop()
 
 func open_dinopedia() -> void:
 	Audio.play("click")
@@ -942,11 +806,14 @@ func _fill_orders() -> void:
 		xl.position = Vector2(276, 186)
 		xl.size = Vector2(90, 64)
 		card.add_child(xl)
-		var go := _pill("DELIVER", Vector2(30, 258), 230, Game.has_all(need))
+		var go := _pill("DELIVER", Vector2(30, 258), 230, Game.has_all(need) and not Game.truck_away())
 		go.pressed.connect(func() -> void:
-			if Game.deliver(i):
-				Audio.play("coin", 1.2)
-				Game.toast.emit(tr("ORDER_DONE"), "coin.png"))
+			if Game.truck_away():
+				Game.toast.emit(tr("TRUCK_AWAY"), "ico_truck.png")
+			elif Game.deliver(i):
+				Audio.play("whoosh", 0.9)
+				Game.toast.emit(tr("TRUCK_GONE"), "ico_truck.png")
+				close_menus())
 		card.add_child(go)
 		var bin := TextureButton.new()
 		bin.texture_normal = load(UI + "btn_round.png")

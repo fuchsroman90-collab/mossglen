@@ -4,6 +4,7 @@ shader_type canvas_item;
 
 uniform sampler2D grass_tex : repeat_enable, filter_linear_mipmap;
 uniform sampler2D dirt_tex : repeat_enable, filter_linear_mipmap;
+uniform sampler2D land_tex : filter_linear;    // 1 = own land (or outside the farm), 0 = still locked
 uniform sampler2D mask_tex : filter_linear;   // r = dirt, g = water, b = primeval moss per cell
 uniform vec2 mask_origin = vec2(-10.0, -10.0);  // grid coord of mask pixel (0, 0)
 uniform float mask_size = 64.0;
@@ -69,5 +70,9 @@ void fragment() {
 	float foam = smoothstep(0.42, 0.47, wv) * (1.0 - smoothstep(0.47, 0.56, wv));
 	wcol = mix(wcol, vec3(0.92, 0.99, 1.0), foam * 0.7);
 	col = mix(col, wcol, water);
+	// land that is not yours yet: a little darker and greyer, with a soft edge
+	float own = smoothstep(0.25, 0.75, texture(land_tex, (g - mask_origin + 0.5) / mask_size).r);
+	float lum = dot(col, vec3(0.3, 0.59, 0.11));
+	col = mix(mix(col, vec3(lum), 0.35) * vec3(0.78, 0.8, 0.78), col, own);
 	COLOR = vec4(col, 1.0);
 }

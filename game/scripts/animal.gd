@@ -113,6 +113,10 @@ func feed(at := -1.0) -> void:
 	_update_bubble()
 
 
+func product() -> String:
+	return str(def().get("product", ""))
+
+
 func collect() -> String:
 	if not is_ready():
 		return ""

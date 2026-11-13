@@ -118,5 +118,57 @@
 	},
 	"egg_brontobeere": {
 		"sell": 140
+	},
+	"axe": {
+		"sell": 15,
+		"kind": "tool"
+	},
+	"saw": {
+		"sell": 15,
+		"kind": "tool"
+	},
+	"dynamite": {
+		"sell": 15,
+		"kind": "tool"
+	},
+	"shovel": {
+		"sell": 15,
+		"kind": "tool"
+	},
+	"stake": {
+		"sell": 20,
+		"kind": "land"
+	},
+	"land_map": {
+		"sell": 20,
+		"kind": "land"
+	},
+	"tape": {
+		"sell": 20,
+		"kind": "land"
+	},
+	"rivet": {
+		"sell": 20,
+		"kind": "silo"
+	},
+	"plank": {
+		"sell": 20,
+		"kind": "silo"
+	},
+	"rope": {
+		"sell": 20,
+		"kind": "silo"
+	},
+	"nail": {
+		"sell": 20,
+		"kind": "barn"
+	},
+	"hinge": {
+		"sell": 20,
+		"kind": "barn"
+	},
+	"paint": {
+		"sell": 20,
+		"kind": "barn"
 	}
 }

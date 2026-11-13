@@ -31,6 +31,7 @@ REGISTRY = [
     ("animals", "pig_frames", False, 40),
     ("icons", "icon_frames", False, 48),
     ("village", "village_frames", True, 48),
+    ("progress", "progress_frames", True, 56),
 ]
 
 
@@ -38,12 +39,12 @@ REGISTRY = [
 DEPS = {
     "buildings": ["farm", "nature"],
     "farm": ["nature"],
-    "village": ["animals", "buildings", "farm", "nature"],
+    "village": ["animals", "buildings", "farm", "nature"], "progress": ["buildings", "farm", "nature"],
 }
 
 
 # camera-facing sprites that float in the air: no ground shadow
-NO_SHADOW = {"mill_sails", "fx_bee"}
+NO_SHADOW = {"mill_sails", "fx_bee", "coin_crate"}
 
 
 def module_hash(module: str) -> str:
