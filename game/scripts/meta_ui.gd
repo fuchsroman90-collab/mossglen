@@ -16,6 +16,10 @@ var _ach_list: VBoxContainer
 var _settings: Control
 var _toggles: Dictionary = {}  ## key -> TextureButton
 var _text_value: Label
+var _chip: TextureButton
+var _chip_dot: Control
+var _fest: Control
+var _fest_body: Control
 var _lang_value: Label
 
 
@@ -46,9 +50,9 @@ func setup(h: Hud) -> void:
 	hud.extra_windows.append(_ach)
 	for sig in [Game.achievements_changed, Game.leveled_up, Game.fish_caught, Game.dino_hatched]:
 		sig.connect(func(_a = null, _b = null) -> void: _refresh_badge())
-	_refresh_badge()
 	_build_season_chip()
 	_build_settings()
+	_refresh_badge()
 
 
 # ------------------------------------------------------------------ achievements
@@ -62,6 +66,9 @@ func _refresh_badge() -> void:
 		hud._pop(trophy, 1.25)
 	if _ach.visible:
 		_fill_achievements()
+	_chip_dot.visible = Game.festival_claimable()
+	if _fest.visible:
+		_fill_festival()
 
 
 func open_achievements() -> void:
@@ -162,21 +169,105 @@ func _claim(id: String) -> void:
 
 func _build_season_chip() -> void:
 	var s := Game.season()
-	var b := TextureButton.new()
-	b.texture_normal = load(Hud.UI + "season_%s.png" % s)
-	b.ignore_texture_size = true
-	b.stretch_mode = TextureButton.STRETCH_SCALE
-	b.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	b.offset_left = -112
-	b.offset_top = 250
-	b.offset_right = -24
-	b.offset_bottom = 338
-	b.focus_mode = Control.FOCUS_NONE
-	hud._press_feedback(b)
-	hud._root.add_child(b)
-	b.pressed.connect(func() -> void:
-		Audio.play("click")
-		Game.toast.emit(tr("SEASON_INFO") % [tr("SEASON_" + s), _season_crops()], "season_%s.png" % s))
+	_chip = TextureButton.new()
+	_chip.texture_normal = load(Hud.UI + "season_%s.png" % s)
+	_chip.ignore_texture_size = true
+	_chip.stretch_mode = TextureButton.STRETCH_SCALE
+	_chip.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_chip.offset_left = -112
+	_chip.offset_top = 250
+	_chip.offset_right = -24
+	_chip.offset_bottom = 338
+	_chip.focus_mode = Control.FOCUS_NONE
+	hud._press_feedback(_chip)
+	hud._root.add_child(_chip)
+	_chip_dot = hud._tex("badge.png")
+	_chip_dot.modulate = Color(1.0, 0.45, 0.35)
+	_chip_dot.scale = Vector2(0.6, 0.6)
+	_chip_dot.position = Vector2(58, -4)
+	_chip.add_child(_chip_dot)
+	_chip.pressed.connect(open_festival)
+	_fest = hud._panel_window(Vector2(1160, 760), "")[0]
+	_fest_body = Control.new()
+	_fest.add_child(_fest_body)
+	hud.extra_windows.append(_fest)
+
+
+func open_festival() -> void:
+	Audio.play("click")
+	_fill_festival()
+	hud._open(_fest)
+
+
+func _fill_festival() -> void:
+	for c in _fest_body.get_children():
+		c.queue_free()
+	var s := Game.season()
+	var f := Game.festival_def()
+	var st := Game.festival_state()
+	(_fest.get_child(0) as Label).text = tr("FEST_" + s)
+	var badge := hud._tex("season_%s.png" % s)
+	badge.position = Vector2(60, 120)
+	badge.scale = Vector2(2.2, 2.2)
+	_fest_body.add_child(badge)
+	var goal := hud._dark(hud._label("FEST_GOAL_" + s, 40))
+	goal.position = Vector2(260, 120)
+	goal.size = Vector2(840, 70)
+	goal.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_fest_body.add_child(goal)
+	var info := hud._dark(hud._label(tr("FEST_INFO") % _season_crops(), 32))
+	info.position = Vector2(260, 196)
+	info.size = Vector2(840, 90)
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD
+	info.modulate.a = 0.85
+	_fest_body.add_child(info)
+	# progress capsule with three stage medals
+	var tiers: Array = f["tiers"]
+	var top := float(tiers[2])
+	var n := int(st["n"])
+	var back := hud._patch("bar_back.png", 32, 30)
+	back.position = Vector2(80, 360)
+	back.size = Vector2(1000, 70)
+	_fest_body.add_child(back)
+	var fill := hud._patch("bar_fill.png", 20, 18)
+	fill.position = Vector2(12, 13)
+	fill.size = Vector2(44.0 + 932.0 * clampf(n / top, 0.0, 1.0), 44)
+	back.add_child(fill)
+	var num := hud._label("%d / %d" % [mini(n, int(top)), int(top)], 30)
+	num.size = Vector2(1000, 70)
+	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	back.add_child(num)
+	for i in 3:
+		var x := 80.0 + 950.0 * float(tiers[i]) / top
+		var reached := n >= int(tiers[i])
+		var m := hud._tex((MEDALS[i] if reached else "medal_empty") + ".png")
+		m.position = Vector2(x - 36, 440)
+		_fest_body.add_child(m)
+		var c := int(f["coins"][i])
+		var reward := hud._label("+%d" % (c if c > 0 else int(f["gems"][i])), 30)
+		reward.position = Vector2(x - 110, 512)
+		reward.size = Vector2(110, 56)
+		reward.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_fest_body.add_child(reward)
+		var ic := hud._tex("coin.png" if c > 0 else "gem.png")
+		ic.scale = Vector2(0.45, 0.45)
+		ic.position = Vector2(x + 4, 514)
+		_fest_body.add_child(ic)
+		if i < int(st["claimed"]):
+			var ok := hud._tex("ico_check.png")
+			ok.position = Vector2(x - 32, 446)
+			_fest_body.add_child(ok)
+	if Game.festival_claimable():
+		var b := hud._pill("FEST_CLAIM", Vector2(430, 600), 300)
+		b.pressed.connect(func() -> void:
+			var got := Game.claim_festival()
+			if got.is_empty():
+				return
+			Audio.play("achieve")
+			Game.toast.emit(tr("FEST_TOAST") % [tr("FEST_" + s), int(Game.festival_state()["claimed"])],
+				"season_%s.png" % s)
+			_refresh_badge())
+		_fest_body.add_child(b)
 
 
 func _season_crops() -> String:

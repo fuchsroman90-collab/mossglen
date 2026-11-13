@@ -20,7 +20,15 @@ Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 - Erster Winter-Versuch: Schnee fast überall, wirkte blau/flach (Screenshot lief bei Abendlicht) → weiche
   Verwehungen mit Gras dazwischen. Screenshots immer mit `--time=0.5` beurteilen.
 
-Offen: Saison-Events, Balancing, M6 (wartet auf Romans Supabase-Entscheidung).
+Teil 2 (gleicher Abend):
+- Saisonfeste `data/events.json` + `Game.festival_*` (Schlüssel z. B. `autumn_2026`), Fenster über die
+  Saison-Plakette, roter Punkt wenn Stufe abholbar. `--ui=fest` für Screenshots.
+- Balancing per Python-Auswertung der Daten (Mehrwert/Minute je Rezept): Preise für Kuhfutter, Schweinefutter,
+  Milch, Butter, Käse, Karottenkuchen, Stoff, Schal, Kerze, Festkerze, Tomatensoße, Erdbeermarmelade angehoben.
+  `xp_needed = 10 + 6·L + 1,5·L²`.
+- Stolperfalle: `%` in Übersetzungen, die mit `%` formatiert werden, muss `%%` sein.
+
+Offen: M6 (wartet auf Romans Supabase-Entscheidung), iPhone-FPS-Test.
 
 ## 2026-11-13 – PC-Sitzung: M4 Dinos + M5 Dorf und Story
 

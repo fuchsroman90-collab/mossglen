@@ -1330,6 +1330,10 @@ func _debug_ui(which: String) -> void:
 				Game.dino_seen[d["id"]] = true
 			hud.open_dinopedia()
 			hud._fill_pedia("trikeri")
+		"fest":
+			Game.festival_state()["n"] = 170
+			Game.festival_state()["claimed"] = 1
+			hud.meta.open_festival()
 		"ach":
 			Game.stats = {"harvest": 1240, "harvest:wheat": 520, "collect": 75, "make": 30, "deliver": 12,
 				"catch": 8, "dig": 3, "earn": 4200}
@@ -1556,6 +1560,14 @@ func _run_smoke() -> void:
 	hud.meta.open_achievements()
 	if hud.meta._ach_list.get_child_count() != Game.achievements.size():
 		errors.append("achievement list incomplete")
+	# M9: seasonal festival counts matching events and pays out each stage once
+	var fd := Game.festival_def()
+	var coins_f := Game.coins
+	Game.event(fd["type"], fd["id"] if fd["id"] != "any" else "wheat", int(fd["tiers"][0]))
+	if not Game.festival_claimable() or Game.claim_festival().is_empty() or Game.coins <= coins_f \
+			or Game.festival_claimable():
+		errors.append("festival stage failed")
+	hud.meta.open_festival()
 	# M9: settings
 	hud.meta.toggle_settings()
 	Game.set_setting("text", 1.3)

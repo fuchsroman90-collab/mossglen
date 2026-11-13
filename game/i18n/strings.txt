@@ -191,7 +191,7 @@ SEASON_spring	Frühling	Spring
 SEASON_summer	Sommer	Summer
 SEASON_autumn	Herbst	Autumn
 SEASON_winter	Winter	Winter
-SEASON_INFO	%s – %s wächst jetzt 20 % schneller.	%s – %s grows 20 % faster now.
+SEASON_INFO	%s – %s wächst jetzt 20 %% schneller.	%s – %s grows 20 %% faster now.
 IN_SEASON	Saison	In season
 SET_MUSIC	Musik	Music
 SET_SFX	Geräusche	Sounds
@@ -208,3 +208,14 @@ TUT_3	Am Auftragsbrett bestellen die Leute Waren gegen Münzen. Tippe darauf.	At
 TUT_4	Müller Brumm braucht deine Hilfe. Tippe oben links auf seine Aufgabe.	Miller Brumm needs your help. Tap his task at the top left.
 TUT_DONE	Super! Jetzt gehört der Hof dir. Viel Spaß in Mossglen!	Great! The farm is yours now. Have fun in Mossglen!
 TUT_SKIP	Überspringen	Skip
+FEST_spring	Blütenfest	Blossom festival
+FEST_summer	Sommer-Angelfest	Summer fishing festival
+FEST_autumn	Erntedankfest	Harvest festival
+FEST_winter	Lichterwerkstatt	Winter workshop
+FEST_GOAL_spring	Ernte Erdbeeren für das Blütenfest.	Harvest strawberries for the blossom festival.
+FEST_GOAL_summer	Fange Fische für das große Angelfest.	Catch fish for the big fishing festival.
+FEST_GOAL_autumn	Ernte Mais für das Erntedankfest.	Harvest corn for the harvest festival.
+FEST_GOAL_winter	Stelle Waren in deinen Werkstätten her.	Make goods in your workshops.
+FEST_INFO	Das Fest läuft die ganze Jahreszeit. %s wächst jetzt 20 %% schneller.	The festival lasts all season. %s grows 20 %% faster now.
+FEST_CLAIM	Abholen	Claim
+FEST_TOAST	%s: Stufe %d geschafft!	%s: stage %d done!

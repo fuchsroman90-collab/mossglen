@@ -3,13 +3,13 @@
 		"sell": 4
 	},
 	"feed_cow": {
-		"sell": 7
+		"sell": 9
 	},
 	"egg": {
 		"sell": 8
 	},
 	"milk": {
-		"sell": 14
+		"sell": 16
 	},
 	"bread": {
 		"sell": 14
@@ -18,22 +18,22 @@
 		"sell": 40
 	},
 	"carrot_cake": {
-		"sell": 55
+		"sell": 58
 	},
 	"cream": {
 		"sell": 22
 	},
 	"butter": {
-		"sell": 38
+		"sell": 40
 	},
 	"cheese": {
-		"sell": 56
+		"sell": 60
 	},
 	"feed_sheep": {
 		"sell": 6
 	},
 	"feed_pig": {
-		"sell": 9
+		"sell": 10
 	},
 	"wool": {
 		"sell": 22
@@ -45,16 +45,16 @@
 		"sell": 18
 	},
 	"strawberry_jam": {
-		"sell": 95
+		"sell": 98
 	},
 	"honey_jam": {
 		"sell": 80
 	},
 	"cloth": {
-		"sell": 50
+		"sell": 58
 	},
 	"scarf": {
-		"sell": 75
+		"sell": 84
 	},
 	"popcorn": {
 		"sell": 20
@@ -63,16 +63,16 @@
 		"sell": 65
 	},
 	"tomato_sauce": {
-		"sell": 62
+		"sell": 66
 	},
 	"truffle_sauce": {
 		"sell": 66
 	},
 	"candle": {
-		"sell": 42
+		"sell": 50
 	},
 	"festive_candle": {
-		"sell": 110
+		"sell": 135
 	},
 	"fossil": {
 		"sell": 25

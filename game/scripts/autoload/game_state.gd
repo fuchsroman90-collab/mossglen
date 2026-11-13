@@ -48,6 +48,8 @@ var museum_fossils := 0
 var achievements: Array = []  ## data/achievements.json
 var stats: Dictionary = {}  ## "harvest" / "harvest:wheat" / "earn" ... -> total
 var ach_claimed: Dictionary = {}  ## achievement id -> tiers already claimed (0..3)
+var season_events: Dictionary = {}  ## data/events.json: one festival goal per season
+var festival: Dictionary = {}  ## "autumn_2026" -> {"n": progress, "claimed": tiers claimed}
 var tutorial_step := 0  ## see tutorial.gd; -1 = finished or skipped (old saves skip it)
 const SEASONS := ["spring", "summer", "autumn", "winter"]
 const SEASON_BONUS := 0.8  ## crops of the current season grow in 80 % of the time
@@ -96,6 +98,7 @@ func _ready() -> void:
 	for d in dinos:
 		dino_by_id[d["id"]] = d
 	achievements = JSON.parse_string(FileAccess.get_file_as_string("res://data/achievements.json"))
+	season_events = _json("res://data/events.json")
 	_load_translations()
 	var lang := OS.get_locale_language()
 	TranslationServer.set_locale(lang if lang in LOCALES else "en")
@@ -153,8 +156,9 @@ func add_emeralds(n: int) -> void:
 	mark_dirty()
 
 
+## Gentle early levels, then a quadratic curve so later levels take a few play sessions (balancing, M9).
 func xp_needed() -> int:
-	return 8 + level * 6
+	return 10 + level * 6 + int(1.5 * level * level)
 
 
 func add_xp(n: int) -> void:
@@ -358,6 +362,7 @@ func event(type: String, id: String, n := 1) -> void:
 	_count_stat(type, n)
 	if id != "any":
 		_count_stat(type + ":" + id, n)
+	_festival_count(type, id, n)
 	game_event.emit(type, id)
 	var q := quest()
 	if q.is_empty() or quest_stage != "active":
@@ -370,6 +375,71 @@ func event(type: String, id: String, n := 1) -> void:
 		quest_stage = "ready"
 	quest_changed.emit()
 	mark_dirty()
+
+
+# ------------------------------------------------------------------ seasonal festival
+
+## Key of the running festival, e.g. "autumn_2026" (winter Jan/Feb belongs to the winter that began in December).
+func festival_key() -> String:
+	var d := Time.get_date_dict_from_system()
+	var y: int = d["year"]
+	if season() == "winter" and int(d["month"]) <= 2:
+		y -= 1
+	return "%s_%d" % [season(), y]
+
+
+func festival_def() -> Dictionary:
+	return season_events.get(season(), {})
+
+
+func festival_state() -> Dictionary:
+	var k := festival_key()
+	if not festival.has(k):
+		festival[k] = {"n": 0, "claimed": 0}
+	return festival[k]
+
+
+func _festival_count(type: String, id: String, n: int) -> void:
+	var f := festival_def()
+	if f.is_empty() or f["type"] != type or (f["id"] != "any" and f["id"] != id):
+		return
+	var st := festival_state()
+	var before := festival_claimable()
+	st["n"] = int(st["n"]) + n
+	if festival_claimable() != before:
+		achievements_changed.emit()
+
+
+func festival_reached() -> int:
+	var t := 0
+	for need in festival_def().get("tiers", []):
+		if int(festival_state()["n"]) >= int(need):
+			t += 1
+	return t
+
+
+func festival_claimable() -> bool:
+	return festival_reached() > int(festival_state()["claimed"])
+
+
+## Claims the next festival tier; returns [coins, emeralds] (empty if nothing to claim).
+func claim_festival() -> Array:
+	if not festival_claimable():
+		return []
+	var st := festival_state()
+	var tier := int(st["claimed"])
+	var f := festival_def()
+	var c := int(f["coins"][tier])
+	var g := int(f["gems"][tier])
+	st["claimed"] = tier + 1
+	if c > 0:
+		add_coins(c)
+	if g > 0:
+		add_emeralds(g)
+	add_xp(10 * (tier + 1))
+	achievements_changed.emit()
+	mark_dirty()
+	return [c, g]
 
 
 # ------------------------------------------------------------------ achievements
@@ -665,7 +735,7 @@ func save_game() -> void:
 		"meadow": meadow, "dino_seen": dino_seen, "digs": digs,
 		"quest": {"i": quest_index, "p": quest_progress, "s": quest_stage}, "restored": restored,
 		"museum_fossils": museum_fossils,
-		"stats": stats, "ach_claimed": ach_claimed, "tutorial": tutorial_step,
+		"stats": stats, "ach_claimed": ach_claimed, "tutorial": tutorial_step, "festival": festival,
 		"locale": TranslationServer.get_locale().substr(0, 2),
 		"music": Audio.music_enabled,
 		"settings": settings,
@@ -728,6 +798,10 @@ func load_game() -> bool:
 	for k in parsed.get("ach_claimed", {}):
 		ach_claimed[k] = int(parsed["ach_claimed"][k])
 	tutorial_step = int(parsed.get("tutorial", -1))
+	festival = {}
+	for k in parsed.get("festival", {}):
+		var fe: Dictionary = parsed["festival"][k]
+		festival[k] = {"n": int(fe["n"]), "claimed": int(fe["claimed"])}
 	orders = []
 	for o in parsed.get("orders", []):
 		var need := {}

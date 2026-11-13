@@ -1,0 +1,6 @@
+{
+	"spring": {"type": "harvest", "id": "strawberry", "tiers": [30, 100, 250], "coins": [150, 0, 0], "gems": [0, 3, 8]},
+	"summer": {"type": "catch", "id": "any", "tiers": [15, 50, 120], "coins": [150, 0, 0], "gems": [0, 3, 8]},
+	"autumn": {"type": "harvest", "id": "corn", "tiers": [40, 150, 400], "coins": [150, 0, 0], "gems": [0, 3, 8]},
+	"winter": {"type": "make", "id": "any", "tiers": [20, 60, 150], "coins": [150, 0, 0], "gems": [0, 3, 8]}
+}
