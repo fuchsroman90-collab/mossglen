@@ -272,10 +272,10 @@ Entschieden: Free-to-play, Zielgruppe alle, Budget 0 €, iPhone 11 vorhanden, N
 
 ## 15. Status
 
-**M2 Tiere und Produktion – Teil a fertig (2026-11-13)**
-- Schleife Feld → Tier → Produkt → Auftrag spielbar: Futtermühle, Bäckerei, Molkerei (8 Rezepte),
-  Hühner (Eier) und Kühe (Milch), Auftragstafel mit 6 Aufträgen, Offline-Fortschritt.
-- Offen (M2b): Schafe, Schweine, Bienen, 5 weitere Produktionsgebäude.
+**M2 Tiere und Produktion – fertig (2026-11-13)**
+- 5 Tierarten: Hühner (Ei), Kühe (Milch), Schafe (Wolle), Schweine (Trüffel), Bienen (Honig, automatisch).
+- 8 Produktionsgebäude + Bienenstock: Futtermühle, Bäckerei, Molkerei, Marmeladenküche, Webstuhl, Popcornwagen,
+  Soßenküche, Kerzenzieherei (20 Rezepte), Warteschlangen, Offline-Fortschritt, Auftragstafel.
 
 **M1 Kern-Loop (Vertical Slice) – fertig bis auf Gerätetest (2026-11-13, PC-Sitzung)**
 - 5 Pflanzen (Weizen, Mais, Karotte, Tomate, Erdbeere) datengetrieben, je 4 Wachstumsstufen in 3D.

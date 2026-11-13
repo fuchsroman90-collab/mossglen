@@ -1,12 +1,77 @@
 {
-	"feed_chicken": {"sell": 4},
-	"feed_cow": {"sell": 7},
-	"egg": {"sell": 8},
-	"milk": {"sell": 14},
-	"bread": {"sell": 14},
-	"corn_bread": {"sell": 40},
-	"carrot_cake": {"sell": 55},
-	"cream": {"sell": 22},
-	"butter": {"sell": 38},
-	"cheese": {"sell": 56}
+	"feed_chicken": {
+		"sell": 4
+	},
+	"feed_cow": {
+		"sell": 7
+	},
+	"egg": {
+		"sell": 8
+	},
+	"milk": {
+		"sell": 14
+	},
+	"bread": {
+		"sell": 14
+	},
+	"corn_bread": {
+		"sell": 40
+	},
+	"carrot_cake": {
+		"sell": 55
+	},
+	"cream": {
+		"sell": 22
+	},
+	"butter": {
+		"sell": 38
+	},
+	"cheese": {
+		"sell": 56
+	},
+	"feed_sheep": {
+		"sell": 6
+	},
+	"feed_pig": {
+		"sell": 9
+	},
+	"wool": {
+		"sell": 22
+	},
+	"truffle": {
+		"sell": 30
+	},
+	"honey": {
+		"sell": 18
+	},
+	"strawberry_jam": {
+		"sell": 95
+	},
+	"honey_jam": {
+		"sell": 80
+	},
+	"cloth": {
+		"sell": 50
+	},
+	"scarf": {
+		"sell": 75
+	},
+	"popcorn": {
+		"sell": 20
+	},
+	"butter_popcorn": {
+		"sell": 65
+	},
+	"tomato_sauce": {
+		"sell": 62
+	},
+	"truffle_sauce": {
+		"sell": 66
+	},
+	"candle": {
+		"sell": 42
+	},
+	"festive_candle": {
+		"sell": 110
+	}
 }

@@ -29,7 +29,7 @@ var emeralds := 5
 var xp := 0
 var level := 1
 var inventory: Dictionary = {"wheat": 6, "feed_chicken": 3}
-var barn_capacity := 50
+var barn_capacity := 80
 var extra_fields := 0
 var font_bold: FontVariation
 var font_regular: FontVariation

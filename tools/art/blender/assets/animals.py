@@ -361,3 +361,137 @@ def cow_frames():
                                           (0.07, 0.3, 1), (0.03, 0.12, 0)]):
             out[f"cow_eat_{facing}_{i}"] = (lambda fw=fw, dn=dn, ch=ch, yaw=yaw: cow(yaw, head=(fw, dn), chew=ch))
     return out
+
+
+# ---------------------------------------------------------------- sheep
+
+def _wool_mat():
+    return __import__("blender.assets.nature", fromlist=["x"]).foliage_mat(
+        "wool", "#FFFDF6", "#D9D0C0", noise_scale=22.0, z0=0.1, z1=0.7, rough=0.9)
+
+
+def sheep(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squash=0.0):
+    """Fluffy chibi sheep, ~0.65 m tall. Wool = many bumpy puffs, dark face and legs."""
+    import random as _r
+    rng = _r.Random(3)
+    root = kit.empty("sheep", rot=(0, 0, math.radians(yaw)))
+    body = kit.empty("body", loc=(0, 0, body_z), parent=root)
+    s = 1.0 + squash
+    wool = _wool_mat()
+    nature = __import__("blender.assets.nature", fromlist=["x"])
+    for x, y, z, r in [(0, 0, 0.42, 0.27), (-0.18, 0.08, 0.4, 0.2), (-0.18, -0.08, 0.4, 0.2), (0.16, 0.0, 0.44, 0.2),
+                       (0.02, 0.14, 0.5, 0.16), (0.02, -0.14, 0.5, 0.16), (-0.08, 0, 0.58, 0.17), (-0.3, 0, 0.44, 0.13)]:
+        nature.leaf_clump((x, y, z * s), r, wool, rng, parent=body, squash=0.95, bumps=0.28)
+    face = mat("sheep_face", "#4C4645", rough=0.6, spec=0.2, edge=0.45, edge_color="#1E1A1A")
+    hx, hd = head
+    head_c = Vector((0.32 + hx, 0, 0.5 - hd))
+    ho = kit.to_mesh(kit.blob([{"co": tuple(head_c), "r": 0.17, "type": "ELLIPSOID", "size": (1.15, 0.85, 0.9)},
+                               {"co": tuple(head_c + Vector((0.1, 0, -0.05))), "r": 0.11}], face, name="shead",
+                              parent=body))
+    surf = kit.Surface([ho])
+    nature.leaf_clump(head_c + Vector((-0.04, 0, 0.11)), 0.1, wool, rng, parent=body, squash=0.8)  # wool cap
+    look = _rotz(kit.TO_CAM, -yaw)
+    hw = kit.world(body, head_c)
+    for side in (-1, 1):
+        dl = Vector((0.65, side * 0.6, 0.25))
+        p, n = surf.toward(hw, kit.world(root, dl) - kit.world(root, (0, 0, 0)))
+        if p is not None:
+            hr = (body.matrix_world.inverted() @ p - head_c).length
+            eye(head_c, hr, dl, 0.055, body, look=look, lid=blink, lid_color="#4C4645")
+        kit.sphere(0.06, face, loc=head_c + Vector((-0.04, side * 0.17, 0.0)), scale=(0.6, 1.5, 0.4),
+                   rot=(side * -0.3, 0, 0), seg=14, parent=body)
+    kit.sphere(0.025, mat("sheep_nose", "#2A2424", rough=0.5, edge=0.0), loc=head_c + Vector((0.2, 0, -0.04)),
+               scale=(0.6, 1.2, 0.7), seg=10, parent=body)
+    for (lx, ly, ang) in ((0.14, -0.1, legs[0]), (0.14, 0.1, legs[1]), (-0.18, -0.1, legs[1]), (-0.18, 0.1, legs[0])):
+        hip = kit.empty("hip", loc=(lx, ly, 0.25), rot=(0, math.radians(ang), 0), parent=root)
+        kit.cyl(0.035, 0.24, face, loc=(0, 0, -0.24), bevel=0.0, verts=10, parent=hip)
+    return root
+
+
+def sheep_frames():
+    out = {}
+    for facing, yaw in (("se", 0.0), ("ne", 90.0)):
+        for i in range(6):
+            w = math.sin(i / 6 * 2 * math.pi)
+            out[f"sheep_idle_{facing}_{i}"] = (lambda w=w, i=i, yaw=yaw: sheep(
+                yaw, squash=0.02 * w, head=(0.0, 0.01 * w), blink=1.0 if i == 3 else 0.0))
+        for i in range(8):
+            t = i / 8
+            sw = math.sin(t * 2 * math.pi)
+            out[f"sheep_walk_{facing}_{i}"] = (lambda sw=sw, t=t, yaw=yaw: sheep(
+                yaw, legs=(24 * sw, -24 * sw), body_z=0.02 * abs(math.cos(t * 2 * math.pi))))
+        for i, (fw, dn) in enumerate([(0.02, 0.08), (0.05, 0.2), (0.06, 0.27), (0.06, 0.25), (0.06, 0.27),
+                                      (0.02, 0.1)]):
+            out[f"sheep_eat_{facing}_{i}"] = (lambda fw=fw, dn=dn, yaw=yaw: sheep(yaw, head=(fw, dn)))
+    return out
+
+
+# ---------------------------------------------------------------- pig
+
+PIG_PINK = "#FFB3B5"
+
+
+def pig(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squash=0.0):
+    """Round chibi pig, ~0.55 m tall. Sniffs for truffles."""
+    root = kit.empty("pig", rot=(0, 0, math.radians(yaw)))
+    body = kit.empty("body", loc=(0, 0, body_z), parent=root)
+    s = 1.0 + squash
+    skin = mat("pig_skin", PIG_PINK, rough=0.5, spec=0.25, edge=0.55, edge_color="#B05A66", sss=0.08)
+    hx, hd = head
+    head_c = Vector((0.3 + hx, 0, 0.4 - hd))
+    bo = kit.to_mesh(kit.blob(
+        kit.chain([(-0.22, 0, 0.32), (0.0, 0, 0.34 * s), (0.18 + hx * 0.5, 0, 0.36 - hd * 0.5)],
+                  [0.22, 0.27, 0.22], steps=6)
+        + [{"co": tuple(head_c), "r": 0.22, "type": "ELLIPSOID", "size": (0.95, 1.0, 0.95), "stiff": 2.0}],
+        skin, name="pig", parent=body))
+    surf = kit.Surface([bo])
+    snout_m = mat("pig_snout", "#FF9AA2", rough=0.45, spec=0.3, edge=0.5, edge_color="#A8505C")
+    sn = head_c + Vector((0.17, 0, -0.03))
+    kit.cyl(0.075, 0.06, snout_m, loc=sn, rot=(0, math.radians(90), 0), bevel=0.02, verts=20, parent=body)
+    nos = mat("pig_nostril", "#B0505C", rough=0.6, edge=0.0)
+    for side in (-1, 1):
+        kit.sphere(0.016, nos, loc=sn + Vector((0.062, side * 0.028, 0)), scale=(0.5, 1, 1.3), seg=8, parent=body)
+    look = _rotz(kit.TO_CAM, -yaw)
+    hw = kit.world(body, head_c)
+    for side in (-1, 1):
+        dl = Vector((0.62, side * 0.55, 0.42))
+        p, n = surf.toward(hw, kit.world(root, dl) - kit.world(root, (0, 0, 0)))
+        if p is not None:
+            hr = (body.matrix_world.inverted() @ p - head_c).length
+            eye(head_c, hr, dl, 0.052, body, look=look, lid=blink, lid_color=PIG_PINK)
+        # floppy ears
+        kit.sphere(0.075, skin, loc=head_c + Vector((-0.02, side * 0.12, 0.12)), scale=(0.9, 0.7, 0.3),
+                   rot=(side * 0.45, 0.45, 0), seg=14, parent=body)
+        kit.sphere(0.035, mat("pig_cheek", "#FF8A96", rough=0.6, edge=0.2),
+                   loc=head_c + Vector((0.1, side * 0.12, -0.06)), scale=(1, 1, 0.5), seg=10, parent=body)
+    # curly tail
+    pts = [(-0.33, 0, 0.36)]
+    for k in range(1, 7):
+        a = k * 1.1
+        pts.append((-0.39 - 0.022 * math.sin(a), 0.028 * math.cos(a), 0.38 + k * 0.01))
+    kit.curve_tube(pts, r=0.013, m=skin, parent=body)
+    hoof = mat("pig_hoof", "#C77882", rough=0.5, edge=0.3)
+    for (lx, ly, ang) in ((0.14, -0.12, legs[0]), (0.14, 0.12, legs[1]), (-0.16, -0.12, legs[1]),
+                          (-0.16, 0.12, legs[0])):
+        hip = kit.empty("hip", loc=(lx, ly, 0.17), rot=(0, math.radians(ang), 0), parent=root)
+        kit.cyl(0.055, 0.15, skin, loc=(0, 0, -0.15), bevel=0.02, verts=12, parent=hip)
+        kit.cyl(0.056, 0.035, hoof, loc=(0, 0, -0.17), bevel=0.01, verts=12, parent=hip)
+    return root
+
+
+def pig_frames():
+    out = {}
+    for facing, yaw in (("se", 0.0), ("ne", 90.0)):
+        for i in range(6):
+            w = math.sin(i / 6 * 2 * math.pi)
+            out[f"pig_idle_{facing}_{i}"] = (lambda w=w, i=i, yaw=yaw: pig(
+                yaw, squash=0.025 * w, blink=1.0 if i == 2 else 0.0))
+        for i in range(8):
+            t = i / 8
+            sw = math.sin(t * 2 * math.pi)
+            out[f"pig_walk_{facing}_{i}"] = (lambda sw=sw, t=t, yaw=yaw: pig(
+                yaw, legs=(26 * sw, -26 * sw), body_z=0.02 * abs(math.cos(t * 2 * math.pi))))
+        for i, (fw, dn) in enumerate([(0.02, 0.05), (0.05, 0.13), (0.06, 0.17), (0.07, 0.15), (0.06, 0.17),
+                                      (0.02, 0.06)]):
+            out[f"pig_eat_{facing}_{i}"] = (lambda fw=fw, dn=dn, yaw=yaw: pig(yaw, head=(fw, dn)))
+    return out

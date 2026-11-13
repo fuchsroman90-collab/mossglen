@@ -15,6 +15,7 @@ var _bubble: Node2D
 var _bubble_icon: Sprite2D
 var _sails: Sprite2D
 var _fx_t := 0.0
+var _bees: Array[Sprite2D] = []
 
 
 func setup(building_id: String) -> void:
@@ -27,6 +28,13 @@ func setup(building_id: String) -> void:
 		_sails = Atlas.sprite("mill_sails")
 		_sails.position = Vector2(fx["sails"][0], fx["sails"][1])
 		add_child(_sails)
+	if fx.has("bees"):
+		for i in 4:
+			var bee := Atlas.sprite("fx_bee")
+			bee.set_meta("phase", i * 1.7)
+			bee.z_index = 4
+			add_child(bee)
+			_bees.append(bee)
 	_bubble = Node2D.new()
 	_bubble.position = Vector2(0, -Atlas.anchor(id).y - 40)
 	_bubble.visible = false
@@ -38,6 +46,7 @@ func setup(building_id: String) -> void:
 	_bubble_icon = Sprite2D.new()
 	_bubble_icon.scale = Vector2(0.8, 0.8)
 	_bubble.add_child(_bubble_icon)
+	tick()
 
 
 func recipes() -> Array:
@@ -53,9 +62,18 @@ func is_working() -> bool:
 
 
 ## Moves jobs whose time has passed into `done`. Returns true if anything changed.
+func is_auto() -> bool:
+	return bool(def.get("auto", false))
+
+
 func tick() -> bool:
 	var now := Time.get_unix_time_from_system()
 	var moved := false
+	if is_auto():
+		# keeps itself busy: a new batch starts whenever there is room
+		while queue.size() + done.size() < slots():
+			var begin := now if queue.is_empty() else float(queue[-1]["end"])
+			queue.append({"r": 0, "end": begin + float(recipes()[0]["time"])})
 	while not queue.is_empty() and float(queue[0]["end"]) <= now:
 		done.append(int(queue.pop_front()["r"]))
 		moved = true
@@ -123,6 +141,13 @@ func _refresh() -> void:
 
 func _process(delta: float) -> void:
 	tick()
+	if not _bees.is_empty():
+		var t := Time.get_ticks_msec() * 0.001
+		for b in _bees:
+			var ph: float = b.get_meta("phase")
+			b.position = Vector2(cos(t * 1.3 + ph) * 90.0 + sin(t * 3.1 + ph) * 20.0,
+					-110.0 + sin(t * 1.7 + ph * 2.0) * 45.0)
+			b.scale.x = -1.0 if sin(t * 1.3 + ph) > 0.0 else 1.0
 	if _bubble.visible:
 		_bubble.position.y = -Atlas.anchor(id).y - 40 + sin(Time.get_ticks_msec() * 0.004) * 8.0
 	if is_working():

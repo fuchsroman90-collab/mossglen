@@ -1,7 +1,8 @@
 extends Node
 ## Music + pooled sound effects on separate buses.
 
-const SFX := ["click", "pop", "plant", "harvest", "coin", "cluck", "whoosh"]
+const SFX := ["click", "pop", "plant", "harvest", "coin", "cluck", "whoosh", "moo", "baa", "oink", "splash",
+	"reel", "levelup", "dig"]
 const POOL_SIZE := 12
 
 var _music: AudioStreamPlayer

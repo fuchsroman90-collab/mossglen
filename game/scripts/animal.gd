@@ -11,7 +11,15 @@ const CONFIG := {
 	},
 	"cow": {
 		"speed": 46.0, "anims": {"idle": [6, 6.0], "walk": [8, 9.0], "eat": [6, 6.0]},
-		"shadow": Vector2(1.7, 1.6), "tap_height": 75.0, "sound": "pop",
+		"shadow": Vector2(1.7, 1.6), "tap_height": 75.0, "sound": "moo",
+	},
+	"sheep": {
+		"speed": 50.0, "anims": {"idle": [6, 6.0], "walk": [8, 10.0], "eat": [6, 6.0]},
+		"shadow": Vector2(1.3, 1.2), "tap_height": 60.0, "sound": "baa",
+	},
+	"pig": {
+		"speed": 48.0, "anims": {"idle": [6, 7.0], "walk": [8, 11.0], "eat": [6, 7.0]},
+		"shadow": Vector2(1.2, 1.1), "tap_height": 50.0, "sound": "oink",
 	},
 	"dino": {
 		"speed": 58.0, "anims": {"idle": [8, 7.0], "walk": [8, 9.0]},

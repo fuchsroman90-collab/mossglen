@@ -256,6 +256,26 @@ func _build_farm() -> void:
 	_add_building("feed_mill", Vector2i(5, 5))
 	_add_building("bakery", Vector2i(11, 5))
 	_add_building("dairy", Vector2i(17, 17))
+	_add_building("jam_kitchen", Vector2i(22, 2))
+	_add_building("loom", Vector2i(2, 2))
+	_add_building("popcorn", Vector2i(8, 2))
+	_add_building("sauce_kitchen", Vector2i(13, 20))
+	_add_building("candle_maker", Vector2i(18, 21))
+	var hive := _add_building("beehive", Vector2i(7, 12), Vector2i(1, 1))
+	hive.position = grid_to_world(Vector2(7.6, 12.4))
+
+	# sheep and pig pens
+	var sheep := Rect2i(21, 12, 3, 3)
+	_dirt_rect(sheep, 0.45)
+	_fence_rect(sheep, Vector2i(sheep.position.x, sheep.end.y))
+	for i in 3:
+		_add_animal("sheep", sheep, rng, Vector2(21.3 + i * 0.8, 12.6 + (i % 2) * 1.0))
+	var pigs := Rect2i(20, 17, 3, 3)
+	_dirt_rect(pigs, 0.95)
+	_fence_rect(pigs, Vector2i(pigs.position.x + 1, pigs.end.y))
+	_add_static("trough", Vector2(21.4, 17.2))
+	for i in 2:
+		_add_animal("pig", pigs, rng, Vector2(20.5 + i * 1.2, 18.2 + i * 0.5))
 
 	# cow pasture below the fields
 	var cows := Rect2i(11, 16, 4, 3)
@@ -339,9 +359,13 @@ func _build_farm() -> void:
 			_add_prop("rock" if rng.randf() < 0.5 else "rock_small", Vector2(cell) + off, null)
 		occupied[cell] = true
 		placed += 1
-	for spot in [Vector2(12, 3.5), Vector2(22, 15), Vector2(21.5, 18.5), Vector2(1.5, 5.5)]:
+	for spot in [Vector2(12, 3.5), Vector2(21.5, 18.5), Vector2(1.5, 5.5), Vector2(15.5, 21.5),
+			Vector2(23.5, 9.8)]:
+		var cell := Vector2i(spot.round())
+		if occupied.has(cell) or occupied.has(Vector2i(spot)):
+			continue
 		_add_prop("tree_apple", spot, _sway_tree)
-		occupied[Vector2i(spot)] = true
+		occupied[cell] = true
 	for i in 16:
 		var cell := Vector2i(rng.randi_range(2, 22), rng.randi_range(3, 21))
 		if occupied.has(cell) or cell.y >= 11 and cell.y <= 16 and cell.x >= 2 and cell.x <= 20:
@@ -366,15 +390,17 @@ func _fence_rect(r: Rect2i, gate: Vector2i, gate_on_top := false) -> void:
 		_add_static("fence_y", Vector2(r.end.x - 0.5, y))
 
 
-func _add_building(id: String, cell: Vector2i) -> ProductionBuilding:
+func _add_building(id: String, cell: Vector2i, size := Vector2i(3, 3)) -> ProductionBuilding:
 	var b: ProductionBuilding = ProductionScript.new()
 	b.setup(id)
 	b.position = grid_to_world(Vector2(cell))
 	objects.add_child(b)
 	production[id] = b
-	_dirt_rect(Rect2i(cell - Vector2i(1, 1), Vector2i(3, 3)), 0.75)
-	for x in range(cell.x - 1, cell.x + 2):
-		for y in range(cell.y - 1, cell.y + 2):
+	var r := Rect2i(cell - size / 2, size)
+	if size.x > 1:
+		_dirt_rect(r, 0.75)
+	for x in range(r.position.x, r.end.x):
+		for y in range(r.position.y, r.end.y):
 			occupied[Vector2i(x, y)] = true
 	return b
 
@@ -669,6 +695,10 @@ func _tap(world: Vector2) -> void:
 			for g in got:
 				Audio.play("harvest", 1.1)
 				_float_reward(hit.position + Vector2(0, -Atlas.anchor(hit.id).y * 0.6), g[1], "item_%s.png" % g[0])
+		elif hit.is_auto():
+			var pr := hit.current_progress()
+			hud.show_field_info(get_viewport().get_canvas_transform() * hit.position, "honey", int(pr.x), pr.y)
+			Game.toast.emit(tr("BEES_WORK"), "item_honey.png")
 		else:
 			hud.open_production(hit)
 		return
@@ -873,7 +903,7 @@ func _load_world_state() -> void:
 # ------------------------------------------------------------------ juice
 
 func _on_level_up(level: int, unlocked: Array) -> void:
-	Audio.play("coin", 1.3)
+	Audio.play("levelup")
 	Game.toast.emit(tr("LEVEL_UP") % level, "star.png")
 	for c in unlocked:
 		get_tree().create_timer(1.2).timeout.connect(func() -> void:
@@ -1081,6 +1111,19 @@ func _run_smoke() -> void:
 	var c0 := Game.coins
 	if not Game.deliver(0) or Game.coins <= c0:
 		errors.append("order delivery failed")
+	# bees work on their own
+	var hive: ProductionBuilding = production["beehive"]
+	if hive.queue.is_empty():
+		errors.append("beehive did not start by itself")
+	for name in ["jam_kitchen", "loom", "popcorn", "sauce_kitchen", "candle_maker"]:
+		if not production.has(name):
+			errors.append("missing building " + name)
+	var kinds := {}
+	for a in animals:
+		kinds[a.kind] = true
+	for k in ["chicken", "cow", "sheep", "pig"]:
+		if not kinds.has(k):
+			errors.append("missing animal " + k)
 	var ws := _save_world()
 	if not ws.has("buildings") or not ws["pens"].has("chicken"):
 		errors.append("production state not saved")

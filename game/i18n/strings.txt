@@ -46,3 +46,25 @@ DELIVER	Liefern	Deliver
 NEXT_ORDER	Nächster Auftrag in	Next order in
 ORDER_DONE	Auftrag geliefert!	Order delivered!
 NEED_FEED	Kein Futter: stelle es in der Futtermühle her.	No feed: make some at the Feed Mill.
+ITEM_feed_sheep	Schaffutter	Sheep feed
+ITEM_feed_pig	Schweinefutter	Pig feed
+ITEM_wool	Wolle	Wool
+ITEM_truffle	Trüffel	Truffle
+ITEM_honey	Honig	Honey
+ITEM_strawberry_jam	Erdbeermarmelade	Strawberry jam
+ITEM_honey_jam	Honigmarmelade	Honey jam
+ITEM_cloth	Stoff	Cloth
+ITEM_scarf	Schal	Scarf
+ITEM_popcorn	Popcorn	Popcorn
+ITEM_butter_popcorn	Butterpopcorn	Butter popcorn
+ITEM_tomato_sauce	Tomatensoße	Tomato sauce
+ITEM_truffle_sauce	Trüffelsoße	Truffle sauce
+ITEM_candle	Kerze	Candle
+ITEM_festive_candle	Festkerze	Festive candle
+BUILDING_beehive	Bienenstock	Beehive
+BUILDING_jam_kitchen	Marmeladenküche	Jam Kitchen
+BUILDING_loom	Webstuhl	Loom
+BUILDING_popcorn	Popcornwagen	Popcorn Cart
+BUILDING_sauce_kitchen	Soßenküche	Sauce Kitchen
+BUILDING_candle_maker	Kerzenzieherei	Candle Maker
+BEES_WORK	Die Bienen sammeln Honig von allein.	The bees make honey on their own.

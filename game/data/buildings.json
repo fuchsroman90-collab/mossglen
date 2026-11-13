@@ -1,28 +1,287 @@
 {
 	"feed_mill": {
 		"slots": 3,
-		"fx": {"sails": [0, -187]},
+		"fx": {
+			"sails": [
+				0,
+				-187
+			]
+		},
 		"recipes": [
-			{"out": "feed_chicken", "n": 3, "in": {"wheat": 2}, "time": 30, "xp": 1, "unlock": 1},
-			{"out": "feed_cow", "n": 3, "in": {"corn": 2, "carrot": 1}, "time": 45, "xp": 2, "unlock": 3}
+			{
+				"out": "feed_chicken",
+				"n": 3,
+				"in": {
+					"wheat": 2
+				},
+				"time": 30,
+				"xp": 1,
+				"unlock": 1
+			},
+			{
+				"out": "feed_cow",
+				"n": 3,
+				"in": {
+					"corn": 2,
+					"carrot": 1
+				},
+				"time": 45,
+				"xp": 2,
+				"unlock": 3
+			},
+			{
+				"out": "feed_sheep",
+				"n": 3,
+				"in": {
+					"wheat": 1,
+					"carrot": 1
+				},
+				"time": 40,
+				"xp": 2,
+				"unlock": 5
+			},
+			{
+				"out": "feed_pig",
+				"n": 3,
+				"in": {
+					"corn": 1,
+					"tomato": 1
+				},
+				"time": 50,
+				"xp": 2,
+				"unlock": 6
+			}
 		]
 	},
 	"bakery": {
 		"slots": 3,
-		"fx": {"smoke": [-19, -345]},
+		"fx": {
+			"smoke": [
+				-19,
+				-345
+			]
+		},
 		"recipes": [
-			{"out": "bread", "n": 1, "in": {"wheat": 3}, "time": 45, "xp": 2, "unlock": 1},
-			{"out": "corn_bread", "n": 1, "in": {"corn": 2, "egg": 2}, "time": 90, "xp": 4, "unlock": 3},
-			{"out": "carrot_cake", "n": 1, "in": {"carrot": 2, "egg": 1, "milk": 1}, "time": 150, "xp": 6, "unlock": 4}
+			{
+				"out": "bread",
+				"n": 1,
+				"in": {
+					"wheat": 3
+				},
+				"time": 45,
+				"xp": 2,
+				"unlock": 1
+			},
+			{
+				"out": "corn_bread",
+				"n": 1,
+				"in": {
+					"corn": 2,
+					"egg": 2
+				},
+				"time": 90,
+				"xp": 4,
+				"unlock": 3
+			},
+			{
+				"out": "carrot_cake",
+				"n": 1,
+				"in": {
+					"carrot": 2,
+					"egg": 1,
+					"milk": 1
+				},
+				"time": 150,
+				"xp": 6,
+				"unlock": 4
+			}
 		]
 	},
 	"dairy": {
 		"slots": 3,
 		"fx": {},
 		"recipes": [
-			{"out": "cream", "n": 1, "in": {"milk": 1}, "time": 40, "xp": 2, "unlock": 3},
-			{"out": "butter", "n": 1, "in": {"milk": 2}, "time": 75, "xp": 3, "unlock": 4},
-			{"out": "cheese", "n": 1, "in": {"milk": 3}, "time": 120, "xp": 5, "unlock": 5}
+			{
+				"out": "cream",
+				"n": 1,
+				"in": {
+					"milk": 1
+				},
+				"time": 40,
+				"xp": 2,
+				"unlock": 3
+			},
+			{
+				"out": "butter",
+				"n": 1,
+				"in": {
+					"milk": 2
+				},
+				"time": 75,
+				"xp": 3,
+				"unlock": 4
+			},
+			{
+				"out": "cheese",
+				"n": 1,
+				"in": {
+					"milk": 3
+				},
+				"time": 120,
+				"xp": 5,
+				"unlock": 5
+			}
+		]
+	},
+	"beehive": {
+		"slots": 3,
+		"auto": true,
+		"fx": {
+			"bees": true
+		},
+		"recipes": [
+			{
+				"out": "honey",
+				"n": 1,
+				"in": {},
+				"time": 150,
+				"xp": 2,
+				"unlock": 1
+			}
+		]
+	},
+	"jam_kitchen": {
+		"slots": 3,
+		"fx": {},
+		"recipes": [
+			{
+				"out": "strawberry_jam",
+				"n": 1,
+				"in": {
+					"strawberry": 3
+				},
+				"time": 120,
+				"xp": 5,
+				"unlock": 5
+			},
+			{
+				"out": "honey_jam",
+				"n": 1,
+				"in": {
+					"strawberry": 1,
+					"honey": 2
+				},
+				"time": 150,
+				"xp": 6,
+				"unlock": 6
+			}
+		]
+	},
+	"loom": {
+		"slots": 2,
+		"fx": {},
+		"recipes": [
+			{
+				"out": "cloth",
+				"n": 1,
+				"in": {
+					"wool": 2
+				},
+				"time": 120,
+				"xp": 4,
+				"unlock": 5
+			},
+			{
+				"out": "scarf",
+				"n": 1,
+				"in": {
+					"wool": 3
+				},
+				"time": 180,
+				"xp": 6,
+				"unlock": 6
+			}
+		]
+	},
+	"popcorn": {
+		"slots": 3,
+		"fx": {},
+		"recipes": [
+			{
+				"out": "popcorn",
+				"n": 1,
+				"in": {
+					"corn": 2
+				},
+				"time": 60,
+				"xp": 2,
+				"unlock": 2
+			},
+			{
+				"out": "butter_popcorn",
+				"n": 1,
+				"in": {
+					"corn": 2,
+					"butter": 1
+				},
+				"time": 120,
+				"xp": 5,
+				"unlock": 5
+			}
+		]
+	},
+	"sauce_kitchen": {
+		"slots": 3,
+		"fx": {},
+		"recipes": [
+			{
+				"out": "tomato_sauce",
+				"n": 1,
+				"in": {
+					"tomato": 3
+				},
+				"time": 120,
+				"xp": 5,
+				"unlock": 4
+			},
+			{
+				"out": "truffle_sauce",
+				"n": 1,
+				"in": {
+					"truffle": 1,
+					"cream": 1
+				},
+				"time": 150,
+				"xp": 6,
+				"unlock": 7
+			}
+		]
+	},
+	"candle_maker": {
+		"slots": 2,
+		"fx": {},
+		"recipes": [
+			{
+				"out": "candle",
+				"n": 1,
+				"in": {
+					"honey": 2
+				},
+				"time": 150,
+				"xp": 5,
+				"unlock": 4
+			},
+			{
+				"out": "festive_candle",
+				"n": 1,
+				"in": {
+					"honey": 3,
+					"cloth": 1
+				},
+				"time": 240,
+				"xp": 9,
+				"unlock": 7
+			}
 		]
 	}
 }

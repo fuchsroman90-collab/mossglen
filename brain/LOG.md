@@ -2,6 +2,18 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-13 – PC-Sitzung: M2b (M2 komplett)
+
+Roman: „Mach weiter alles hintereinander.“ → Meilensteine nacheinander, nach jedem Push + Brain.
+- 3D: Schaf (Wolle aus Laub-Ballen-Technik), Schwein (Trüffel statt Speck, cozy), Bienen-Korb (Skep) mit
+  fliegenden Bienen (eigenes Sprite), Marmeladenküche, Webstuhl (offenes Pultdach, sonst verdeckt das Dach alles),
+  Popcornwagen (offener Kessel; Glas rendert undurchsichtig weiß → vermeiden), Soßenküche, Kerzenzieherei.
+- 15 neue 2D-Icons, Daten (Schaf-/Schweinefutter, 10 Rezepte), Lager 80 Plätze.
+- Bienenstock = Produktion mit `"auto": true` (füllt sich selbst, Honig ohne Zutaten).
+- Neue Sounds: Muh, Mäh, Grunzen, Platschen, Rolle, Level-Jingle, Graben.
+- Schwebende Sprites (Mühlenflügel, Biene) ohne Bodenschatten (`NO_SHADOW` in render.py).
+- Feste Apfelbaum-Positionen prüfen jetzt freie Felder (standen im Schweinegehege).
+
 ## 2026-11-13 – PC-Sitzung: XP-Leiste + M2a (Wirtschaftsschleife)
 
 - Roman: XP-Leiste muss an der rechten Sternspitze hängen („in einem“) → `taste/LIKES.md`, Soll-Bild

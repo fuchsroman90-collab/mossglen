@@ -194,12 +194,73 @@ def sfx_whoosh():
     return normalize(y, 0.35)
 
 
+def _voice(f_curve, dur, lo, hi, vib=0.0):
+    t = t_axis(dur)
+    f = f_curve(t) * (1 + vib * np.sin(2 * np.pi * 6 * t))
+    saw = 2 * ((np.cumsum(f) / SR) % 1.0) - 1
+    v = bandpass(saw, lo, hi) + 0.4 * bandpass(saw, hi, hi * 1.6)
+    return v * np.sin(np.pi * t / dur) ** 0.5
+
+
+def sfx_moo():
+    y = _voice(lambda t: 140 + 40 * np.sin(np.pi * t / 0.9) - 25 * t, 0.9, 250, 1400, 0.02)
+    return normalize(lowpass(y, 2500), 0.45)
+
+
+def sfx_baa():
+    y = _voice(lambda t: 330 + 30 * np.sin(np.pi * t / 0.6), 0.6, 500, 2600, 0.09)
+    return normalize(lowpass(y, 4000), 0.4)
+
+
+def sfx_oink():
+    y = np.zeros(int(0.42 * SR))
+    for at, f0 in ((0.0, 220), (0.2, 250)):
+        place(y, _voice(lambda t, f0=f0: f0 + 120 * np.exp(-t * 18), 0.14, 300, 1800, 0.0), at)
+    return normalize(lowpass(y, 3000), 0.45)
+
+
+def sfx_splash():
+    t = t_axis(0.6)
+    noise = rng.standard_normal(len(t))
+    body = bandpass(noise, 400, 3500) * np.exp(-t * 9) * np.clip(t / 0.004, 0, 1)
+    drops = np.zeros(len(t))
+    for at in (0.08, 0.15, 0.22, 0.3):
+        place(drops, marimba(84 + rng.integers(-3, 4), 0.1, 0.3), at)
+    plop = np.sin(2 * np.pi * np.cumsum(300 + 500 * np.exp(-t * 30)) / SR) * np.exp(-t * 20)
+    return normalize(body + 0.6 * plop + 0.4 * drops, 0.55)
+
+
+def sfx_reel():
+    t = t_axis(0.5)
+    clicks = (np.sin(2 * np.pi * 34 * t) > 0.6).astype(float)
+    tick = bandpass(rng.standard_normal(len(t)), 2000, 6000) * clicks * 0.7
+    return normalize(tick * np.sin(np.pi * t / 0.5), 0.35)
+
+
+def sfx_levelup():
+    y = np.zeros(int(1.3 * SR))
+    for i, m in enumerate((72, 76, 79, 84)):
+        place(y, bell(m, 0.9, 0.8), i * 0.11)
+        place(y, marimba(m - 12, 0.5, 0.5), i * 0.11)
+    return normalize(reverb(y, 0.5)[:, 0] if reverb(y, 0.5).ndim == 2 else reverb(y, 0.5), 0.6)
+
+
+def sfx_dig():
+    t = t_axis(0.35)
+    dirt = bandpass(rng.standard_normal(len(t)), 200, 1800) * np.exp(-t * 14)
+    thud = np.sin(2 * np.pi * np.cumsum(140 - 60 * t) / SR) * np.exp(-t * 18)
+    return normalize(dirt * 0.8 + thud, 0.6)
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    write("music_meadow", compose_meadow())
+    if "--sfx" not in sys.argv:
+        write("music_meadow", compose_meadow())
     for name, fn in [("sfx_click", sfx_click), ("sfx_pop", sfx_pop), ("sfx_plant", sfx_plant),
                      ("sfx_harvest", sfx_harvest), ("sfx_coin", sfx_coin), ("sfx_cluck", sfx_cluck),
-                     ("sfx_whoosh", sfx_whoosh)]:
+                     ("sfx_whoosh", sfx_whoosh), ("sfx_moo", sfx_moo), ("sfx_baa", sfx_baa),
+                     ("sfx_oink", sfx_oink), ("sfx_splash", sfx_splash), ("sfx_reel", sfx_reel),
+                     ("sfx_levelup", sfx_levelup), ("sfx_dig", sfx_dig)]:
         write(name, fn())
 
 

@@ -1,4 +1,30 @@
 {
-	"chicken": {"feed": "feed_chicken", "product": "egg", "time": 60, "xp": 1, "unlock": 1},
-	"cow": {"feed": "feed_cow", "product": "milk", "time": 120, "xp": 2, "unlock": 3}
+	"chicken": {
+		"feed": "feed_chicken",
+		"product": "egg",
+		"time": 60,
+		"xp": 1,
+		"unlock": 1
+	},
+	"cow": {
+		"feed": "feed_cow",
+		"product": "milk",
+		"time": 120,
+		"xp": 2,
+		"unlock": 3
+	},
+	"sheep": {
+		"feed": "feed_sheep",
+		"product": "wool",
+		"time": 180,
+		"xp": 3,
+		"unlock": 5
+	},
+	"pig": {
+		"feed": "feed_pig",
+		"product": "truffle",
+		"time": 240,
+		"xp": 3,
+		"unlock": 6
+	}
 }

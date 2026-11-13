@@ -430,6 +430,77 @@ def item_cheese(size=112):
                  f'<path d="M28 82 L28 98" stroke="{OUT}" stroke-width="4"/>{holes}', size)
 
 
+def item_jar(fill="#E8384A", lid="#E8473B", label="#FFF6E6", extra="", size=112):
+    o = _o()
+    return _item(f'<path d="M30 40 L82 40 L84 92 C84 98 80 102 74 102 L38 102 C32 102 28 98 28 92 Z" fill="{fill}" {o}/>'
+                 f'<rect x="26" y="22" width="60" height="20" rx="6" fill="{lid}" {o}/>'
+                 f'<path d="M26 30 L86 30" stroke="#FFFFFF" stroke-width="3" opacity="0.5"/>'
+                 f'<rect x="34" y="58" width="44" height="26" rx="6" fill="{label}" {o}/>{extra}'
+                 f'<path d="M36 50 L36 92" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" opacity="0.45"/>', size)
+
+
+def item_wool(size=112):
+    o = _o()
+    puffs = [(40, 60, 22), (64, 52, 24), (76, 72, 20), (52, 78, 22), (34, 80, 16)]
+    body = "".join(f'<circle cx="{x}" cy="{y}" r="{r + 3}" fill="{OUT}"/>' for x, y, r in puffs)
+    body += "".join(f'<circle cx="{x}" cy="{y}" r="{r}" fill="#FFFDF4"/>' for x, y, r in puffs)
+    body += '<circle cx="56" cy="50" r="8" fill="#FFFFFF"/><circle cx="44" cy="66" r="5" fill="#EFE8D8"/>'
+    return _item(body, size)
+
+
+def item_truffle(size=112):
+    o = _o()
+    return _item(f'<path d="M24 66 C20 46 40 30 58 32 C80 30 94 50 90 68 C88 86 74 96 56 96 C38 96 26 86 24 66 Z" '
+                 f'fill="#6B4A32" {o}/>'
+                 + "".join(f'<circle cx="{x}" cy="{y}" r="4" fill="#4E3424"/>' for x, y in
+                           [(40, 52), (58, 46), (74, 56), (48, 70), (66, 74), (38, 82), (80, 74)])
+                 + '<ellipse cx="44" cy="44" rx="10" ry="5" fill="#FFFFFF" opacity="0.3"/>'
+                 f'<path d="M70 36 C74 26 84 22 88 26" fill="none" stroke="#5DB33C" stroke-width="5" stroke-linecap="round"/>',
+                 size)
+
+
+def item_cloth(size=112):
+    o = _o()
+    return _item(f'<path d="M16 56 L56 38 L96 56 L56 74 Z" fill="#8EC3E6" {o}/>'
+                 f'<path d="M16 56 L16 70 L56 88 L96 70 L96 56 L56 74 Z" fill="#5B9BD5" {o}/>'
+                 f'<path d="M16 70 L16 82 L56 100 L96 82 L96 70 L56 88 Z" fill="#8EC3E6" {o}/>'
+                 f'<path d="M30 50 L70 68 M42 44 L82 62" stroke="#FFFFFF" stroke-width="4" opacity="0.8"/>', size)
+
+
+def item_scarf(size=112):
+    o = _o()
+    return _item(f'<path d="M24 30 C40 22 72 22 88 30 L84 46 C70 40 42 40 28 46 Z" fill="#E8473B" {o}/>'
+                 f'<path d="M62 44 L80 98 L60 102 L48 46 Z" fill="#E8473B" {o}/>'
+                 + "".join(f'<path d="M{50 + i * 1.2} {56 + i * 12} L{68 + i * 3} {52 + i * 12}" stroke="#FFF4E2" '
+                           f'stroke-width="5"/>' for i in range(4))
+                 + f'<path d="M62 100 L60 108 M68 99 L68 108 M74 98 L76 106" stroke="{OUT}" stroke-width="4" '
+                   f'stroke-linecap="round"/>', size)
+
+
+def item_bucket(top_fill="#FFF6D8", stripe="#E8473B", extra="", size=112):
+    o = _o()
+    pops = "".join(f'<circle cx="{x}" cy="{y}" r="9" fill="{top_fill}" {_o(4)}/>' for x, y in
+                   [(38, 34), (52, 26), (66, 30), (78, 38), (46, 40), (62, 40)])
+    stripes = "".join(f'<path d="M{34 + i * 12} 44 L{38 + i * 9} 100" stroke="{stripe}" stroke-width="7"/>'
+                      for i in range(4))
+    return _item(f'{pops}<path d="M26 44 L86 44 L78 100 L34 100 Z" fill="#FFFFFF" {o}/>{stripes}'
+                 f'<path d="M26 44 L86 44 L78 100 L34 100 Z" fill="none" {o}/>{extra}', size)
+
+
+def item_candle(body="#FFF4DA", band="", size=112):
+    o = _o()
+    b = f'<rect x="38" y="44" width="36" height="58" rx="6" fill="{body}" {o}/>'
+    b += '<path d="M44 50 L44 94" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.6"/>'
+    if band:
+        b += f'<rect x="38" y="66" width="36" height="12" fill="{band}" {_o(3)}/>'
+        b += (f'<circle cx="70" cy="64" r="7" fill="#5DB33C" {_o(3)}/><circle cx="78" cy="70" r="5" fill="#E8384A" '
+              f'{_o(3)}/>')
+    b += (f'<path d="M56 44 L56 36" stroke="{OUT}" stroke-width="4"/>'
+          f'<path d="M56 12 C66 24 66 34 56 38 C46 34 46 24 56 12 Z" fill="#FFC24A" {_o(4)}/>'
+          f'<path d="M56 22 C60 28 60 32 56 34 C52 32 52 28 56 22 Z" fill="#FFF3B0"/>')
+    return _item(b, size)
+
+
 def slot(size=128):
     """Round cream slot for item icons in menus."""
     c = size / 2
@@ -481,6 +552,22 @@ def ui_images() -> dict:
         "item_cream": item_cream(),
         "item_butter": item_butter(),
         "item_cheese": item_cheese(),
+        "item_feed_sheep": item_feed("#8EC3E6", "#E8B53A"),
+        "item_feed_pig": item_feed("#FF9AA2", "#F0402F"),
+        "item_wool": item_wool(),
+        "item_truffle": item_truffle(),
+        "item_honey": item_jar("#F2A923", "#C98C4A", "#FFE57A",
+                               '<path d="M74 18 L92 4" stroke="#8C5A34" stroke-width="6" stroke-linecap="round"/>'),
+        "item_strawberry_jam": item_jar("#E8384A"),
+        "item_honey_jam": item_jar("#F07A2A", "#F2A923"),
+        "item_cloth": item_cloth(),
+        "item_scarf": item_scarf(),
+        "item_popcorn": item_bucket(),
+        "item_butter_popcorn": item_bucket("#FFE07A", "#F2A923"),
+        "item_tomato_sauce": item_jar("#D9301E", "#5DB33C"),
+        "item_truffle_sauce": item_jar("#8A5A3A", "#3E8E5A", "#F3E3B8"),
+        "item_candle": item_candle(),
+        "item_festive_candle": item_candle("#E8473B", "#FFD23F"),
         "pill_green": pill(),
         "lock": lock(),
     }

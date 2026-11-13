@@ -27,6 +27,8 @@ REGISTRY = [
     ("animals", "chicken_frames", False, 40),
     ("animals", "dino_frames", False, 40),
     ("animals", "cow_frames", False, 40),
+    ("animals", "sheep_frames", False, 40),
+    ("animals", "pig_frames", False, 40),
     ("icons", "icon_frames", False, 48),
 ]
 
@@ -36,6 +38,10 @@ DEPS = {
     "buildings": ["farm", "nature"],
     "farm": ["nature"],
 }
+
+
+# camera-facing sprites that float in the air: no ground shadow
+NO_SHADOW = {"mill_sails", "fx_bee"}
 
 
 def module_hash(module: str) -> str:
@@ -74,10 +80,10 @@ def main(argv: list[str]) -> int:
                 current = samples
             kit.clear_stage()
             build()
-            sh = CACHE / f"{name}_shadow.png" if shadow else None
+            sh = CACHE / f"{name}_shadow.png" if shadow and name not in NO_SHADOW else None
             t = time.time()
             info = kit.fit_and_render(str(obj), str(sh) if sh else None)
-            meta[name] = {"key": key, "ax": info["ax"], "ay": info["ay"], "shadow": shadow, "module": module}
+            meta[name] = {"key": key, "ax": info["ax"], "ay": info["ay"], "shadow": sh is not None, "module": module}
             meta_path.write_text(json.dumps(meta, indent=1, sort_keys=True))
             rendered += 1
             print(f"  rendered {name:28s} {info['w']}x{info['h']}  {time.time() - t:5.1f}s", flush=True)

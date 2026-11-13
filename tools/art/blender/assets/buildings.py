@@ -456,6 +456,261 @@ def order_board():
     return root
 
 
+def _cottage(L, W, H, wall, roof_col, root, pitch=40, plank=None):
+    """Small gable cottage on a stone foundation. Returns ridge height."""
+    found = mat("found", "#A59D8B", rough=0.85, edge=0.55, var=0.07)
+    kit.box((L + 0.08, W + 0.08, 0.14), found, loc=(0, 0, 0.07), bevel=0.03, parent=root)
+    kit.box((L, W, H), wall, loc=(0, 0, 0.14 + H / 2), bevel=0.03, parent=root)
+    if plank is not None:
+        for i in range(int(L / 0.16)):
+            x = -L / 2 + (i + 0.5) * L / int(L / 0.16)
+            kit.box((L / int(L / 0.16) - 0.02, 0.025, H - 0.05), plank, loc=(x, -W / 2 - 0.01, 0.14 + H / 2),
+                    bevel=0.008, parent=root)
+    p = math.radians(pitch)
+    over = 0.15
+    sl = (W / 2 + over) / math.cos(p)
+    ridge = 0.14 + H + (W / 2) * math.tan(p) + 0.05
+    tile = mat("tile_" + roof_col, roof_col, rough=0.55, spec=0.25, edge=0.5, var=0.1)
+    for sy in (-1, 1):
+        slab = kit.empty("slab", loc=(0, sy * (sl / 2) * math.cos(p), ridge - (sl / 2) * math.sin(p)),
+                         rot=(p if sy < 0 else -p, 0, 0), parent=root)
+        kit.box((L + 0.28, sl, 0.07), tile, bevel=0.03, parent=slab)
+        for r in range(4):
+            kit.cyl(0.045, L + 0.28, tile, loc=(-(L + 0.28) / 2, sy * (-sl / 2 + (r + 0.5) * sl / 4), 0.04),
+                    rot=(0, math.radians(90), 0), bevel=0.0, verts=12, parent=slab, scale=(1.0, 0.6, 1.0))
+    import bmesh
+    import bpy
+    for sx in (-1, 1):
+        bm = bmesh.new()
+        x = sx * L / 2
+        gh = ridge - 0.05 - 0.14 - H
+        v = [bm.verts.new((x, -W / 2, 0.14 + H)), bm.verts.new((x, W / 2, 0.14 + H)),
+             bm.verts.new((x, 0, 0.14 + H + gh))]
+        bm.faces.new(v if sx > 0 else list(reversed(v)))
+        me = bpy.data.meshes.new("gable")
+        bm.to_mesh(me)
+        bm.free()
+        o = bpy.data.objects.new("gable", me)
+        kit.link(o)
+        o.parent = root
+        kit.set_mat(o, wall)
+        o.modifiers.new("sol", "SOLIDIFY").thickness = 0.15
+    return ridge
+
+
+def _window(x, y, z, face, root, w=0.3, h=0.28):
+    """Window with white frame on the -Y face (face='y') or +X face (face='x')."""
+    white = mat("trim", "#FFF4E2", rough=0.55, spec=0.2, edge=0.4, edge_color="#B9A48A")
+    glass = mat("glass", "#3B4C66", rough=0.15, spec=0.8, edge=0.2, coat=0.5)
+    if face == "y":
+        kit.box((w + 0.06, 0.05, h + 0.06), white, loc=(x, y - 0.02, z), bevel=0.01, parent=root)
+        kit.box((w - 0.04, 0.05, h - 0.04), glass, loc=(x, y - 0.035, z), bevel=0.008, parent=root)
+    else:
+        kit.box((0.05, w + 0.06, h + 0.06), white, loc=(x + 0.02, y, z), bevel=0.01, parent=root)
+        kit.box((0.05, w - 0.04, h - 0.04), glass, loc=(x + 0.035, y, z), bevel=0.008, parent=root)
+
+
+def _jar(p, color, root, r=0.05):
+    glass = mat("jar_glass", "#EAF4F7", rough=0.1, spec=0.7, edge=0.3, coat=0.5)
+    fill = mat("jar_" + color, color, rough=0.35, spec=0.4, edge=0.45)
+    kit.cyl(r, r * 1.8, fill, loc=p, bevel=0.01, verts=14, parent=root)
+    kit.cyl(r * 1.05, r * 0.5, mat("jar_lid", "#E8473B", rough=0.5, edge=0.4), loc=(p[0], p[1], p[2] + r * 1.8),
+            bevel=0.01, verts=14, parent=root)
+
+
+def beehive():
+    """Straw skep on a little wooden stand, with flowers."""
+    root = kit.empty("beehive")
+    straw = mat("skep", "#E8BE5A", rough=0.85, spec=0.1, edge=0.55, edge_color="#8A6020", var=0.04)
+    stand = wood("stand", "#9C6539")
+    kit.box((0.62, 0.62, 0.08), stand, loc=(0, 0, 0.28), bevel=0.02, parent=root)
+    for x in (-0.24, 0.24):
+        for y in (-0.24, 0.24):
+            kit.box((0.06, 0.06, 0.26), stand, loc=(x, y, 0.13), bevel=0.015, parent=root)
+    for i in range(7):
+        t = i / 7
+        r = 0.3 * math.cos(t * math.pi / 2 * 0.95) + 0.03
+        kit.torus(r, 0.05, straw, loc=(0, 0, 0.36 + i * 0.075), parent=root, scale=(1, 1, 0.85))
+    kit.sphere(0.1, straw, loc=(0, 0, 0.86), scale=(1, 1, 0.6), seg=16, parent=root)
+    hole = mat("hole", "#3A2410", rough=0.8, edge=0.0)
+    ad = Vector((kit.TO_CAM.x, kit.TO_CAM.y, 0)).normalized()
+    kit.sphere(0.06, hole, loc=ad * 0.31 + Vector((0, 0, 0.4)), scale=(1, 1, 0.65), seg=12, parent=root)
+    f = flowers(kind="sun", seed=81, count=6, spread=0.12)
+    f.parent = root
+    f.location = (0.42, -0.35, 0)
+    f2 = flowers(kind="lavender", seed=82, count=6, spread=0.12)
+    f2.parent = root
+    f2.location = (-0.38, -0.42, 0)
+    return root
+
+
+def fx_bee():
+    root = kit.empty("bee")
+    root.rotation_euler = kit.TO_CAM.to_track_quat("Z", "Y").to_euler()
+    yel = mat("bee_y", "#FFD23F", rough=0.4, edge=0.4)
+    blk = mat("bee_b", "#3A2A20", rough=0.5, edge=0.0)
+    kit.sphere(0.05, yel, scale=(1.4, 1, 1), seg=14, parent=root)
+    for x in (-0.02, 0.025):
+        kit.box((0.016, 0.1, 0.1), blk, loc=(x, 0, 0), bevel=0.005, parent=root)
+    wing = mat("bee_wing", "#FFFFFF", rough=0.3, edge=0.3, emit=0.3)
+    for s in (-1, 1):
+        kit.sphere(0.035, wing, loc=(0, s * 0.03, 0.05), scale=(0.7, 1.2, 0.2), rot=(s * 0.4, 0, 0), seg=10, parent=root)
+    return root
+
+
+def jam_kitchen():
+    rng = random.Random(51)
+    root = kit.empty("jam_kitchen")
+    wall = mat("jam_wall", "#F6B9C4", rough=0.75, edge=0.5, edge_color="#A85C6A")
+    ridge = _cottage(1.25, 1.0, 0.85, wall, "#8C5A9C", root, plank=None)
+    beam = wood("bakery_beam", "#8C5A34")
+    for x in (-0.625, 0.625):
+        kit.box((0.07, 0.04, 0.85), beam, loc=(x, -0.51, 0.565), bevel=0.012, parent=root)
+    _window(-0.25, -0.5, 0.62, "y", root)
+    kit.box((0.3, 0.06, 0.52), wood("door", "#7A4A2A"), loc=(0.32, -0.53, 0.4), bevel=0.02, parent=root)
+    _window(0.625, 0.1, 0.62, "x", root)
+    # shelf with jars and a jam cauldron
+    kit.box((0.7, 0.2, 0.05), beam, loc=(-0.1, -0.68, 0.32), bevel=0.01, parent=root)
+    for k, c in enumerate(("#E8384A", "#F2A23A", "#9C4AB0", "#E8384A")):
+        _jar((-0.38 + k * 0.17, -0.68, 0.345), c, root)
+    pot = mat("pot", "#4E5560", rough=0.35, metal=0.7, spec=0.5, edge=0.4)
+    kit.cyl(0.2, 0.22, pot, r2=0.23, loc=(0.95, -0.4, 0.06), bevel=0.02, verts=20, parent=root)
+    kit.cyl(0.2, 0.02, mat("jam", "#D9203A", rough=0.3, spec=0.5, edge=0.2, coat=0.4), loc=(0.95, -0.4, 0.27),
+            bevel=0.0, verts=20, parent=root)
+    for a in range(3):
+        kit.box((0.05, 0.05, 0.08), mat("logs", "#7A4A2A", rough=0.8, edge=0.4), loc=(0.95 + 0.12 * math.cos(a * 2.1),
+                -0.4 + 0.12 * math.sin(a * 2.1), 0.03), rot=(0, 1.57, a * 2.1), bevel=0.01, parent=root)
+    # strawberry sign
+    kit.sphere(0.13, mat("strawberry", "#F2384A", rough=0.3, spec=0.5, edge=0.45, coat=0.3),
+               loc=(0, 0, ridge + 0.18), scale=(1, 1, 1.15), seg=20, parent=root)
+    kit.sphere(0.08, mat("straw_leaf", "#5DB33C", rough=0.6, edge=0.4), loc=(0, 0, ridge + 0.32),
+               scale=(1.2, 1.2, 0.4), seg=12, parent=root)
+    return root
+
+
+def loom_shed():
+    root = kit.empty("loom")
+    post = wood("loom_post", "#8C5A34")
+    floor = wood("loom_floor", "#C9905A")
+    kit.box((1.5, 1.2, 0.1), floor, loc=(0, 0, 0.05), bevel=0.03, parent=root)
+    # lean-to: back wall + a single roof slab over the back half, front stays open
+    for x in (-0.68, 0.68):
+        kit.box((0.08, 0.08, 1.25), post, loc=(x, 0.52, 0.7), bevel=0.02, parent=root)
+        kit.box((0.08, 0.08, 0.7), post, loc=(x, -0.1, 0.42), bevel=0.02, parent=root)
+    back = wood("loom_back", "#C48A55")
+    kit.box((1.44, 0.06, 1.1), back, loc=(0, 0.54, 0.65), bevel=0.02, parent=root)
+    tile = mat("tile_#5DA06A", "#5DA06A", rough=0.55, spec=0.25, edge=0.5, var=0.1)
+    kit.box((1.6, 0.85, 0.07), tile, loc=(0, 0.2, 1.08), rot=(math.radians(-24), 0, 0), bevel=0.03, parent=root)
+
+    # loom frame
+    lw = wood("loom_wood", "#B07547")
+    for x in (-0.35, 0.35):
+        kit.box((0.06, 0.06, 0.7), lw, loc=(x, 0, 0.45), bevel=0.015, parent=root)
+    kit.box((0.76, 0.07, 0.07), lw, loc=(0, 0, 0.8), bevel=0.015, parent=root)
+    kit.box((0.76, 0.3, 0.05), lw, loc=(0, -0.1, 0.38), bevel=0.015, parent=root)
+    cloth = mat("cloth_blue", "#5B9BD5", rough=0.85, edge=0.4)
+    kit.box((0.62, 0.02, 0.38), cloth, loc=(0, 0, 0.6), bevel=0.005, parent=root)
+    for i in range(6):
+        kit.box((0.62, 0.025, 0.02), mat("cloth_stripe", "#FFF4E2", rough=0.85, edge=0.3),
+                loc=(0, -0.005, 0.44 + i * 0.065), bevel=0.0, parent=root)
+    # yarn balls in a basket
+    basket = wood("basket", "#D49A5A")
+    kit.cyl(0.2, 0.14, basket, r2=0.23, loc=(0.75, -0.6, 0), bevel=0.02, verts=18, parent=root)
+    for k, c in enumerate(("#E8473B", "#5B9BD5", "#FFD23F", "#9C4AB0")):
+        kit.sphere(0.08, mat("yarn_" + c, c, rough=0.9, edge=0.45), loc=(0.68 + (k % 2) * 0.13, -0.6 - (k // 2) * 0.1 + 0.05,
+                   0.2), seg=14, parent=root)
+    return root
+
+
+def popcorn_cart():
+    root = kit.empty("popcorn")
+    red = mat("cart_red", "#E8473B", rough=0.45, spec=0.3, edge=0.5, edge_color="#7A1E16")
+    white = mat("trim", "#FFF4E2", rough=0.55, spec=0.2, edge=0.4, edge_color="#B9A48A")
+    kit.box((1.1, 0.7, 0.55), red, loc=(0, 0, 0.45), bevel=0.04, parent=root)
+    for i in range(6):
+        kit.box((0.1, 0.72, 0.5), white if i % 2 else red, loc=(-0.45 + i * 0.18, 0, 0.45), bevel=0.02, parent=root)
+    wheel = mat("wheel", "#4E5560", rough=0.5, metal=0.4, edge=0.4)
+    for x in (-0.38, 0.38):
+        kit.torus(0.17, 0.035, wheel, loc=(x, -0.38, 0.18), rot=(math.radians(90), 0, 0), parent=root)
+        kit.torus(0.17, 0.035, wheel, loc=(x, 0.38, 0.18), rot=(math.radians(90), 0, 0), parent=root)
+    pot = mat("pot", "#4E5560", rough=0.35, metal=0.7, spec=0.5, edge=0.4)
+    kit.cyl(0.26, 0.24, pot, r2=0.3, loc=(0, 0, 0.72), bevel=0.02, verts=22, parent=root)
+    pop = mat("popcorn", "#FFF6D8", rough=0.8, edge=0.45, edge_color="#B59A5A", var=0.05)
+    rng = random.Random(3)
+    for i in range(46):
+        a = rng.uniform(0, 6.28)
+        r = rng.uniform(0, 0.25)
+        kit.sphere(0.045, pop, loc=(math.cos(a) * r, math.sin(a) * r, 0.97 + (0.25 - r) * 0.5 + rng.uniform(0, 0.05)),
+                   seg=8, parent=root)
+    # striped canopy
+    for i in range(6):
+        col = red if i % 2 == 0 else white
+        kit.box((0.2, 0.9, 0.04), col, loc=(-0.5 + i * 0.2, 0, 1.38), bevel=0.015, parent=root)
+    for x in (-0.5, 0.5):
+        kit.cyl(0.025, 0.95, white, loc=(x, 0.3, 0.45), bevel=0.0, verts=8, parent=root)
+    kit.sphere(0.12, mat("popcorn_sign", "#FFD23F", rough=0.4, edge=0.45), loc=(0, 0, 1.55), seg=16, parent=root)
+    for k in range(5):
+        a = k * 1.25
+        kit.sphere(0.05, pop, loc=(0.6 + 0.15 * math.cos(a), -0.55 + 0.15 * math.sin(a), 0.04), seg=8, parent=root)
+    return root
+
+
+def sauce_kitchen():
+    rng = random.Random(61)
+    root = kit.empty("sauce_kitchen")
+    wall = mat("sauce_wall", "#F3E3B8", rough=0.75, edge=0.5, edge_color="#A8925C")
+    ridge = _cottage(1.2, 1.0, 0.82, wall, "#3E8E5A", root)
+    _window(-0.25, -0.5, 0.6, "y", root)
+    kit.box((0.3, 0.06, 0.5), wood("door", "#7A4A2A"), loc=(0.3, -0.53, 0.39), bevel=0.02, parent=root)
+    _window(0.6, 0.15, 0.6, "x", root)
+    # tomato sign
+    kit.sphere(0.15, mat("tomato", "#F0402F", rough=0.25, spec=0.6, edge=0.45, coat=0.4), loc=(0, 0, ridge + 0.17),
+               scale=(1, 1, 0.85), seg=20, parent=root)
+    kit.sphere(0.07, mat("straw_leaf", "#5DB33C", rough=0.6, edge=0.4), loc=(0, 0, ridge + 0.3), scale=(1.3, 1.3, 0.35),
+               seg=12, parent=root)
+    # stove with pot outside
+    brick = mat("brick", "#C7643F", rough=0.8, spec=0.1, edge=0.5, var=0.1, edge_color="#6B2A16")
+    kit.box((0.45, 0.4, 0.3), brick, loc=(0.95, -0.35, 0.15), bevel=0.03, parent=root)
+    pot = mat("pot", "#4E5560", rough=0.35, metal=0.7, spec=0.5, edge=0.4)
+    kit.cyl(0.16, 0.2, pot, loc=(0.95, -0.35, 0.3), bevel=0.02, verts=20, parent=root)
+    kit.cyl(0.15, 0.02, mat("sauce", "#C8301E", rough=0.3, spec=0.5, edge=0.2), loc=(0.95, -0.35, 0.49), bevel=0.0,
+            verts=20, parent=root)
+    crate = wood("crate_wood", "#C48D58")
+    kit.box((0.36, 0.3, 0.2), crate, loc=(-0.85, -0.55, 0.1), bevel=0.02, parent=root)
+    for k in range(5):
+        kit.sphere(0.06, mat("tomato", "#F0402F", rough=0.25, spec=0.6, edge=0.45, coat=0.4),
+                   loc=(-0.95 + (k % 3) * 0.1, -0.6 + (k // 3) * 0.1, 0.24), seg=12, parent=root)
+    return root
+
+
+def candle_maker():
+    root = kit.empty("candle_maker")
+    wall = mat("candle_wall", "#C9B6E8", rough=0.75, edge=0.5, edge_color="#6A5A96")
+    stone = mat("found", "#A59D8B", rough=0.85, edge=0.55, var=0.07)
+    kit.cyl(0.62, 0.14, stone, loc=(0, 0, 0), bevel=0.03, verts=8, parent=root)
+    kit.cyl(0.55, 1.0, wall, loc=(0, 0, 0.14), bevel=0.03, verts=8, parent=root)
+    _shingle_cone(0.72, 0.65, 1.12, "#5B4A8C", root)
+    ad = Vector((kit.TO_CAM.x, kit.TO_CAM.y, 0)).normalized()
+    door = wood("door", "#7A4A2A")
+    a = math.atan2(ad.y, ad.x)
+    kit.box((0.06, 0.3, 0.5), door, loc=(math.cos(a - 0.35) * 0.55, math.sin(a - 0.35) * 0.55, 0.4),
+            rot=(0, 0, a - 0.35), bevel=0.02, parent=root)
+    # candles on a table, one big candle sign
+    wax = mat("wax", "#FFF4DA", rough=0.5, edge=0.4, sss=0.2)
+    flame = mat("flame", "#FFC24A", rough=0.5, emit=4.0, edge=0.0)
+    beam = wood("bakery_beam", "#8C5A34")
+    kit.box((0.6, 0.3, 0.05), beam, loc=(0.75, -0.55, 0.3), bevel=0.01, parent=root)
+    for k, h in enumerate((0.16, 0.22, 0.12, 0.19)):
+        p = (0.55 + k * 0.13, -0.55, 0.325)
+        kit.cyl(0.035, h, wax, loc=p, bevel=0.01, verts=12, parent=root)
+        kit.sphere(0.02, flame, loc=(p[0], p[1], p[2] + h + 0.025), scale=(1, 1, 1.6), seg=8, parent=root)
+    for x in (0.5, 1.0):
+        kit.box((0.05, 0.05, 0.3), beam, loc=(x, -0.55, 0.15), bevel=0.01, parent=root)
+    kit.cyl(0.08, 0.3, wax, loc=(0, 0, 1.77), bevel=0.02, verts=14, parent=root)
+    kit.sphere(0.04, flame, loc=(0, 0, 2.11), scale=(1, 1, 1.7), seg=10, parent=root)
+    return root
+
+
 def building_frames():
     return {
         "barn": barn,
@@ -464,4 +719,11 @@ def building_frames():
         "bakery": bakery,
         "dairy": dairy,
         "order_board": order_board,
+        "beehive": beehive,
+        "fx_bee": fx_bee,
+        "jam_kitchen": jam_kitchen,
+        "loom": loom_shed,
+        "popcorn": popcorn_cart,
+        "sauce_kitchen": sauce_kitchen,
+        "candle_maker": candle_maker,
     }
