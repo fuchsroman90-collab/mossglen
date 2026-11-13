@@ -2,6 +2,10 @@
 
 Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 
+- **2026-11-13 (23:37) – Schaf-Prototyp 1: „Schaf ist schrecklich“.** Bild: `rejected/m95_sheep_proto1.png`.
+  Riesige Wolkenkugel, kleiner dunkler Kopf tief vergraben, lange Stelzenbeine, grimmige Augen.
+  **Folge:** zwei Varianten zur Auswahl zeigen (Hay-Day-Proportionen vs. süßes Lamm).
+
 - **2026-11-13 (23:20) – Tiere nach Durchgang 1 (Augenlider, neues Schwein/Schaf): „Die tiere sehen schrecklich aus“.**
   Bild: `rejected/m95_animals_pass1.png`. Knetmassen-Look aus Metaball-Klumpen, Zylinder-Beine, keine klaren Formen.
   **Folge:** Tiere werden von Grund auf neu gebaut, ein Tier als Prototyp zuerst (Huhn), erst nach Romans OK alle.
