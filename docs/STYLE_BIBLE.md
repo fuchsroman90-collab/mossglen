@@ -53,8 +53,14 @@ Technik und Regeln zum Bauen: Skill `.claude/skills/mossglen-art/SKILL.md`.
 - Tiere: Idle (Atmen + Blinzeln), Laufen, Huhn zusätzlich Picken. Blickrichtungen se/ne, gespiegelt sw/nw.
 - Wind-Shader für Bäume, Büsche, Pflanzen. Squash & Stretch bei jeder Interaktion.
 
-## 7. UI
+## 7. UI (2D, seit 13.11.2026)
 
-- Schrift **Fredoka** (SemiBold), helle Zahlen mit dicker dunkelbrauner Kontur.
-- Kapseln creme mit Glanz und dunklem Rand, runde gelbe Knöpfe mit Glanz, grüne Plus-Knöpfe.
-- Icons sind ebenfalls 3D-Renders (Münze mit Blatt-Prägung, Smaragd, Stern).
+Roman will die UI **flach in 2D** und nah am Referenz-HUD. Die Welt bleibt 3D.
+- Gezeichnet als SVG aus Code (`tools/art/ui.py`, gerendert mit resvg in 2x).
+- Formen: kräftige vertikale Verläufe, **weißer Innenrand**, dicke warm-dunkle Kontur (#5A3410),
+  Glanz-Ellipse oben, kleiner Schlagschatten.
+- Aufbau: blauer Level-Stern links oben über der XP-Leiste (weißer Rand, dunkelblau innen, hellblaue Füllung),
+  große weiße Zahlen mit dicker Kontur + Münze/Smaragd + gelber Plus-Knopf rechts oben,
+  runde gelbe Knöpfe links (Einstellungen), großer Shop-Knopf links unten.
+- Schrift **Fredoka** SemiBold. Auf hellen Panels dunkelbraune Schrift ohne Kontur.
+- Item-Icons in Menüs sind ebenfalls 2D (gleicher Stil).

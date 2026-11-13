@@ -5,8 +5,8 @@
     python tools/art/build.py barn       # re-render only frames containing "barn"
     python tools/art/build.py --force    # re-render everything (~15 min on 2 cores)
 
-Needs Python 3.13 + `pip install bpy==5.3.0 numpy pillow` for rendering.
-Packing alone needs only numpy + pillow.
+Needs Python 3.13 + `pip install bpy==5.3.0 numpy pillow resvg-py` for rendering.
+Packing alone needs only numpy + pillow + resvg-py (2D UI).
 """
 from __future__ import annotations
 
@@ -22,7 +22,6 @@ sys.path.insert(0, str(HERE))
 def main(argv):
     import ground
     import pack
-    import post
     import ui
 
     if "--pack" not in argv:
@@ -34,8 +33,9 @@ def main(argv):
 
     ground.grass().save(OUT / "ground_grass.png", optimize=True)
     ground.dirt().save(OUT / "ground_dirt.png", optimize=True)
-    for name, img in ui.ui_sprites().items():
-        post.to_pil(img).save(OUT / f"{name}.png", optimize=True)
+    (OUT / "ui").mkdir(exist_ok=True)
+    for name, img in ui.ui_images().items():
+        img.save(OUT / "ui" / f"{name}.png", optimize=True)
     print("ground + ui written to", OUT.relative_to(ROOT))
 
 

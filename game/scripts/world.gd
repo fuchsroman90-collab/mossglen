@@ -92,6 +92,8 @@ func _ready() -> void:
 	if _args.has("demo") or _args.has("shot"):
 		_demo_state()
 	Audio.play_music()
+	if _args.has("settings"):
+		hud._toggle_settings.call_deferred()
 	if _args.has("shot"):
 		_take_shot(_args["shot"])
 
@@ -518,10 +520,9 @@ func _float_reward(pos: Vector2, amount: int) -> void:
 	var n := Node2D.new()
 	n.position = pos
 	fx.add_child(n)
-	var icon := Atlas.sprite("icon_coin")
-	icon.centered = true
-	icon.offset = Vector2.ZERO
-	icon.scale = Vector2(0.42, 0.42)
+	var icon := Sprite2D.new()
+	icon.texture = load("res://art/generated/ui/coin.png")
+	icon.scale = Vector2(0.62, 0.62)
 	icon.position = Vector2(-34, 0)
 	n.add_child(icon)
 	var l := Label.new()
@@ -529,8 +530,8 @@ func _float_reward(pos: Vector2, amount: int) -> void:
 	l.position = Vector2(-4, -34)
 	l.add_theme_font_override("font", Game.font_bold)
 	l.add_theme_font_size_override("font_size", 52)
-	l.add_theme_color_override("font_color", Color("FFF8E6"))
-	l.add_theme_color_override("font_outline_color", Color("4A3222"))
+	l.add_theme_color_override("font_color", Color("FFFFFF"))
+	l.add_theme_color_override("font_outline_color", Color("3A2410"))
 	l.add_theme_constant_override("outline_size", 16)
 	n.add_child(l)
 	n.scale = Vector2(0.4, 0.4)
@@ -567,7 +568,7 @@ func _take_shot(path: String) -> void:
 func _run_smoke() -> void:
 	var errors: Array[String] = []
 	for n in ["field", "wheat_0", "wheat_3", "barn", "chicken_walk_se_0", "chicken_peck_ne_5", "dino_idle_se_0",
-			"tree_oak", "tree_pine", "fence_x", "fence_y", "icon_coin", "icon_emerald", "icon_star", "shadow_blob"]:
+			"tree_oak", "tree_pine", "fence_x", "fence_y", "shadow_blob"]:
 		if not Atlas.has(n):
 			errors.append("missing sprite " + n)
 	for g in [Vector2i(0, 0), Vector2i(5, -3), Vector2i(12, 7)]:

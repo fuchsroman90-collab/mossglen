@@ -2,6 +2,9 @@
 
 Neueste oben. Format: Datum – Entscheidung – Begründung – wer.
 
+- **2026-11-13 – Welt 3D, UI 2D.** Spielwelt bleibt vorgerendertes 3D, die Benutzeroberfläche (HUD, Knöpfe,
+  Icons, Menüs) wird flach in 2D gezeichnet (SVG aus Code), angelehnt an das Referenz-HUD. – Roman
+
 - **2026-11-13 – Grafik als Blender-Pre-Render statt SVG.** Roman fand den SVG-Stil enttäuschend und
   wollte 3D-Tiere wie in Hay Day. Blender (bpy) ist kostenlos, läuft headless, und vorgerenderte Sprites
   kosten auf dem iPhone 11 nicht mehr als die alten SVG-Sprites. – Roman + Claude

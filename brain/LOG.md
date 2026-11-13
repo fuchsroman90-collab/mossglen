@@ -2,6 +2,14 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-13 – PC-Sitzung: HUD auf 2D umgestellt
+
+- Roman: „Die UI bitte in 2D und mehr an den Referenzbildern orientieren.“ → in taste/DISLIKES + DECISIONS.
+- `tools/art/ui.py` neu: SVG aus Code (resvg): runder gelber/grüner Knopf, blauer Stern, Münze, Smaragd,
+  XP-Leiste (9-Slice), Panel, Symbole Zahnrad/Note/Shop/Plus. Ausgabe nach `game/art/generated/ui/`.
+- `hud.gd` neu im Referenz-Aufbau, Einstellungs-Panel (Musik, Sprache), Shop-Knopf (Signal `shop_pressed`).
+- GitHub-Zugriff ist eingerichtet, Push klappt.
+
 ## 2026-11-13 – PC-Sitzung (Cloud, Opus 5.5): M0 neu mit 3D-Grafik + Brain
 
 **Anlass:** Roman fand die SVG-Grafik enttäuschend (siehe `taste/DISLIKES.md`), schickte 14 Hay-Day-Referenzen

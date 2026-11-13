@@ -1,22 +1,30 @@
 class_name Hud
 extends CanvasLayer
-## HUD built in code. Authored in 2x units inside a root control scaled by 0.5,
-## so the 2x UI textures stay crisp on high-density screens.
+## 2D HUD (flat vector pieces from tools/art/ui.py), laid out like the reference HUD:
+## level star + XP bar top left, big outlined numbers with coin/gem and "+" top right,
+## round yellow buttons on the left, big shop button bottom left.
+## Authored in 2x units inside a root control scaled by 0.5.
 
-const UI := "res://art/generated/"
-const OUTLINE := Color("4A3222")
-const CREAM := Color("FFF8E6")
+signal shop_pressed
 
-var coin_icon: Control
+const UI := "res://art/generated/ui/"
+const OUTLINE := Color("3A2410")
+const WHITE := Color("FFFFFF")
+
+var coin_target: Control  ## where flying coins land
 var _root: Control
 var _coin_label: Label
-var _emerald_label: Label
+var _gem_label: Label
 var _level_label: Label
+var _xp_label: Label
 var _xp_fill: NinePatchRect
-var _xp_width := 0.0
+var _settings: Control
+var _music_btn: Label
 var _fps_label: Label
 var _hint: Label
-var _music_label: Label
+
+const XP_X := 150.0
+const XP_W := 440.0
 
 
 func _ready() -> void:
@@ -27,58 +35,63 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_fit)
 	_fit()
 
-	# level star + xp bar (top left)
-	var xp_back := _patch("ui_bar_back.png", 26, 18)
-	xp_back.position = Vector2(118, 46)
-	xp_back.size = Vector2(300, 52)
-	_root.add_child(xp_back)
-	_xp_fill = _patch("ui_bar_fill.png", 18, 14)
-	_xp_fill.position = Vector2(126, 54)
-	_xp_width = 284.0
-	_xp_fill.size = Vector2(36, 36)
+	# XP bar with the level star overlapping its left end
+	var back := _patch("bar_back.png", 32, 30)
+	back.position = Vector2(XP_X, 34)
+	back.size = Vector2(XP_W, 68)
+	_root.add_child(back)
+	_xp_fill = _patch("bar_fill.png", 20, 18)
+	_xp_fill.position = Vector2(XP_X + 13, 47)
+	_xp_fill.size = Vector2(40, 42)
 	_root.add_child(_xp_fill)
-	var star := _icon("icon_star", Vector2(150, 144))
-	star.position = Vector2(12, 0)
+	_xp_label = _label("", 36)
+	_xp_label.position = Vector2(XP_X + 60, 32)
+	_xp_label.size = Vector2(XP_W - 70, 70)
+	_xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_root.add_child(_xp_label)
+	var star := _tex("star.png")
+	star.position = Vector2(14, 4)
 	_root.add_child(star)
-	_level_label = _label(str(Game.level), 54)
-	_level_label.position = Vector2(12, 34)
-	_level_label.size = Vector2(150, 70)
+	_level_label = _label(str(Game.level), 62)
+	_level_label.position = Vector2(14, 34)
+	_level_label.size = Vector2(160, 100)
 	_level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_root.add_child(_level_label)
 
-	# currencies (top right)
-	var c := _counter("icon_coin", str(Game.coins), 0)
-	coin_icon = c[0]
-	_coin_label = c[1]
-	var e := _counter("icon_emerald", str(Game.emeralds), 1)
-	_emerald_label = e[1]
+	# currencies, top right: big number, icon, plus button
+	var c := _currency("coin.png", Game.coins, 0)
+	_coin_label = c[0]
+	coin_target = c[1]
+	_gem_label = _currency("gem.png", Game.emeralds, 1)[0]
 
-	# round buttons (bottom right)
-	var music := _round_button("♪", 0)
-	_music_label = music
-	music.get_parent().pressed.connect(_on_music)
-	var lang := _round_button("BTN_LANG", 1)
-	lang.get_parent().pressed.connect(func() -> void:
+	# left column: settings
+	var gear := _round_button("ico_gear.png", Vector2(26, 190), 128)
+	gear.pressed.connect(_toggle_settings)
+	# bottom left: shop (build / seeds menu)
+	var shop := _round_button("ico_shop.png", Vector2(20, -250), 196, true)
+	shop.pressed.connect(func() -> void:
 		Audio.play("click")
-		Game.toggle_language())
+		shop_pressed.emit())
 
-	_hint = _label("HINT_START", 40)
+	_build_settings()
+
+	_hint = _label("HINT_START", 42)
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_hint.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_hint.offset_top = -150
-	_hint.offset_bottom = -90
+	_hint.offset_bottom = -86
 	_root.add_child(_hint)
 
-	_fps_label = _label("", 26)
-	_fps_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	_fps_label.offset_left = 24
-	_fps_label.offset_top = -56
-	_fps_label.modulate.a = 0.75
+	_fps_label = _label("", 24)
+	_fps_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	_fps_label.offset_left = -170
+	_fps_label.offset_top = -50
+	_fps_label.modulate.a = 0.6
 	_root.add_child(_fps_label)
 
-	Game.coins_changed.connect(func(v: int) -> void: _set_counter(_coin_label, v))
-	Game.emeralds_changed.connect(func(v: int) -> void: _set_counter(_emerald_label, v))
+	Game.coins_changed.connect(func(v: int) -> void: _set_number(_coin_label, v))
+	Game.emeralds_changed.connect(func(v: int) -> void: _set_number(_gem_label, v))
 	Game.xp_changed.connect(_on_xp)
 	_on_xp(Game.xp, Game.xp_needed(), Game.level)
 
@@ -96,29 +109,72 @@ func hide_hint() -> void:
 		create_tween().tween_property(_hint, "modulate:a", 0.0, 0.6).finished.connect(_hint.hide)
 
 
-func _on_music() -> void:
-	Audio.play("click")
-	Audio.set_music_enabled(not Audio.music_enabled)
-	_music_label.modulate.a = 1.0 if Audio.music_enabled else 0.35
-
-
 func _on_xp(xp: int, needed: int, level: int) -> void:
-	var w := maxf(36.0, _xp_width * float(xp) / float(needed))
+	var w := maxf(40.0, (XP_W - 26.0) * float(xp) / float(needed))
 	create_tween().tween_property(_xp_fill, "size:x", w, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_xp_label.text = "%d / %d" % [xp, needed]
 	if _level_label.text != str(level):
 		_level_label.text = str(level)
-		_pop(_level_label, 1.6)
+		_pop(_level_label, 1.7)
 
 
-func _set_counter(label: Label, v: int) -> void:
-	label.text = str(v)
-	_pop(label, 1.3)
+## Thousands separated with a thin space, like the reference ("4 852 770").
+static func fmt(v: int) -> String:
+	var s := str(absi(v))
+	var out := ""
+	while s.length() > 3:
+		out = " " + s.substr(s.length() - 3) + out
+		s = s.substr(0, s.length() - 3)
+	return ("-" if v < 0 else "") + s + out
+
+
+func _set_number(label: Label, v: int) -> void:
+	label.text = fmt(v)
+	_pop(label, 1.25)
 
 
 func _pop(c: Control, s: float) -> void:
 	c.pivot_offset = c.size / 2
 	c.scale = Vector2(s, s)
 	create_tween().tween_property(c, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+# ------------------------------------------------------------------ settings
+
+func _build_settings() -> void:
+	_settings = _patch("panel.png", 44, 44)
+	_settings.position = Vector2(170, 170)
+	_settings.size = Vector2(430, 300)
+	_settings.visible = false
+	_root.add_child(_settings)
+	var title := _dark(_label("SETTINGS", 42))
+	title.position = Vector2(0, 26)
+	title.size = Vector2(430, 60)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_settings.add_child(title)
+	var music := _text_button("BTN_MUSIC_ON", Vector2(40, 100), "ico_note.png")
+	_music_btn = music[1]
+	music[0].pressed.connect(func() -> void:
+		Audio.play("click")
+		Audio.set_music_enabled(not Audio.music_enabled)
+		_music_btn.text = "BTN_MUSIC_ON" if Audio.music_enabled else "BTN_MUSIC_OFF")
+	var lang := _text_button("BTN_LANG", Vector2(40, 186), "", "Aa")
+	lang[0].pressed.connect(func() -> void:
+		Audio.play("click")
+		Game.toggle_language())
+
+
+func _toggle_settings() -> void:
+	Audio.play("click")
+	if _settings.visible:
+		var tw := create_tween()
+		tw.tween_property(_settings, "scale", Vector2(0.85, 0.85), 0.1)
+		tw.tween_callback(_settings.hide)
+		return
+	_settings.visible = true
+	_settings.pivot_offset = Vector2(0, 0)
+	_settings.scale = Vector2(0.6, 0.6)
+	create_tween().tween_property(_settings, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 # ------------------------------------------------------------------ widgets
@@ -134,12 +190,9 @@ func _patch(file: String, mx: int, my: int) -> NinePatchRect:
 	return p
 
 
-func _icon(sprite_name: String, box: Vector2) -> TextureRect:
+func _tex(file: String) -> TextureRect:
 	var t := TextureRect.new()
-	t.texture = Atlas.tex(sprite_name)
-	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	t.size = box
+	t.texture = load(UI + file)
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return t
 
@@ -149,70 +202,114 @@ func _label(text: String, font_size: int) -> Label:
 	l.text = text
 	l.add_theme_font_override("font", Game.font_bold)
 	l.add_theme_font_size_override("font_size", font_size)
-	l.add_theme_color_override("font_color", CREAM)
+	l.add_theme_color_override("font_color", WHITE)
 	l.add_theme_color_override("font_outline_color", OUTLINE)
-	l.add_theme_constant_override("outline_size", maxi(8, font_size / 4))
+	l.add_theme_constant_override("outline_size", maxi(10, font_size / 3))
+	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.25))
+	l.add_theme_constant_override("shadow_offset_y", 4)
+	l.add_theme_constant_override("shadow_offset_x", 0)
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
 
 
-## Capsule with icon and number, stacked in the top right corner.
-func _counter(icon_name: String, value: String, row: int) -> Array:
+## Big outlined number + icon + small round "+" button, stacked top right.
+func _currency(icon_file: String, value: int, row: int) -> Array:
 	var holder := Control.new()
 	holder.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	holder.offset_left = -390
-	holder.offset_top = 22 + row * 104
+	holder.offset_left = -480
+	holder.offset_top = 18 + row * 112
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(holder)
-	var cap := _patch("ui_capsule.png", 40, 30)
-	cap.position = Vector2(46, 14)
-	cap.size = Vector2(300, 80)
-	holder.add_child(cap)
-	var label := _label(value, 46)
-	label.position = Vector2(110, 14)
-	label.size = Vector2(190, 74)
+	var label := _label(fmt(value), 66)
+	label.position = Vector2(0, 4)
+	label.size = Vector2(250, 100)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	label.add_theme_color_override("font_color", Color("5A3A20"))
-	label.add_theme_color_override("font_outline_color", Color(1, 1, 1, 0))
-	label.add_theme_constant_override("outline_size", 0)
 	holder.add_child(label)
-	var icon := _icon(icon_name, Vector2(108, 104))
-	icon.position = Vector2(0, 0)
+	var icon := _tex(icon_file)
+	icon.position = Vector2(262, 0)
 	holder.add_child(icon)
 	var plus := TextureButton.new()
-	plus.texture_normal = load(UI + "ui_btn_green.png")
+	plus.texture_normal = load(UI + "btn_round.png")
 	plus.ignore_texture_size = true
-	plus.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	plus.position = Vector2(318, 18)
-	plus.size = Vector2(70, 74)
+	plus.stretch_mode = TextureButton.STRETCH_SCALE
+	plus.position = Vector2(378, 12)
+	plus.size = Vector2(84, 89)
 	plus.focus_mode = Control.FOCUS_NONE
 	plus.pressed.connect(func() -> void: Audio.play("click"))
+	_press_feedback(plus)
 	holder.add_child(plus)
-	var pl := _label("+", 54)
-	pl.size = Vector2(70, 68)
-	pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	plus.add_child(pl)
-	return [icon, label]
+	var p := _tex("ico_plus.png")
+	p.position = Vector2(11, 10)
+	p.scale = Vector2(0.97, 0.97)
+	plus.add_child(p)
+	return [label, icon]
 
 
-func _round_button(text: String, index: int) -> Label:
+func _round_button(icon_file: String, pos: Vector2, size: float, bottom := false) -> TextureButton:
 	var b := TextureButton.new()
-	b.texture_normal = load(UI + "ui_btn_yellow.png")
+	b.texture_normal = load(UI + "btn_round.png")
 	b.ignore_texture_size = true
-	b.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	b.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	b.offset_left = -150 - index * 140
-	b.offset_top = -160
-	b.offset_right = b.offset_left + 124
-	b.offset_bottom = b.offset_top + 130
+	b.stretch_mode = TextureButton.STRETCH_SCALE
+	if bottom:
+		b.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+		b.offset_left = pos.x
+		b.offset_top = pos.y
+		b.offset_right = pos.x + size
+		b.offset_bottom = pos.y + size * 1.06
+	else:
+		b.position = pos
+		b.size = Vector2(size, size * 1.06)
 	b.focus_mode = Control.FOCUS_NONE
-	b.button_down.connect(func() -> void: b.scale = Vector2(0.92, 0.92))
-	b.button_up.connect(func() -> void: b.scale = Vector2.ONE)
-	b.pivot_offset = Vector2(62, 62)
+	_press_feedback(b)
 	_root.add_child(b)
-	var l := _label(text, 46)
-	l.size = Vector2(124, 120)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	b.add_child(l)
+	var icon := _tex(icon_file)
+	var tex_size: Vector2 = icon.texture.get_size()
+	var k := size * 0.62 / tex_size.x
+	icon.scale = Vector2(k, k)
+	icon.position = (Vector2(size, size) - tex_size * k) * 0.5
+	b.add_child(icon)
+	return b
+
+
+func _dark(l: Label) -> Label:
+	l.add_theme_color_override("font_color", Color("5A3410"))
+	l.add_theme_constant_override("outline_size", 0)
+	l.add_theme_constant_override("shadow_offset_y", 0)
+	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
 	return l
+
+
+func _text_button(key: String, pos: Vector2, icon_file := "", glyph := "") -> Array:
+	var b := TextureButton.new()
+	b.texture_normal = load(UI + "btn_round_green.png")
+	b.ignore_texture_size = true
+	b.stretch_mode = TextureButton.STRETCH_SCALE
+	b.position = pos
+	b.size = Vector2(80, 85)
+	b.focus_mode = Control.FOCUS_NONE
+	_press_feedback(b)
+	_settings.add_child(b)
+	if icon_file != "":
+		var ic := _tex(icon_file)
+		ic.scale = Vector2(0.55, 0.55)
+		ic.position = Vector2(14, 12)
+		b.add_child(ic)
+	if glyph != "":
+		var g := _label(glyph, 34)
+		g.size = Vector2(80, 80)
+		g.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		b.add_child(g)
+	var l := _dark(_label(key, 40))
+	l.position = pos + Vector2(100, 4)
+	l.size = Vector2(280, 76)
+	_settings.add_child(l)
+	return [b, l]
+
+
+func _press_feedback(b: BaseButton) -> void:
+	b.button_down.connect(func() -> void:
+		b.pivot_offset = b.size / 2
+		b.scale = Vector2(0.9, 0.9))
+	b.button_up.connect(func() -> void:
+		create_tween().tween_property(b, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT))
