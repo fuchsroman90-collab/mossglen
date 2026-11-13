@@ -8,7 +8,7 @@ from mathutils import Vector
 
 from .. import kit
 from ..kit import mat
-from .nature import foliage_mat, leaf_clump, moss_tufts
+from .nature import foliage_mat, leaf_clump, moss_tufts  # noqa: F401
 
 FIELD_TOP = 0.1
 
@@ -81,6 +81,155 @@ def wheat(stage: int, seed=7):
                     a = rng.uniform(0, 2 * math.pi)
                     _blade(green if stage == 2 else stalk_gold, base, 0.14, Vector((math.cos(a), math.sin(a), 0)),
                            0.6, 0.016, root)
+    return root
+
+
+def _grid(n, jitter, rng):
+    step = 0.78 / n
+    for gx in range(n):
+        for gy in range(n):
+            yield Vector((-0.39 + step * (gx + 0.5) + rng.uniform(-jitter, jitter),
+                          -0.39 + step * (gy + 0.5) + rng.uniform(-jitter, jitter), FIELD_TOP - 0.01))
+
+
+def _sprouts(root, rng, n, green):
+    for base in _grid(n, 0.03, rng):
+        for k in range(3):
+            a = k / 3 * 2 * math.pi + rng.random()
+            _blade(green, base, 0.07, Vector((math.cos(a), math.sin(a), 0)), 0.5, 0.012, root)
+
+
+def corn(stage: int, seed=21):
+    rng = random.Random(seed + stage)
+    root = kit.empty("corn")
+    green = mat("corn_green", "#6DBB45", rough=0.6, spec=0.2, edge=0.45, var=0.08, sss=0.1)
+    if stage == 0:
+        _sprouts(root, rng, 2, green)
+        return root
+    husk = mat("corn_husk", "#9BD66A", rough=0.6, edge=0.45, var=0.06)
+    kern = mat("corn_kernel", "#FFD23F", rough=0.45, spec=0.35, edge=0.5, edge_color="#C98A10")
+    tassel = mat("corn_tassel", "#E6C46A", rough=0.7, edge=0.4)
+    h = {1: 0.2, 2: 0.48, 3: 0.56}[stage]
+    for base in _grid(2, 0.04, rng):
+        kit.cyl(0.022, h, green, loc=base, bevel=0.0, verts=8, parent=root)
+        for k in range(5 if stage > 1 else 3):
+            a = k * 2.4 + rng.random()
+            z = base.z + h * (0.15 + 0.17 * k)
+            d = Vector((math.cos(a), math.sin(a), 0))
+            _blade(green, base + Vector((0, 0, z - base.z)), h * 0.55, d, 0.9, 0.03, root)
+        if stage == 3:
+            a = rng.uniform(0, 6.28)
+            d = Vector((math.cos(a), math.sin(a), 0))
+            p = base + Vector((d.x * 0.05, d.y * 0.05, h * 0.55))
+            kit.sphere(0.045, kern, loc=p, scale=(1.0, 1.0, 2.3), rot=(d.y * -0.35, d.x * 0.35, 0), seg=14, parent=root)
+            for side in (-1, 1):
+                kit.sphere(0.04, husk, loc=p + Vector((d.y * side * 0.025, -d.x * side * 0.025, -0.04)),
+                           scale=(0.6, 0.6, 2.4), rot=(d.y * -0.35, d.x * 0.35, 0), seg=12, parent=root)
+            for k in range(4):
+                a2 = k * 1.57 + rng.random()
+                _blade(tassel, base + Vector((0, 0, h)), 0.09, Vector((math.cos(a2), math.sin(a2), 0)), 0.7, 0.01, root)
+    return root
+
+
+def carrot(stage: int, seed=31):
+    rng = random.Random(seed + stage)
+    root = kit.empty("carrot")
+    green = mat("carrot_green", "#5FB43C", rough=0.6, spec=0.2, edge=0.45, var=0.1, sss=0.1)
+    if stage == 0:
+        _sprouts(root, rng, 3, green)
+        return root
+    orange = mat("carrot", "#FF8A2B", rough=0.45, spec=0.35, edge=0.5, edge_color="#B4501A")
+    fm = foliage_mat("carrot_top", "#8FD455", "#2F8A2C",
+                                                                          noise_scale=26.0, z0=0.1, z1=0.4)
+    for base in _grid(3, 0.03, rng):
+        n = {1: 5, 2: 9, 3: 10}[stage]
+        h = {1: 0.11, 2: 0.17, 3: 0.19}[stage]
+        for k in range(n):
+            a = k / n * 2 * math.pi + rng.random() * 0.5
+            d = Vector((math.cos(a), math.sin(a), 0))
+            lean = rng.uniform(0.25, 0.6)
+            _blade(green, base, h * rng.uniform(0.85, 1.1), d, lean, 0.011, root)
+            if stage >= 2:
+                # feathery leaflets along the upper half of each stem
+                for j in range(3):
+                    t = 0.55 + j * 0.17
+                    p = base + Vector((d.x * math.sin(lean), d.y * math.sin(lean), math.cos(lean))) * h * t
+                    kit.sphere(0.016, fm, loc=p, scale=(1.4, 0.7, 0.45), rot=(0, 0, a + (j % 2) * 0.8), seg=8,
+                               parent=root)
+        if stage == 3:
+            kit.cyl(0.04, 0.05, orange, loc=base + Vector((0, 0, -0.02)), r2=0.03, bevel=0.0, verts=14, parent=root)
+    return root
+
+
+def tomato(stage: int, seed=41):
+    rng = random.Random(seed + stage)
+    root = kit.empty("tomato")
+    green = mat("tomato_green", "#5DAE3C", rough=0.6, spec=0.2, edge=0.45, var=0.08)
+    if stage == 0:
+        _sprouts(root, rng, 2, green)
+        return root
+    fm = foliage_mat("tomato_leaf", "#7FC948", "#2D7A2C",
+                                                                          noise_scale=16.0, z0=0.1, z1=0.6)
+    stake = wood("stake", "#B98654")
+    red = mat("tomato", "#F0402F", rough=0.25, spec=0.6, edge=0.45, coat=0.4, edge_color="#8A1A10")
+    flower = mat("tomato_flower", "#FFE04A", rough=0.5, edge=0.3)
+    for base in _grid(2, 0.03, rng):
+        h = {1: 0.16, 2: 0.36, 3: 0.4}[stage]
+        if stage >= 2:
+            kit.box((0.025, 0.025, h + 0.08), stake, loc=base + Vector((0.07, -0.07, (h + 0.08) / 2)), bevel=0.008,
+                    parent=root)
+        spots = [(0, 0, h * 0.45, 0.09), (0.04, 0.03, h * 0.75, 0.08), (-0.04, -0.02, h * 0.85, 0.07)]
+        if stage == 1:
+            spots = [(0, 0, h * 0.6, 0.075)]
+        for x, y, z, r in spots:
+            leaf_clump(base + Vector((x, y, z)), r * (1.0 if stage > 1 else 0.9), fm, rng, parent=root, squash=0.9)
+        if stage == 2:
+            for k in range(4):
+                a = rng.uniform(0, 6.28)
+                kit.sphere(0.018, flower, loc=base + Vector((math.cos(a) * 0.08, math.sin(a) * 0.08,
+                           h * rng.uniform(0.5, 0.95))), seg=8, parent=root)
+        if stage == 3:
+            for k in range(6):
+                a = rng.uniform(-1.6, 1.6) + math.atan2(kit.TO_CAM.y, kit.TO_CAM.x)
+                p = base + Vector((math.cos(a) * 0.085, math.sin(a) * 0.085, h * rng.uniform(0.3, 0.9)))
+                kit.sphere(0.04, red, loc=p, scale=(1.0, 1.0, 0.88), seg=16, parent=root)
+    return root
+
+
+def strawberry(stage: int, seed=51):
+    rng = random.Random(seed + stage)
+    root = kit.empty("strawberry")
+    green = mat("straw_green", "#5DAE3C", rough=0.6, spec=0.2, edge=0.45, var=0.08)
+    if stage == 0:
+        _sprouts(root, rng, 3, green)
+        return root
+    fm = foliage_mat("strawberry_leaf", "#86CC4A", "#2D7A2C",
+                                                                          noise_scale=18.0, z0=0.1, z1=0.3)
+    red = mat("strawberry", "#F2384A", rough=0.3, spec=0.5, edge=0.45, coat=0.3, edge_color="#8A1222")
+    seedm = mat("straw_seed", "#FFE38A", rough=0.5, edge=0.0)
+    white = mat("straw_flower", "#FFFFFF", rough=0.5, edge=0.3)
+    for base in _grid(3, 0.02, rng):
+        r = {1: 0.055, 2: 0.075, 3: 0.08}[stage]
+        leaf_clump(base + Vector((0, 0, r * 0.6)), r, fm, rng, parent=root, squash=0.7)
+        if stage == 2 and rng.random() < 0.7:
+            a = rng.uniform(0, 6.28)
+            c = base + Vector((math.cos(a) * r * 0.8, math.sin(a) * r * 0.8, r * 1.0))
+            for j in range(5):
+                b = j / 5 * 6.28
+                kit.sphere(0.012, white, loc=c + Vector((math.cos(b) * 0.014, math.sin(b) * 0.014, 0)),
+                           scale=(1, 1, 0.5), seg=8, parent=root)
+            kit.sphere(0.008, mat("flower_center", "#FFB830", rough=0.6, edge=0.3), loc=c + Vector((0, 0, 0.004)),
+                       seg=8, parent=root)
+        if stage == 3:
+            a = rng.uniform(-1.4, 1.4) + math.atan2(kit.TO_CAM.y, kit.TO_CAM.x)
+            p = base + Vector((math.cos(a) * r * 0.95, math.sin(a) * r * 0.95, 0.03))
+            kit.cyl(0.026, 0.05, red, loc=p + Vector((0, 0, -0.04)), r2=0.006, rot=(math.pi, 0, 0), bevel=0.0,
+                    verts=14, parent=root)
+            kit.sphere(0.027, red, loc=p + Vector((0, 0, -0.012)), scale=(1, 1, 0.7), seg=14, parent=root)
+            for j in range(3):
+                b = j * 2.1 + a
+                kit.sphere(0.004, seedm, loc=p + Vector((math.cos(b) * 0.024, math.sin(b) * 0.024, -0.02)),
+                           seg=6, parent=root)
     return root
 
 
@@ -185,4 +334,8 @@ def farm_frames():
     }
     for s in range(4):
         out[f"wheat_{s}"] = (lambda s=s: wheat(s))
+        out[f"corn_{s}"] = (lambda s=s: corn(s))
+        out[f"carrot_{s}"] = (lambda s=s: carrot(s))
+        out[f"tomato_{s}"] = (lambda s=s: tomato(s))
+        out[f"strawberry_{s}"] = (lambda s=s: strawberry(s))
     return out

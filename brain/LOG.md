@@ -2,6 +2,24 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-13 – PC-Sitzung: M1 Vertical Slice
+
+- 4 neue Pflanzen in 3D (Mais, Karotte, Tomate, Erdbeere, je 4 Stufen). Karotte erst „Salat-Look“ → fedriges Kraut.
+- 2D-Item-Icons (Weizen, Mais, Karotte, Tomate, Erdbeere, Feld) + Slot, Badge, Schloss, Pill-Knopf, Häkchen, Kreuz.
+- Daten: `game/data/crops.json` (Wachstum 30 s–7 min, Verkaufspreis, XP, Freischalt-Level, Ertrag 2).
+- `game_state.gd`: Lager (50 Plätze), Säen kostet 1 Stück, Ernte gibt 2, Verkauf, Level-Freischaltung mit
+  Geschenk (2 Stück), Feldpreis/Max-Felder, **lokales Speichern** (`user://save.json`, Autosave 5 s, beim
+  Schließen/Pausieren; Wachstum läuft offline weiter).
+- HUD: Saat-Auswahl am Feld, Wachstums-Blase (Restzeit), Scheune mit Verkauf, Laden (Feld kaufen),
+  Platzier-Leiste ✓/✗, Meldungen (Level-up, neue Pflanze, Scheune voll, keine Saat).
+- Welt: Antippen = Saat-Auswahl, Wischen = säen/ernten, **langes Drücken = Feld verschieben**,
+  gekaufte Felder per grün/rot-Vorschau platzieren, Scheune antippen = Lager. **Tag/Nacht** (20 Min, CanvasModulate).
+- Selbsttest prüft den ganzen Ablauf (säen, reifen, ernten, verkaufen, Level-up, Feld kaufen, verschieben,
+  Speichern). Screenshot-Schalter: `--ui=picker|barn|shop|place`, `--time=0..1`.
+- Fehler gefunden: Godot schaltet `_process` automatisch ein → leere Felder suchten Sprite „_0“. Behoben.
+
+Offen: Romans Bewertung von M1; echte Geräte-FPS; danach M2 (Tiere + Produktion + Aufträge).
+
 ## 2026-11-13 – PC-Sitzung: HUD auf 2D umgestellt
 
 - Roman: „Die UI bitte in 2D und mehr an den Referenzbildern orientieren.“ → in taste/DISLIKES + DECISIONS.

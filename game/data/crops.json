@@ -1,0 +1,7 @@
+{
+	"wheat": {"grow": 30, "sell": 3, "xp": 1, "unlock": 1, "yield": 2},
+	"corn": {"grow": 75, "sell": 7, "xp": 2, "unlock": 2, "yield": 2},
+	"carrot": {"grow": 120, "sell": 10, "xp": 2, "unlock": 3, "yield": 2},
+	"tomato": {"grow": 240, "sell": 18, "xp": 3, "unlock": 4, "yield": 2},
+	"strawberry": {"grow": 420, "sell": 28, "xp": 4, "unlock": 5, "yield": 2}
+}

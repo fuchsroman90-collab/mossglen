@@ -28,7 +28,10 @@ const ZOOM_START := 0.52
 const TAP_SLOP := 14.0
 const BRUSH_STEP := 18.0
 
-enum Mode { NONE, PAN, PINCH, PLANT, HARVEST }
+const LONG_PRESS := 0.45
+const DAY_SECONDS := 20.0 * 60.0
+
+enum Mode { NONE, PAN, PINCH, PLANT, HARVEST, SOW_PENDING, GROW_PENDING, PLACE }
 
 var ground: Polygon2D
 var objects: Node2D
@@ -55,6 +58,19 @@ var _args: Dictionary = {}
 var _bench_times := PackedFloat32Array()
 var _bench_clock := 0.0
 var _page_images: Dictionary = {}
+var selected_crop := "wheat"
+var _press_time := 0.0
+var _press_pos := Vector2.ZERO
+var _press_field: Field = null
+var _picker_field: Field = null
+var _no_seed_warned := false
+var _placing: Field = null
+var _placing_new := false
+var _place_cell := Vector2i.ZERO
+var _place_from := Vector2i.ZERO
+var _daylight: CanvasModulate
+var _sky: Gradient
+var _day_t := 0.0
 
 
 func _ready() -> void:
@@ -82,6 +98,15 @@ func _ready() -> void:
 	cam.zoom = Vector2(z, z)
 	hud = HudScript.new()
 	add_child(hud)
+	hud.shop_pressed.connect(hud.open_shop)
+	hud.seed_chosen.connect(_on_seed_chosen)
+	hud.buy_field.connect(_on_buy_field)
+	hud.place_confirm.connect(_on_place_confirm)
+	hud.place_cancel.connect(_on_place_cancel)
+	Game.leveled_up.connect(_on_level_up)
+	Game.world_saver = _save_world
+	_build_daylight()
+	_update_daylight()
 
 	if _args.has("smoke"):
 		_run_smoke.call_deferred()
@@ -94,6 +119,8 @@ func _ready() -> void:
 	Audio.play_music()
 	if _args.has("settings"):
 		hud._toggle_settings.call_deferred()
+	if _args.has("ui"):
+		_debug_ui.call_deferred(str(_args["ui"]))
 	if _args.has("shot"):
 		_take_shot(_args["shot"])
 
@@ -182,10 +209,17 @@ func _build_farm() -> void:
 		_dirt(Vector2i(20, y))
 		occupied[Vector2i(20, y)] = true
 
-	# fields 4 x 3
-	for x in range(11, 15):
-		for y in range(11, 14):
-			_add_field(Vector2i(x, y))
+	# fields: from the save, or the default 4 x 3 block
+	var saved: Array = Game.saved_world.get("fields", [])
+	if saved.is_empty():
+		for x in range(11, 15):
+			for y in range(11, 14):
+				_add_field(Vector2i(x, y))
+	else:
+		for d in saved:
+			var f := _add_field(Vector2i(int(d["x"]), int(d["y"])))
+			if str(d["crop"]) != "" and Game.crops.has(str(d["crop"])):
+				f.plant(str(d["crop"]), float(d["t"]))
 
 	# barn on a dirt pad, hay and barrels are part of the sprite
 	_dirt_rect(Rect2i(14, 3, 6, 5))
@@ -380,23 +414,33 @@ func _on_press(pos: Vector2) -> void:
 		return
 	_moved = 0.0
 	_combo = 0
+	_press_time = 0.0
+	_press_pos = pos
 	_stroke_cells.clear()
-	var f: Field = fields.get(cell_at(screen_to_world(pos)))
-	if f != null and f.state == Field.State.RIPE:
-		_mode = Mode.HARVEST
-	elif f != null and f.state == Field.State.EMPTY:
-		_mode = Mode.PLANT
-	else:
-		_mode = Mode.PAN
+	_no_seed_warned = false
+	if _placing != null:
+		_mode = Mode.PLACE
+		_move_ghost(pos)
 		return
-	_brush_last = pos
-	_brush_at(pos)
+	hud.hide_seed_picker()
+	var f: Field = fields.get(cell_at(screen_to_world(pos)))
+	_press_field = f
+	if f == null:
+		_mode = Mode.PAN
+	elif f.state == Field.State.RIPE:
+		_mode = Mode.HARVEST
+		_brush_last = pos
+		_brush_at(pos)
+	elif f.state == Field.State.EMPTY:
+		_mode = Mode.SOW_PENDING
+	else:
+		_mode = Mode.GROW_PENDING
 
 
 func _on_drag(event: InputEventScreenDrag) -> void:
+	_moved += event.relative.length()
 	match _mode:
 		Mode.PAN:
-			_moved += event.relative.length()
 			cam.position -= event.relative / cam.zoom.x
 			_clamp_cam()
 		Mode.PINCH:
@@ -406,24 +450,61 @@ func _on_drag(event: InputEventScreenDrag) -> void:
 				if _pinch_dist > 0.0:
 					zoom_at((p[0] + p[1]) * 0.5, d / _pinch_dist)
 				_pinch_dist = d
+		Mode.PLACE:
+			_move_ghost(event.position)
+		Mode.SOW_PENDING:
+			if _moved > TAP_SLOP:
+				_mode = Mode.PLANT
+				_brush_last = _press_pos
+				_brush_at(_press_pos)
+				_brush_stroke(event.position)
+		Mode.GROW_PENDING:
+			if _moved > TAP_SLOP:
+				_mode = Mode.PAN
 		Mode.PLANT, Mode.HARVEST:
-			# interpolate so fast swipes never skip a field
-			var from := _brush_last
-			var dist := from.distance_to(event.position)
-			var steps := maxi(1, int(dist / BRUSH_STEP))
-			for i in range(1, steps + 1):
-				_brush_at(from.lerp(event.position, float(i) / steps))
-			_brush_last = event.position
+			_brush_stroke(event.position)
+
+
+func _brush_stroke(to: Vector2) -> void:
+	# interpolate so fast swipes never skip a field
+	var from := _brush_last
+	var steps := maxi(1, int(from.distance_to(to) / BRUSH_STEP))
+	for i in range(1, steps + 1):
+		_brush_at(from.lerp(to, float(i) / steps))
+	_brush_last = to
 
 
 func _on_release(pos: Vector2) -> void:
 	if _mode == Mode.PINCH:
 		_mode = Mode.NONE if _touches.size() < 2 else Mode.PINCH
 		return
-	if _touches.is_empty():
-		if _mode == Mode.PAN and _moved < TAP_SLOP:
-			_tap(screen_to_world(pos))
-		_mode = Mode.NONE
+	if not _touches.is_empty():
+		return
+	var tap := _moved < TAP_SLOP
+	match _mode:
+		Mode.PAN:
+			if tap:
+				_tap(screen_to_world(pos))
+		Mode.SOW_PENDING:
+			if tap and _press_field != null:
+				_picker_field = _press_field
+				hud.show_seed_picker(pos, selected_crop)
+		Mode.GROW_PENDING:
+			if tap and _press_field != null:
+				var f := _press_field
+				hud.show_field_info(get_viewport().get_canvas_transform() * f.position, f.crop, f.seconds_left(),
+						f.progress())
+	_mode = Mode.NONE
+	_press_field = null
+
+
+func _check_long_press(delta: float) -> void:
+	if _mode != Mode.SOW_PENDING and _mode != Mode.GROW_PENDING:
+		return
+	_press_time += delta
+	if _press_time >= LONG_PRESS and _moved < TAP_SLOP and _press_field != null:
+		_start_move(_press_field)
+		_mode = Mode.PLACE
 
 
 func _brush_at(screen_pos: Vector2) -> void:
@@ -434,13 +515,54 @@ func _brush_at(screen_pos: Vector2) -> void:
 	if f == null:
 		return
 	_stroke_cells[cell] = true
-	if _mode == Mode.HARVEST and f.harvest():
-		_on_harvested(f)
-	elif _mode == Mode.PLANT and f.plant():
-		Audio.play("plant", 1.0 + 0.05 * mini(_combo, 8))
-		_combo += 1
-		_puff(f.position + Vector2(0, -20), "fx_leaf", 3)
-		hud.hide_hint()
+	if _mode == Mode.HARVEST and f.state == Field.State.RIPE:
+		_harvest(f)
+	elif (_mode == Mode.PLANT or _mode == Mode.SOW_PENDING) and f.state == Field.State.EMPTY:
+		_sow(f, selected_crop)
+
+
+func _sow(f: Field, crop: String) -> bool:
+	if not Game.take_item(crop):
+		if not _no_seed_warned:
+			_no_seed_warned = true
+			Game.toast.emit(tr("NO_SEEDS"), "item_%s.png" % crop)
+		return false
+	f.plant(crop)
+	Audio.play("plant", 1.0 + 0.05 * mini(_combo, 8))
+	_combo += 1
+	_puff(f.position + Vector2(0, -20), "fx_leaf", 3)
+	hud.hide_hint()
+	Game.mark_dirty()
+	return true
+
+
+func _harvest(f: Field) -> void:
+	var crop := f.crop
+	var amount: int = int(Game.crops[crop]["yield"])
+	if Game.space() < amount:
+		if not _no_seed_warned:
+			_no_seed_warned = true
+			Game.toast.emit(tr("BARN_FULL"), "ico_barn.png")
+		return
+	f.harvest()
+	Game.add_item(crop, amount)
+	_combo += 1
+	var pitch := 1.0 + 0.06 * mini(_combo - 1, 10)
+	Audio.play("harvest", pitch, 0.02)
+	Game.add_xp(int(Game.crops[crop]["xp"]))
+	_puff(f.position + Vector2(0, -40), "fx_grain" if crop == "wheat" else "fx_leaf", 6)
+	_float_reward(f.position + Vector2(0, -90), amount, "item_%s.png" % crop)
+	hud.hide_hint()
+
+
+func _on_seed_chosen(crop: String) -> void:
+	selected_crop = crop
+	if _picker_field != null and _picker_field.state == Field.State.EMPTY:
+		_combo = 0
+		_no_seed_warned = false
+		if _sow(_picker_field, crop):
+			hud.show_hint("HINT_SWIPE")
+	_picker_field = null
 
 
 func _tap(world: Vector2) -> void:
@@ -456,8 +578,11 @@ func _tap(world: Vector2) -> void:
 				best = s
 	if best != null:
 		Field.squash(best, best.get_meta("squash", 0.1))
-		Audio.play(best.get_meta("sound", "pop"), 1.0, 0.1)
 		var n: String = best.get_meta("sprite", "")
+		if n == "barn":
+			hud.open_barn()
+			return
+		Audio.play(best.get_meta("sound", "pop"), 1.0, 0.1)
 		if n.begins_with("tree") or n.begins_with("bush") or n.begins_with("flowers"):
 			_puff(best.position + Vector2(0, -Atlas.anchor(n).y * 0.6), "fx_leaf", 5)
 
@@ -488,18 +613,139 @@ func _clamp_cam() -> void:
 	cam.position = cam.position.clamp(c - Vector2(2800, 1700), c + Vector2(2800, 1700))
 
 
+# ------------------------------------------------------------------ build mode
+
+func _on_buy_field() -> void:
+	if 12 + Game.extra_fields >= Game.max_fields():
+		Game.toast.emit(tr("MAX_FIELDS"), "item_field.png")
+		return
+	if Game.coins < Game.field_price():
+		Game.toast.emit(tr("NOT_ENOUGH_COINS"), "coin.png")
+		return
+	var f: Field = FieldScript.new()
+	f.setup(_sway_crop)
+	objects.add_child(f)
+	_placing = f
+	_placing_new = true
+	_place_cell = cell_at(cam.position)
+	_update_ghost()
+	hud.set_placing(true)
+
+
+func _start_move(f: Field) -> void:
+	_placing = f
+	_placing_new = false
+	_place_from = f.cell
+	_place_cell = f.cell
+	fields.erase(f.cell)
+	occupied.erase(f.cell)
+	Audio.play("pop", 1.2)
+	_update_ghost()
+	hud.set_placing(true)
+
+
+func _move_ghost(screen_pos: Vector2) -> void:
+	var c := cell_at(screen_to_world(screen_pos))
+	if c != _place_cell:
+		_place_cell = c
+		_update_ghost()
+
+
+func can_place(c: Vector2i) -> bool:
+	return c.x >= 0 and c.y >= 0 and c.x < 24 and c.y < 23 and not occupied.has(c)
+
+
+func _update_ghost() -> void:
+	_placing.cell = _place_cell
+	_placing.position = grid_to_world(Vector2(_place_cell))
+	_placing.set_ghost(true, can_place(_place_cell))
+
+
+func _on_place_confirm() -> void:
+	if _placing == null:
+		return
+	if not can_place(_place_cell):
+		Audio.play("pop", 0.7)
+		Field.squash(_placing, 0.15)
+		return
+	if _placing_new:
+		if not Game.spend_coins(Game.field_price()):
+			Game.toast.emit(tr("NOT_ENOUGH_COINS"), "coin.png")
+			_on_place_cancel()
+			return
+		Game.extra_fields += 1
+	_finish_place(_place_cell)
+	Audio.play("plant", 0.9)
+
+
+func _on_place_cancel() -> void:
+	if _placing == null:
+		return
+	if _placing_new:
+		_placing.queue_free()
+		_placing = null
+		hud.set_placing(false)
+	else:
+		_finish_place(_place_from)
+
+
+func _finish_place(c: Vector2i) -> void:
+	var f := _placing
+	_placing = null
+	f.cell = c
+	f.position = grid_to_world(Vector2(c))
+	f.set_ghost(false)
+	fields[c] = f
+	occupied[c] = true
+	Field.squash(f, 0.2)
+	hud.set_placing(false)
+	Game.mark_dirty()
+
+
+# ------------------------------------------------------------------ day / night
+
+func _build_daylight() -> void:
+	_daylight = CanvasModulate.new()
+	add_child(_daylight)
+	_sky = Gradient.new()
+	_sky.offsets = PackedFloat32Array([0.0, 0.18, 0.28, 0.72, 0.82, 0.92, 1.0])
+	_sky.colors = PackedColorArray([Color(0.6, 0.66, 0.9), Color(1.0, 0.86, 0.82), Color(1, 1, 1),
+		Color(1, 1, 1), Color(1.0, 0.84, 0.7), Color(0.6, 0.66, 0.9), Color(0.6, 0.66, 0.9)])
+
+
+## 0..1 over one in-game day. Uses wall-clock time so it matches across sessions.
+func day_phase() -> float:
+	if _args.has("time"):
+		return float(_args["time"])
+	return fmod(Time.get_unix_time_from_system() / DAY_SECONDS + 0.35, 1.0)
+
+
+func _update_daylight() -> void:
+	_daylight.color = _sky.sample(day_phase())
+
+
+# ------------------------------------------------------------------ save
+
+func _save_world() -> Dictionary:
+	var out: Array = []
+	for f: Field in fields.values():
+		out.append(f.to_save())
+	if _placing != null and not _placing_new:
+		var d := _placing.to_save()
+		d["x"] = _place_from.x
+		d["y"] = _place_from.y
+		out.append(d)
+	return {"fields": out}
+
+
 # ------------------------------------------------------------------ juice
 
-func _on_harvested(f: Field) -> void:
-	_combo += 1
-	var pitch := 1.0 + 0.06 * mini(_combo - 1, 10)
-	Audio.play("harvest", pitch, 0.02)
-	get_tree().create_timer(0.12).timeout.connect(func() -> void: Audio.play("coin", pitch, 0.0, -5.0))
-	Game.add_coins(Field.REWARD)
-	Game.add_xp(1)
-	_puff(f.position + Vector2(0, -40), "fx_grain", 6)
-	_float_reward(f.position + Vector2(0, -90), Field.REWARD)
-	hud.hide_hint()
+func _on_level_up(level: int, unlocked: Array) -> void:
+	Audio.play("coin", 1.3)
+	Game.toast.emit(tr("LEVEL_UP") % level, "star.png")
+	for c in unlocked:
+		get_tree().create_timer(1.2).timeout.connect(func() -> void:
+			Game.toast.emit(tr("NEW_CROP") % tr("CROP_" + c), "item_%s.png" % c))
 
 
 func _puff(pos: Vector2, sprite_name: String, n: int) -> void:
@@ -516,13 +762,13 @@ func _puff(pos: Vector2, sprite_name: String, n: int) -> void:
 		tw.chain().tween_callback(s.queue_free)
 
 
-func _float_reward(pos: Vector2, amount: int) -> void:
+func _float_reward(pos: Vector2, amount: int, icon_file := "coin.png") -> void:
 	var n := Node2D.new()
 	n.position = pos
 	fx.add_child(n)
 	var icon := Sprite2D.new()
-	icon.texture = load("res://art/generated/ui/coin.png")
-	icon.scale = Vector2(0.62, 0.62)
+	icon.texture = load("res://art/generated/ui/" + icon_file)
+	icon.scale = Vector2(0.7, 0.7)
 	icon.position = Vector2(-34, 0)
 	n.add_child(icon)
 	var l := Label.new()
@@ -553,8 +799,33 @@ func _parse_args() -> void:
 func _demo_state() -> void:
 	var i := 0
 	for f: Field in fields.values():
-		f.plant(Field.now() - Field.GROW_TIME * float((i * 7) % 5) / 3.2)
+		var crop: String = Game.crop_order[i % Game.crop_order.size()]
+		var g := float(Game.crops[crop]["grow"])
+		f.plant(crop, Field.now() - g * float((i * 7) % 5) / 3.2)
 		i += 1
+
+
+## Opens a menu for screenshots: picker, barn, shop, place.
+func _debug_ui(which: String) -> void:
+	Game.add_item("corn", 4, true)
+	Game.add_item("carrot", 3, true)
+	Game.level = 3
+	match which:
+		"picker":
+			var f: Field = fields[Vector2i(12, 12)]
+			f.harvest()
+			f.state = Field.State.EMPTY
+			_picker_field = f
+			hud.show_seed_picker(get_viewport().get_canvas_transform() * f.position, "corn")
+		"barn":
+			hud.open_barn()
+		"shop":
+			hud.open_shop()
+		"place":
+			Game.add_coins(100)
+			_on_buy_field()
+			_place_cell = Vector2i(15, 12)
+			_update_ghost()
 
 
 func _take_shot(path: String) -> void:
@@ -567,30 +838,69 @@ func _take_shot(path: String) -> void:
 
 func _run_smoke() -> void:
 	var errors: Array[String] = []
-	for n in ["field", "wheat_0", "wheat_3", "barn", "chicken_walk_se_0", "chicken_peck_ne_5", "dino_idle_se_0",
-			"tree_oak", "tree_pine", "fence_x", "fence_y", "shadow_blob"]:
+	var need := ["field", "barn", "chicken_walk_se_0", "chicken_peck_ne_5", "dino_idle_se_0", "tree_oak",
+		"tree_pine", "fence_x", "fence_y", "shadow_blob"]
+	for c in Game.crop_order:
+		for st in 4:
+			need.append("%s_%d" % [c, st])
+		if not ResourceLoader.exists("res://art/generated/ui/item_%s.png" % c):
+			errors.append("missing ui icon for " + c)
+	for n in need:
 		if not Atlas.has(n):
 			errors.append("missing sprite " + n)
 	for g in [Vector2i(0, 0), Vector2i(5, -3), Vector2i(12, 7)]:
 		if cell_at(grid_to_world(Vector2(g)) + Vector2(30, 10)) != g:
 			errors.append("cell_at mismatch at %s" % g)
+	# sow -> ripen -> harvest -> sell
 	var f: Field = fields.values()[0]
-	if cell_at(f.position) != f.cell:
-		errors.append("field cell mismatch")
-	if not f.plant(Field.now() - 100.0) or f.state != Field.State.RIPE:
-		errors.append("plant/ripen failed")
-	var before := Game.coins
-	if not f.harvest():
-		errors.append("harvest failed")
-	_on_harvested(f)
-	if Game.coins != before + Field.REWARD:
-		errors.append("coins not added")
+	var seeds := Game.count("wheat")
+	_mode = Mode.PLANT
+	if not _sow(f, "wheat") or Game.count("wheat") != seeds - 1:
+		errors.append("sowing did not use a seed")
+	f.planted_at -= 1000.0
+	f._update_stage(false)
+	if f.state != Field.State.RIPE:
+		errors.append("crop did not ripen")
+	_harvest(f)
+	if f.state != Field.State.EMPTY or Game.count("wheat") != seeds + 1:
+		errors.append("harvest did not add 2 wheat")
+	var coins := Game.coins
+	if Game.sell("wheat", 1) != 3 or Game.coins != coins + 3:
+		errors.append("selling failed")
+	# level up unlocks corn with a gift
+	Game.add_xp(Game.xp_needed())
+	if Game.level < 2 or not Game.is_unlocked("corn") or Game.count("corn") < 2:
+		errors.append("level up / unlock failed")
+	# buy and place a field, then move it
+	Game.add_coins(500)
+	var before_fields := fields.size()
+	_on_buy_field()
+	var free := Vector2i(20, 20)
+	while not can_place(free):
+		free.x -= 1
+	_place_cell = free
+	_on_place_confirm()
+	if fields.size() != before_fields + 1 or not fields.has(free) or Game.extra_fields != 1:
+		errors.append("field placement failed")
+	_start_move(fields[free])
+	var to := free + Vector2i(-1, 0)
+	while not can_place(to):
+		to.x -= 1
+	_place_cell = to
+	_on_place_confirm()
+	if not fields.has(to) or fields.has(free):
+		errors.append("moving a field failed")
+	# save data round trip
+	var data: Dictionary = JSON.parse_string(JSON.stringify(_save_world()))
+	if data["fields"].size() != fields.size():
+		errors.append("save world mismatch")
+	_update_daylight()
 	TranslationServer.set_locale("de")
-	if tr("HINT_START") == "HINT_START":
+	if tr("HINT_START") == "HINT_START" or tr("CROP_corn") != "Mais":
 		errors.append("translations not loaded")
 	if errors.is_empty():
-		print("SMOKE OK (%d fields, %d props, %d animals, %d atlas pages)" % [
-			fields.size(), props.size(), animals.size(), Atlas.pages.size()])
+		print("SMOKE OK (%d fields, %d props, %d animals, %d atlas pages, level %d)" % [
+			fields.size(), props.size(), animals.size(), Atlas.pages.size(), Game.level])
 		get_tree().quit(0)
 	else:
 		for e in errors:
@@ -612,7 +922,7 @@ func _setup_bench() -> void:
 				_add_prop("tree_oak" if rng.randf() < 0.6 else "tree_pine", Vector2(cell), _sway_tree)
 				occupied[cell] = true
 			else:
-				_add_field(cell).plant(Field.now() - 100.0)
+				_add_field(cell).plant(Game.crop_order[(x * 3 + y) % 5], Field.now() - 5000.0)
 	var pen := Rect2i(0, 24, 20, 6)
 	for i in 40:
 		_add_animal("chicken", pen, rng)
@@ -624,6 +934,11 @@ func _setup_bench() -> void:
 
 
 func _process(delta: float) -> void:
+	_check_long_press(delta)
+	_day_t += delta
+	if _day_t > 1.0:
+		_day_t = 0.0
+		_update_daylight()
 	if not _args.has("bench"):
 		return
 	_bench_clock += delta

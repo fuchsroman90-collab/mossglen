@@ -6,6 +6,10 @@ extends CanvasLayer
 ## Authored in 2x units inside a root control scaled by 0.5.
 
 signal shop_pressed
+signal seed_chosen(crop: String)
+signal buy_field
+signal place_confirm
+signal place_cancel
 
 const UI := "res://art/generated/ui/"
 const OUTLINE := Color("3A2410")
@@ -22,6 +26,16 @@ var _settings: Control
 var _music_btn: Label
 var _fps_label: Label
 var _hint: Label
+var _picker: Control
+var _picker_t := 0.0
+var _barn: Control
+var _barn_rows: Control
+var _barn_title: Label
+var _shop: Control
+var _place_bar: Control
+var _info: Control
+var _info_t := 0.0
+var _toasts: Control
 
 const XP_X := 150.0
 const XP_W := 440.0
@@ -74,6 +88,18 @@ func _ready() -> void:
 		shop_pressed.emit())
 
 	_build_settings()
+	_build_barn()
+	_build_shop()
+	_build_place_bar()
+	_toasts = Control.new()
+	_toasts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_toasts.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_toasts.offset_top = 230
+	_root.add_child(_toasts)
+	Game.toast.connect(toast)
+	Game.inventory_changed.connect(func(_i: String, _c: int) -> void:
+		if _barn.visible:
+			_fill_barn())
 
 	_hint = _label("HINT_START", 42)
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -100,8 +126,26 @@ func _fit() -> void:
 	_root.size = get_viewport().get_visible_rect().size * 2.0
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_fps_label.text = "%d FPS" % Engine.get_frames_per_second()
+	if _picker != null and _picker.visible:
+		_picker_t -= delta
+		if _picker_t <= 0.0:
+			hide_seed_picker()
+	if _info != null and _info.visible:
+		_info_t -= delta
+		if _info_t <= 0.0:
+			_info.hide()
+
+
+func any_menu_open() -> bool:
+	return _barn.visible or _shop.visible or _settings.visible
+
+
+func close_menus() -> void:
+	for m in [_barn, _shop, _settings]:
+		m.hide()
+	hide_seed_picker()
 
 
 func hide_hint() -> void:
@@ -137,6 +181,365 @@ func _pop(c: Control, s: float) -> void:
 	c.pivot_offset = c.size / 2
 	c.scale = Vector2(s, s)
 	create_tween().tween_property(c, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+# ------------------------------------------------------------------ seed picker
+
+## Row of seed slots above a field. screen_pos is in viewport pixels.
+func show_seed_picker(screen_pos: Vector2, selected: String) -> void:
+	hide_seed_picker()
+	_picker = Control.new()
+	_picker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(_picker)
+	var n := Game.crop_order.size()
+	var w := n * 132.0
+	var p := screen_pos * 2.0 - Vector2(w * 0.5, 290)
+	p.x = clampf(p.x, 20, _root.size.x - w - 20)
+	p.y = clampf(p.y, 200, _root.size.y - 300)
+	_picker.position = p
+	for i in n:
+		var crop: String = Game.crop_order[i]
+		var b := TextureButton.new()
+		b.texture_normal = load(UI + "slot.png")
+		b.ignore_texture_size = true
+		b.stretch_mode = TextureButton.STRETCH_SCALE
+		b.position = Vector2(i * 132, 0)
+		b.size = Vector2(124, 130)
+		b.focus_mode = Control.FOCUS_NONE
+		_picker.add_child(b)
+		var icon := _tex("item_%s.png" % crop)
+		icon.scale = Vector2(0.86, 0.86)
+		icon.position = Vector2(14, 10)
+		b.add_child(icon)
+		if Game.is_unlocked(crop):
+			var badge := _tex("badge.png")
+			badge.position = Vector2(80, 82)
+			b.add_child(badge)
+			var c := _label(str(Game.count(crop)), 32)
+			c.position = Vector2(80, 82)
+			c.size = Vector2(56, 56)
+			c.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			b.add_child(c)
+			if Game.count(crop) == 0:
+				icon.modulate = Color(1, 1, 1, 0.45)
+			b.pressed.connect(func() -> void:
+				Audio.play("click")
+				seed_chosen.emit(crop)
+				hide_seed_picker())
+		else:
+			icon.modulate = Color(0.35, 0.35, 0.35, 0.8)
+			var lock := _tex("lock.png")
+			lock.position = Vector2(30, 24)
+			b.add_child(lock)
+			var lv := _label(tr("FROM_LEVEL") % int(Game.crops[crop]["unlock"]), 28)
+			lv.position = Vector2(0, 92)
+			lv.size = Vector2(124, 40)
+			lv.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			b.add_child(lv)
+			b.disabled = true
+		if crop == selected:
+			b.pivot_offset = b.size / 2
+			b.scale = Vector2(1.12, 1.12)
+		# staggered pop-in
+		b.modulate.a = 0.0
+		var tw := b.create_tween()
+		tw.tween_interval(i * 0.04)
+		tw.tween_property(b, "modulate:a", 1.0, 0.12)
+	_picker_t = 5.0
+
+
+func hide_seed_picker() -> void:
+	if _picker != null:
+		_picker.queue_free()
+		_picker = null
+
+
+# ------------------------------------------------------------------ field info bubble
+
+func show_field_info(screen_pos: Vector2, crop: String, seconds: int, progress: float) -> void:
+	if _info == null:
+		_info = _patch("panel.png", 44, 44)
+		_info.size = Vector2(340, 170)
+		_root.add_child(_info)
+		var name_l := _dark(_label("", 36))
+		name_l.name = "Name"
+		name_l.position = Vector2(0, 18)
+		name_l.size = Vector2(340, 50)
+		name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_info.add_child(name_l)
+		var back := _patch("bar_back.png", 32, 30)
+		back.position = Vector2(30, 70)
+		back.size = Vector2(280, 60)
+		_info.add_child(back)
+		var fill := _patch("bar_fill.png", 18, 16)
+		fill.name = "Fill"
+		fill.position = Vector2(42, 81)
+		fill.size = Vector2(40, 38)
+		_info.add_child(fill)
+		var t := _label("", 30)
+		t.name = "Time"
+		t.position = Vector2(30, 68)
+		t.size = Vector2(280, 62)
+		t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_info.add_child(t)
+	(_info.get_node("Name") as Label).text = "CROP_" + crop
+	(_info.get_node("Fill") as Control).size.x = maxf(38.0, 256.0 * progress)
+	(_info.get_node("Time") as Label).text = "%d:%02d" % [seconds / 60, seconds % 60] if seconds > 0 else tr("READY")
+	_info.position = screen_pos * 2.0 - Vector2(170, 260)
+	_info.show()
+	_info_t = 2.2
+
+
+# ------------------------------------------------------------------ toast
+
+func toast(text: String, icon_file := "") -> void:
+	var box := Control.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_toasts.add_child(box)
+	var l := _label(text, 48)
+	l.size = Vector2(1400, 80)
+	l.position = Vector2(-700, 0)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(l)
+	if icon_file != "":
+		var ic := _tex(icon_file)
+		ic.position = Vector2(-56, -110)
+		box.add_child(ic)
+	box.position.y = _toasts.get_child_count() * 20.0
+	box.scale = Vector2(0.5, 0.5)
+	var tw := box.create_tween()
+	tw.tween_property(box, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(1.8)
+	tw.tween_property(box, "modulate:a", 0.0, 0.4)
+	tw.tween_callback(box.queue_free)
+
+
+# ------------------------------------------------------------------ barn (inventory + selling)
+
+func _panel_window(size: Vector2, title_key: String) -> Array:
+	var p := _patch("panel.png", 44, 44)
+	p.mouse_filter = Control.MOUSE_FILTER_STOP
+	p.size = size
+	p.set_anchors_preset(Control.PRESET_CENTER)
+	p.offset_left = -size.x / 2
+	p.offset_top = -size.y / 2
+	p.offset_right = size.x / 2
+	p.offset_bottom = size.y / 2
+	p.visible = false
+	_root.add_child(p)
+	var title := _label(title_key, 54)
+	title.position = Vector2(0, 12)
+	title.size = Vector2(size.x, 80)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	p.add_child(title)
+	var close := TextureButton.new()
+	close.texture_normal = load(UI + "btn_round.png")
+	close.ignore_texture_size = true
+	close.stretch_mode = TextureButton.STRETCH_SCALE
+	close.position = Vector2(size.x - 70, -30)
+	close.size = Vector2(96, 102)
+	close.focus_mode = Control.FOCUS_NONE
+	_press_feedback(close)
+	close.pressed.connect(func() -> void:
+		Audio.play("click")
+		p.hide())
+	p.add_child(close)
+	var x := _tex("ico_close.png")
+	x.position = Vector2(16, 16)
+	close.add_child(x)
+	return [p, title]
+
+
+func _open(p: Control) -> void:
+	close_menus()
+	p.show()
+	p.pivot_offset = p.size / 2
+	p.scale = Vector2(0.7, 0.7)
+	create_tween().tween_property(p, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _build_barn() -> void:
+	var w := _panel_window(Vector2(980, 860), "BARN")
+	_barn = w[0]
+	_barn_title = w[1]
+	_barn_rows = Control.new()
+	_barn_rows.position = Vector2(50, 110)
+	_barn.add_child(_barn_rows)
+
+
+func open_barn() -> void:
+	Audio.play("whoosh")
+	_fill_barn()
+	_open(_barn)
+
+
+func _fill_barn() -> void:
+	_barn_title.text = "%s  %d / %d" % [tr("BARN"), Game.stored(), Game.barn_capacity]
+	for c in _barn_rows.get_children():
+		c.queue_free()
+	var y := 0.0
+	for crop in Game.crop_order:
+		if not Game.is_unlocked(crop) and Game.count(crop) == 0:
+			continue
+		var row := Control.new()
+		row.position = Vector2(0, y)
+		_barn_rows.add_child(row)
+		var slot := _tex("slot.png")
+		slot.scale = Vector2(0.95, 0.95)
+		row.add_child(slot)
+		var icon := _tex("item_%s.png" % crop)
+		icon.scale = Vector2(0.82, 0.82)
+		icon.position = Vector2(14, 10)
+		row.add_child(icon)
+		var name_l := _dark(_label("CROP_" + crop, 40))
+		name_l.position = Vector2(140, 6)
+		name_l.size = Vector2(300, 60)
+		row.add_child(name_l)
+		var cnt := _dark(_label("× %d" % Game.count(crop), 36))
+		cnt.position = Vector2(140, 58)
+		cnt.size = Vector2(160, 56)
+		row.add_child(cnt)
+		var coin := _tex("coin.png")
+		coin.scale = Vector2(0.5, 0.5)
+		coin.position = Vector2(300, 64)
+		row.add_child(coin)
+		var price := _dark(_label(str(int(Game.crops[crop]["sell"])), 36))
+		price.position = Vector2(360, 58)
+		price.size = Vector2(80, 56)
+		row.add_child(price)
+		var one := _pill("SELL_ONE", Vector2(470, 18), 240, Game.count(crop) > 0)
+		row.add_child(one)
+		one.pressed.connect(func() -> void: _sell(crop, 1))
+		var all := _pill("SELL_ALL", Vector2(730, 18), 150, Game.count(crop) > 0)
+		row.add_child(all)
+		all.pressed.connect(func() -> void: _sell(crop, Game.count(crop)))
+		y += 140.0
+	# fit the window to its rows
+	var h := 150.0 + y
+	_barn.offset_top = -h / 2
+	_barn.offset_bottom = h / 2
+	_barn.size.y = h
+
+
+func _sell(crop: String, n: int) -> void:
+	var earned := Game.sell(crop, n)
+	if earned > 0:
+		Audio.play("coin", 1.0, 0.05)
+		_fill_barn()
+
+
+## Green capsule button with a text label.
+func _pill(key: String, pos: Vector2, width: float, enabled := true) -> TextureButton:
+	var b := TextureButton.new()
+	b.texture_normal = load(UI + "pill_green.png")
+	b.ignore_texture_size = true
+	b.stretch_mode = TextureButton.STRETCH_SCALE
+	b.position = pos
+	b.size = Vector2(width, 96)
+	b.focus_mode = Control.FOCUS_NONE
+	b.disabled = not enabled
+	if not enabled:
+		b.modulate = Color(1, 1, 1, 0.45)
+	_press_feedback(b)
+	var l := _label(key, 34)
+	l.size = Vector2(width, 86)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_child(l)
+	return b
+
+
+# ------------------------------------------------------------------ shop
+
+func _build_shop() -> void:
+	_shop = _panel_window(Vector2(760, 470), "SHOP")[0]
+
+
+func open_shop() -> void:
+	for c in _shop.get_children().slice(2):
+		c.queue_free()
+	var card := Control.new()
+	card.position = Vector2(60, 120)
+	_shop.add_child(card)
+	var slot := _tex("slot.png")
+	slot.scale = Vector2(1.3, 1.3)
+	card.add_child(slot)
+	var icon := _tex("item_field.png")
+	icon.scale = Vector2(1.15, 1.15)
+	icon.position = Vector2(19, 16)
+	card.add_child(icon)
+	var name_l := _dark(_label("FIELD", 48))
+	name_l.position = Vector2(200, 10)
+	name_l.size = Vector2(300, 70)
+	card.add_child(name_l)
+	var have := _dark(_label("%d / %d" % [12 + Game.extra_fields, Game.max_fields()], 34))
+	have.position = Vector2(200, 72)
+	have.size = Vector2(300, 50)
+	card.add_child(have)
+	var buy := _pill("", Vector2(200, 140), 260, true)
+	card.add_child(buy)
+	var coin := _tex("coin.png")
+	coin.scale = Vector2(0.62, 0.62)
+	coin.position = Vector2(30, 12)
+	buy.add_child(coin)
+	var price := _label(str(Game.field_price()), 44)
+	price.position = Vector2(100, 0)
+	price.size = Vector2(140, 86)
+	buy.add_child(price)
+	buy.pressed.connect(func() -> void:
+		Audio.play("click")
+		_shop.hide()
+		buy_field.emit())
+	_open(_shop)
+
+
+# ------------------------------------------------------------------ placement bar
+
+func _build_place_bar() -> void:
+	_place_bar = Control.new()
+	_place_bar.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_place_bar.offset_top = -230
+	_place_bar.visible = false
+	_root.add_child(_place_bar)
+	var ok := _bar_button("btn_round_green.png", "ico_check.png", Vector2(-170, 0))
+	ok.pressed.connect(func() -> void: place_confirm.emit())
+	var no := _bar_button("btn_round.png", "ico_close.png", Vector2(30, 0))
+	no.pressed.connect(func() -> void: place_cancel.emit())
+
+
+func _bar_button(tex: String, icon: String, pos: Vector2) -> TextureButton:
+	var b := TextureButton.new()
+	b.texture_normal = load(UI + tex)
+	b.ignore_texture_size = true
+	b.stretch_mode = TextureButton.STRETCH_SCALE
+	b.position = pos
+	b.size = Vector2(140, 148)
+	b.focus_mode = Control.FOCUS_NONE
+	_press_feedback(b)
+	_place_bar.add_child(b)
+	var i := _tex(icon)
+	i.scale = Vector2(1.3, 1.3)
+	i.position = Vector2(28, 28)
+	b.add_child(i)
+	return b
+
+
+func set_placing(on: bool) -> void:
+	_place_bar.visible = on
+	_hint.offset_top = -330 if on else -150
+	_hint.offset_bottom = -266 if on else -86
+	if on:
+		close_menus()
+		_hint.text = "PLACE_HINT"
+		_hint.modulate.a = 1.0
+		_hint.show()
+	elif _hint.text == "PLACE_HINT":
+		_hint.hide()
+
+
+func show_hint(key: String) -> void:
+	_hint.text = key
+	_hint.modulate.a = 1.0
+	_hint.show()
 
 
 # ------------------------------------------------------------------ settings

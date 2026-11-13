@@ -200,6 +200,147 @@ def plus(size=64):
                   f'stroke-linecap="round"/>', size)
 
 
+def close(size=64):
+    c = size / 2
+    d = 15
+    return _glyph(f'<path d="M{c - d} {c - d} L{c + d} {c + d} M{c + d} {c - d} L{c - d} {c + d}" stroke="{OUT}" '
+                  f'stroke-width="17" stroke-linecap="round"/>'
+                  f'<path d="M{c - d} {c - d} L{c + d} {c + d} M{c + d} {c - d} L{c - d} {c + d}" stroke="#FFFFFF" '
+                  f'stroke-width="8" stroke-linecap="round"/>', size)
+
+
+def check(size=64):
+    path = "M16 34 L28 46 L50 20"
+    return _glyph(f'<path d="{path}" fill="none" stroke="{OUT}" stroke-width="17" stroke-linecap="round" '
+                  f'stroke-linejoin="round"/><path d="{path}" fill="none" stroke="#FFFFFF" stroke-width="8" '
+                  f'stroke-linecap="round" stroke-linejoin="round"/>', size)
+
+
+def barn_glyph(size=112):
+    o = f'stroke="{OUT}" stroke-width="6" stroke-linejoin="round"'
+    return _glyph(f'<path d="M18 52 L56 20 L94 52 L94 98 L18 98 Z" fill="#E0503F" {o}/>'
+                  f'<path d="M12 56 L56 16 L100 56" fill="none" stroke="{OUT}" stroke-width="14" stroke-linecap="round" '
+                  f'stroke-linejoin="round"/><path d="M12 56 L56 16 L100 56" fill="none" stroke="#5B7184" '
+                  f'stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>'
+                  f'<rect x="38" y="62" width="36" height="36" fill="#FFF4E2" {o}/>'
+                  f'<path d="M38 62 L74 98 M74 62 L38 98" stroke="#C94234" stroke-width="5"/>'
+                  f'<circle cx="56" cy="44" r="7" fill="#FFF4E2" stroke="{OUT}" stroke-width="4"/>', size)
+
+
+def lock(size=64):
+    o = f'stroke="{OUT}" stroke-width="5" stroke-linejoin="round"'
+    return _glyph(f'<path d="M20 30 V22 A12 12 0 0 1 44 22 V30" fill="none" stroke="{OUT}" stroke-width="11"/>'
+                  f'<path d="M20 30 V22 A12 12 0 0 1 44 22 V30" fill="none" stroke="#C9CDD4" stroke-width="5"/>'
+                  f'<rect x="12" y="28" width="40" height="30" rx="6" fill="#F2B21E" {o}/>', size)
+
+
+# ---------------------------------------------------------------- item icons (2D)
+
+def _item(body: str, size=112):
+    return render(f'<defs>{shadow_filter(dy=3, blur=2, op=0.3)}</defs><g filter="url(#sh)">{body}</g>', size, size)
+
+
+def item_wheat(size=112):
+    o = f'stroke="{OUT}" stroke-width="5" stroke-linejoin="round"'
+    body = ""
+    for ang in (-24, 0, 24):
+        g = f'transform="rotate({ang} 56 92)"'
+        body += f'<path d="M56 92 L56 40" stroke="{OUT}" stroke-width="9" stroke-linecap="round" {g}/>'
+        body += f'<path d="M56 92 L56 40" stroke="#E8B53A" stroke-width="4" stroke-linecap="round" {g}/>'
+        for i in range(4):
+            y = 44 - i * 9
+            for side in (-1, 1):
+                body += (f'<ellipse cx="{56 + side * 6}" cy="{y}" rx="6" ry="9.5" fill="#FFD24A" {o} '
+                         f'transform="rotate({ang} 56 92) rotate({side * 25} {56 + side * 6} {y})"/>')
+        body += f'<ellipse cx="56" cy="10" rx="5.5" ry="9" fill="#FFD24A" {o} {g}/>'
+    body += f'<rect x="44" y="70" width="24" height="10" rx="4" fill="#B36A2E" {o}/>'
+    return _item(body, size)
+
+
+def item_corn(size=112):
+    o = f'stroke="{OUT}" stroke-width="5" stroke-linejoin="round"'
+    kern = ""
+    for row in range(6):
+        for col in range(3):
+            kern += f'<circle cx="{46 + col * 10 + (row % 2) * 2}" cy="{24 + row * 10}" r="4.2" fill="#FFF0A0" opacity="0.8"/>'
+    return _item(
+        f'<path d="M56 14 C74 18 78 52 70 82 L42 82 C34 52 38 18 56 14 Z" fill="#FFCC2E" {o}/>{kern}'
+        f'<path d="M40 96 C22 80 22 52 34 36 C38 58 44 74 56 86 Z" fill="#7CCB4A" {o}/>'
+        f'<path d="M72 96 C90 80 90 52 78 36 C74 58 68 74 56 86 Z" fill="#5DB33C" {o}/>'
+        f'<path d="M42 100 L56 86 L70 100 Z" fill="#5DB33C" {o}/>', size)
+
+
+def item_carrot(size=112):
+    o = f'stroke="{OUT}" stroke-width="5" stroke-linejoin="round"'
+    return _item(
+        f'<path d="M52 30 C38 14 34 10 30 14 C34 22 42 28 50 34 Z" fill="#6CC04A" {o}/>'
+        f'<path d="M58 30 C60 12 64 6 70 8 C68 18 64 26 60 34 Z" fill="#5DB33C" {o}/>'
+        f'<path d="M62 34 C76 20 84 20 86 26 C80 32 72 36 64 38 Z" fill="#7CCB4A" {o}/>'
+        f'<path d="M40 40 C52 28 72 30 76 44 C70 66 52 88 38 100 C30 104 26 98 28 90 C30 74 32 54 40 40 Z" '
+        f'fill="#FF8A2B" {o}/>'
+        f'<path d="M44 52 L54 54 M40 68 L50 70 M36 84 L44 85" stroke="#C8571A" stroke-width="4" stroke-linecap="round"/>'
+        f'<path d="M46 44 C52 38 60 38 64 42" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" fill="none" '
+        f'opacity="0.6"/>', size)
+
+
+def item_tomato(size=112):
+    o = f'stroke="{OUT}" stroke-width="5" stroke-linejoin="round"'
+    return _item(
+        f'<ellipse cx="56" cy="62" rx="38" ry="34" fill="#F0402F" {o}/>'
+        f'<ellipse cx="42" cy="50" rx="11" ry="7" fill="#FFFFFF" opacity="0.55" transform="rotate(-30 42 50)"/>'
+        f'<path d="M56 30 L46 22 L52 34 L36 34 L52 40 L48 50 L58 41 L68 50 L64 40 L78 34 L62 34 L66 22 Z" '
+        f'fill="#5DB33C" {o}/>'
+        f'<path d="M56 30 L58 14" stroke="{OUT}" stroke-width="9" stroke-linecap="round"/>'
+        f'<path d="M56 30 L58 14" stroke="#5DB33C" stroke-width="4" stroke-linecap="round"/>', size)
+
+
+def item_strawberry(size=112):
+    o = f'stroke="{OUT}" stroke-width="5" stroke-linejoin="round"'
+    seeds = "".join(f'<ellipse cx="{x}" cy="{y}" rx="2.6" ry="3.6" fill="#FFE38A"/>'
+                    for x, y in [(42, 50), (56, 46), (70, 50), (48, 64), (64, 64), (56, 78), (36, 62), (76, 62)])
+    return _item(
+        f'<path d="M56 100 C34 88 22 64 26 48 C30 36 44 34 56 38 C68 34 82 36 86 48 C90 64 78 88 56 100 Z" '
+        f'fill="#F2384A" {o}/>{seeds}'
+        f'<ellipse cx="40" cy="52" rx="7" ry="10" fill="#FFFFFF" opacity="0.45" transform="rotate(25 40 52)"/>'
+        f'<path d="M56 40 L40 30 L50 26 L44 16 L56 24 L68 16 L62 26 L72 30 Z" fill="#5DB33C" {o}/>', size)
+
+
+def pill(w=240, h=96, top="#A6EB6A", bottom="#3FA535"):
+    """9-slice capsule button (green)."""
+    r = (h - 14) / 2
+    defs = grad("rim", [(0, "#FFFFFF"), (1, "#E6DCC4")]) + grad("face", [(0, top), (1, bottom)]) + shadow_filter(dy=4)
+    return render(f'<defs>{defs}</defs><g filter="url(#sh)">'
+                  f'<rect x="3" y="3" width="{w - 6}" height="{h - 14}" rx="{r}" fill="{OUT}"/>'
+                  f'<rect x="7" y="7" width="{w - 14}" height="{h - 22}" rx="{r - 4}" fill="url(#rim)"/>'
+                  f'<rect x="13" y="13" width="{w - 26}" height="{h - 34}" rx="{r - 10}" fill="url(#face)"/>'
+                  f'<rect x="{r}" y="17" width="{w - 2 * r}" height="{(h - 34) * 0.3}" rx="6" fill="#FFFFFF" '
+                  f'opacity="0.4"/></g>', w, h)
+
+
+def item_field(size=112):
+    o = f'stroke="{OUT}" stroke-width="5" stroke-linejoin="round"'
+    ridges = "".join(f'<path d="M{30 + i * 12} {58 - i * 6} L{62 + i * 12} {74 - i * 6}" stroke="#B9774A" '
+                     f'stroke-width="6" stroke-linecap="round"/>' for i in range(4))
+    return _item(f'<path d="M12 62 L56 40 L100 62 L56 84 Z" fill="#8A5530" {o}/>'
+                 f'<path d="M12 62 L12 70 L56 92 L100 70 L100 62 L56 84 Z" fill="#6B3E22" {o}/>{ridges}'
+                 f'<path d="M50 52 l2 -10 M60 56 l2 -10 M70 60 l2 -10" stroke="#5DB33C" stroke-width="5" '
+                 f'stroke-linecap="round"/>', size)
+
+
+def slot(size=128):
+    """Round cream slot for item icons in menus."""
+    c = size / 2
+    defs = grad("s", [(0, "#FFFDF4"), (1, "#EEDCB4")]) + shadow_filter(dy=4, blur=2, op=0.3)
+    return render(f'<defs>{defs}</defs><g filter="url(#sh)"><circle cx="{c}" cy="{c}" r="{c - 6}" fill="{OUT}"/>'
+                  f'<circle cx="{c}" cy="{c}" r="{c - 11}" fill="url(#s)"/></g>', size, size + 6)
+
+
+def badge(size=56):
+    c = size / 2
+    return render(f'<circle cx="{c}" cy="{c}" r="{c - 3}" fill="{OUT}"/><circle cx="{c}" cy="{c}" r="{c - 7}" '
+                  f'fill="#3FA535"/>', size, size)
+
+
 def ui_images() -> dict:
     """file stem -> PIL image (written to game/art/generated/ui/)."""
     return {
@@ -215,6 +356,19 @@ def ui_images() -> dict:
         "ico_note": note(),
         "ico_shop": shop(),
         "ico_plus": plus(),
+        "ico_close": close(),
+        "ico_check": check(),
+        "ico_barn": barn_glyph(),
+        "slot": slot(),
+        "badge": badge(),
+        "item_wheat": item_wheat(),
+        "item_corn": item_corn(),
+        "item_carrot": item_carrot(),
+        "item_tomato": item_tomato(),
+        "item_strawberry": item_strawberry(),
+        "item_field": item_field(),
+        "pill_green": pill(),
+        "lock": lock(),
     }
 
 

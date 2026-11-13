@@ -272,6 +272,14 @@ Entschieden: Free-to-play, Zielgruppe alle, Budget 0 €, iPhone 11 vorhanden, N
 
 ## 15. Status
 
+**M1 Kern-Loop (Vertical Slice) – fertig bis auf Gerätetest (2026-11-13, PC-Sitzung)**
+- 5 Pflanzen (Weizen, Mais, Karotte, Tomate, Erdbeere) datengetrieben, je 4 Wachstumsstufen in 3D.
+- Säen per Saat-Auswahl und Wischen, Ernten per Wischen, Lager (Scheune) mit Verkauf, Münzen, XP, Level,
+  Freischaltung neuer Pflanzen.
+- Bau-Modus: Felder kaufen und platzieren, Felder per langem Drücken verschieben.
+- Tag/Nacht-Zyklus, lokales Speichern mit Offline-Wachstum, UI-Grundset in 2D (HUD, Panels, Knöpfe, Icons).
+- Offen: „stabil 60 FPS auf iPhone 11“ messen (iOS-Build über CI), Romans Spielgefühl-Feedback.
+
 **M0 Fundament – neu aufgebaut mit 3D-Grafik (2026-11-13, PC-Sitzung)**
 - Grafik komplett auf Blender-Pre-Rendering umgestellt (siehe Abschnitt 3). Assets: Scheune, Feld,
   Weizen 4 Stufen, 7 Baumarten, Büsche, Steine mit Moos, 4 Blumenbeete, Zäune, Heu, Fass, Kiste, Trog,

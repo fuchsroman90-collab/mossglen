@@ -6,3 +6,23 @@ BTN_MUSIC_OFF	Musik aus	Music off
 COINS	Münzen	Coins
 EMERALDS	Smaragde	Emeralds
 SETTINGS	Einstellungen	Settings
+BARN	Scheune	Barn
+SHOP	Laden	Shop
+SELL_ONE	1 verkaufen	Sell 1
+SELL_ALL	Alle	All
+FIELD	Feld	Field
+NOT_ENOUGH_COINS	Nicht genug Münzen	Not enough coins
+MAX_FIELDS	Mehr Felder ab dem nächsten Level	More fields at the next level
+BARN_FULL	Scheune voll! Verkaufe etwas.	Barn full! Sell something.
+NO_SEEDS	Keine Saat mehr: ernte zuerst.	Out of seeds: harvest first.
+LEVEL_UP	Level %d!	Level %d!
+NEW_CROP	Neu freigeschaltet: %s	New crop unlocked: %s
+HINT_SWIPE	Wische über leere Beete zum Säen	Swipe over empty fields to sow
+PLACE_HINT	Ziehe das Feld an einen freien Platz	Drag the field to a free spot
+FROM_LEVEL	Ab Lv %d	Lv %d
+READY	Fertig!	Ready!
+CROP_wheat	Weizen	Wheat
+CROP_corn	Mais	Corn
+CROP_carrot	Karotte	Carrot
+CROP_tomato	Tomate	Tomato
+CROP_strawberry	Erdbeere	Strawberry
