@@ -49,7 +49,9 @@ Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
   Lehre: **Anbauteile immer per Raycast auf die Fläche setzen, nie mit geschätztem Radius.**
 - Huhn freigegeben, alle Huhn-Frames im Spiel. Kuh-Prototyp im selben Stil: Kontrastlicht, Flecken flach als
   Muster im Material (`patched_mat`, Noise statt aufgesetzter Kugeln), kompakter Körper, größerer Kopf, breites
-  Maul aus dem Gesicht, Ohren/Hörner/Stirnlocke per Raycast, Wimpern, gespaltene Hufe. Wartet auf Romans OK.
+  Maul aus dem Gesicht, Ohren/Hörner/Stirnlocke per Raycast, Wimpern, gespaltene Hufe. → freigegeben, im Spiel.
+- Schaf-Prototyp: weiche Wolke (glattes Wollmaterial statt Voronoi-Sprenkel, fester Kern + 16 Bauschen),
+  langer dunkler Kopf weiter vorne, Hängeohren + Wollkappe per Raycast, große Augen mit Lid, gespaltene Hufe.
 - M9.5c Bedienung: Hover am PC (aufhellen, kleiner Hüpfer, Hand-Cursor) für alles Antippbare, Druck-Feedback
   beim Drücken, **Saat aus dem Saat-Kreis gedrückt halten und über Felder ziehen** (Hay-Day-Art), Saat-/Sichel-
   Symbol folgt dem Finger beim Säen/Ernten, Blasen über Tieren stehen ruhig (kein Wippen mehr).

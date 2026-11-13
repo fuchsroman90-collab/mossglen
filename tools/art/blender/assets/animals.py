@@ -538,49 +538,72 @@ def cow_frames():
 # ---------------------------------------------------------------- sheep
 
 def _wool_mat():
-    return __import__("blender.assets.nature", fromlist=["x"]).foliage_mat(
-        "wool", "#FFFDF6", "#D9D0C0", noise_scale=22.0, z0=0.1, z1=0.7, rough=0.9)
+    """Soft cloud wool (smooth puffs read better than a speckled texture)."""
+    return mat("wool_soft", "#FFFDF7", rough=0.85, spec=0.12, edge=0.5, edge_color="#B8AE9C", sss=0.12)
 
 
 def sheep(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squash=0.0):
-    """Fluffy chibi sheep, ~0.65 m tall. Wool = many bumpy puffs, dark face and legs."""
+    """Fluffy chibi sheep, ~0.65 m tall, in the approved hen/cow style: a dense round cloud of wool, a long dark
+    face with big lidded eyes, droopy ears and a wool cap that sit on the real surface, dark legs with hooves."""
     import random as _r
+    kit.character_light()
     rng = _r.Random(3)
     root = kit.empty("sheep", rot=(0, 0, math.radians(yaw)))
     body = kit.empty("body", loc=(0, 0, body_z), parent=root)
     s = 1.0 + squash
     wool = _wool_mat()
     nature = __import__("blender.assets.nature", fromlist=["x"])
-    for x, y, z, r in [(0, 0, 0.42, 0.27), (-0.18, 0.08, 0.4, 0.2), (-0.18, -0.08, 0.4, 0.2), (0.16, 0.0, 0.44, 0.2),
-                       (0.02, 0.14, 0.5, 0.16), (0.02, -0.14, 0.5, 0.16), (-0.08, 0, 0.58, 0.17), (-0.3, 0, 0.44, 0.13)]:
-        nature.leaf_clump((x, y, z * s), r, wool, rng, parent=body, squash=0.95, bumps=0.28)
-    face = mat("sheep_face", "#4C4645", rough=0.6, spec=0.2, edge=0.45, edge_color="#1E1A1A")
+    # a solid core so the cloud never shows gaps, then many puffs over it
+    kit.sphere(0.3, wool, loc=(-0.04, 0, 0.45 * s), scale=(1.2, 0.95, 0.85), seg=24, parent=body)
+    for x, y, z, r in [(0, 0, 0.6, 0.2), (-0.2, 0.12, 0.5, 0.19), (-0.2, -0.12, 0.5, 0.19), (0.14, 0.13, 0.5, 0.18),
+                       (0.14, -0.13, 0.5, 0.18), (-0.06, 0.2, 0.42, 0.17), (-0.06, -0.2, 0.42, 0.17),
+                       (-0.32, 0, 0.47, 0.15), (0.2, 0, 0.6, 0.15), (-0.18, 0, 0.64, 0.16), (0.04, 0.16, 0.62, 0.14),
+                       (0.04, -0.16, 0.62, 0.14), (-0.12, 0.17, 0.32, 0.13), (-0.12, -0.17, 0.32, 0.13),
+                       (0.12, 0.1, 0.33, 0.13), (0.12, -0.1, 0.33, 0.13)]:
+        nature.leaf_clump((x, y, z * s), r, wool, rng, parent=body, squash=0.95, bumps=0.14)
+    face = mat("sheep_face", "#3E3836", rough=0.55, spec=0.25, edge=0.5, edge_color="#151212")
     hx, hd = head
-    head_c = Vector((0.32 + hx, 0, 0.5 - hd))
-    ho = kit.to_mesh(kit.blob([{"co": tuple(head_c), "r": 0.17, "type": "ELLIPSOID", "size": (1.15, 0.85, 0.9)},
-                               {"co": tuple(head_c + Vector((0.1, 0, -0.05))), "r": 0.11}], face, name="shead",
-                              parent=body))
+    head_c = Vector((0.42 + hx, 0, 0.55 - hd))
+    ho = kit.to_mesh(kit.blob([{"co": tuple(head_c), "r": 0.19, "type": "ELLIPSOID", "size": (1.2, 0.85, 0.95),
+                                "stiff": 2.0},
+                               {"co": tuple(head_c + Vector((0.13, 0, -0.06))), "r": 0.12, "stiff": 2.0}],
+                              face, name="shead", parent=body))
     surf = kit.Surface([ho])
-    nature.leaf_clump(head_c + Vector((-0.04, 0, 0.11)), 0.1, wool, rng, parent=body, squash=0.8)  # wool cap
-    look = _rotz(kit.TO_CAM, -yaw)
     hw = kit.world(body, head_c)
+    to_local = body.matrix_world.inverted()
+    o_w = kit.world(root, (0, 0, 0))
+
+    def on_head(d):
+        p, _n = surf.toward(hw, kit.world(root, d) - o_w)
+        return (to_local @ p) if p is not None else head_c + Vector(d).normalized() * 0.17
+
+    # wool cap sitting on the top of the head
+    cap = on_head((-0.3, 0, 1.0))
+    nature.leaf_clump(cap + Vector((0.02, 0, 0.02)), 0.12, wool, rng, parent=body, squash=0.8, bumps=0.14)
+    look = _rotz(kit.TO_CAM, -yaw)
+    inner = mat("sheep_ear_in", "#D98A8A", rough=0.6, edge=0.3)
     for side in (-1, 1):
-        dl = Vector((0.65, side * 0.6, 0.25))
-        p, n = surf.toward(hw, kit.world(root, dl) - kit.world(root, (0, 0, 0)))
+        dl = Vector((0.55, side * 0.6, 0.3))
+        p, n = surf.toward(hw, kit.world(root, dl) - o_w)
         if p is not None:
-            hr = (body.matrix_world.inverted() @ p - head_c).length
-            eye(head_c, hr, dl, 0.066, body, look=look, lid=blink, lid_color="#4C4645", droop=0.24)
-        kit.sphere(0.075, face, loc=head_c + Vector((-0.04, side * 0.2, 0.01)), scale=(0.55, 1.6, 0.4),
-                   rot=(side * -0.35, 0, 0), seg=14, parent=body)
-        kit.sphere(0.05, mat("sheep_ear_in", "#E89A9A", rough=0.6), loc=head_c + Vector((-0.02, side * 0.21, 0.012)),
-                   scale=(0.4, 1.2, 0.2), rot=(side * -0.35, 0, 0), seg=12, parent=body)
-    kit.sphere(0.025, mat("sheep_nose", "#2A2424", rough=0.5, edge=0.0), loc=head_c + Vector((0.2, 0, -0.04)),
-               scale=(0.6, 1.2, 0.7), seg=10, parent=body)
-    for (lx, ly, ang) in ((0.14, -0.1, legs[0]), (0.14, 0.1, legs[1]), (-0.18, -0.1, legs[1]), (-0.18, 0.1, legs[0])):
+            hr = (to_local @ p - head_c).length
+            eye(head_c, hr, dl, 0.07, body, look=look, lid=blink, lid_color="#3E3836", droop=0.22)
+        ear_p = on_head((-0.2, side * 1.0, 0.25))
+        ear = kit.empty("ear", loc=ear_p, rot=(side * 0.55, 0.15, 0), parent=body)
+        kit.sphere(0.085, face, loc=(0, side * 0.07, -0.01), scale=(0.55, 1.4, 0.38), seg=16, parent=ear)
+        kit.sphere(0.055, inner, loc=(0.012, side * 0.08, -0.005), scale=(0.45, 1.15, 0.25), seg=12, parent=ear)
+    nose = on_head((1.0, 0, -0.25))
+    nos = mat("sheep_nose", "#1A1414", rough=0.5, edge=0.0)
+    for side in (-1, 1):
+        kit.sphere(0.018, nos, loc=nose + Vector((0.0, side * 0.035, 0.0)), scale=(0.6, 1.0, 1.3), seg=10,
+                   parent=body)
+    for (lx, ly, ang) in ((0.14, -0.12, legs[0]), (0.14, 0.12, legs[1]), (-0.2, -0.12, legs[1]),
+                          (-0.2, 0.12, legs[0])):
         hip = kit.empty("hip", loc=(lx, ly, 0.27), rot=(0, math.radians(ang), 0), parent=root)
         kit.cyl(0.05, 0.25, face, r2=0.042, loc=(0, 0, -0.25), bevel=0.02, verts=14, parent=hip)
-        kit.cyl(0.05, 0.05, mat("sheep_hoof", "#2A2424", rough=0.4, spec=0.4), r2=0.046, loc=(0, 0, -0.27),
-                bevel=0.012, verts=14, parent=hip)
+        for cy in (-0.018, 0.018):
+            kit.cyl(0.03, 0.05, mat("sheep_hoof", "#1E1A1A", rough=0.4, spec=0.4), r2=0.028,
+                    loc=(0.004, cy, -0.27), bevel=0.01, verts=12, parent=hip, scale=(1.15, 0.8, 1.0))
     return root
 
 

@@ -2,6 +2,9 @@
 
 Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 
+- **2026-11-13 (23:34) – Kuh freigegeben: „so ist dass okay“.** Bild: `taste/cow_approved.png` (flache Flecken im
+  Material, kompakter Körper, großes Maul, Teile per Raycast, Kontrastlicht).
+
 - **2026-11-13 (23:28) – Huhn freigegeben: „Ja so ist richtig gut dass gefällt mir“.** Bild: `taste/hen_approved.png`
   (Cartoon-Huhn V1 + tiefere Flügel, Schnabel aus dem Kopf, Kamm per Raycast auf dem Kopf, Kontrastlicht).
   **Das ist der Maßstab für alle weiteren Tiere.**
