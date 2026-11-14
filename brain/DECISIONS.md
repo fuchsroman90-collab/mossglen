@@ -2,6 +2,9 @@
 
 Neueste oben. Format: Datum – Entscheidung – Begründung – wer.
 
+- **2026-11-14 – Vierbeiner als durchgehendes Mesh** (Roman schickte Low-Poly-Schaf-Konzept,
+  `references/img/sheep_lowpoly_concept.png`): Körper, Hals, Kopf, Schnauze und Beine aus einem Stick-Skelett
+  per Skin- + Subdivision-Modifier (`kit.skin_mesh`), Materialien per Region. Kein Metaball-Klumpen mehr. – Claude
 - **2026-11-13 – Tierstil: Cartoon wie Huhn-Prototyp 1** (große Augen mit Lid, glatte Formen, Kontrastlicht),
   nicht die „natürliche“ Federstruktur-Version. Teile müssen sauber am Körper sitzen (Schnabel, Kamm). – Roman
 - **2026-11-13 – Item-Icons werden in Blender gerendert** (3D wie die Welt), UI-Rahmen/Knöpfe bleiben 2D. – Roman

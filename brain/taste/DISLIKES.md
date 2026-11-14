@@ -2,6 +2,12 @@
 
 Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 
+- **2026-11-14 (03:41) – „Die Benutzeroberfläche sieht weiterhin schrecklich aus, man hat keine Differenzierung.“**
+  Besonders: **Ausbauen stand direkt neben Verkaufen** → man denkt, man könne die Axt ausbauen.
+  **Folge:** Lager-Fenster getrennt in blauen Ausbau-Rahmen oben (Kapazität + Knopf) und warmen Verkaufs-Rahmen
+  unten (nur zur gewählten Ware). Allgemein: Bereiche mit eigener Rahmenfarbe trennen. Kompletter UI-Umbau bleibt
+  Aufgabe M9.5e.
+
 - **2026-11-13 (23:37) – Schaf-Prototyp 1: „Schaf ist schrecklich“.** Bild: `rejected/m95_sheep_proto1.png`.
   Riesige Wolkenkugel, kleiner dunkler Kopf tief vergraben, lange Stelzenbeine, grimmige Augen.
   **Folge:** zwei Varianten zur Auswahl zeigen (Hay-Day-Proportionen vs. süßes Lamm).

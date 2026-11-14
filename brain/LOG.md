@@ -2,6 +2,14 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-14 – Nacht
+
+- Roman fragte nach einem Low-Poly-Konzept fürs Schaf → `kit.skin_mesh()` (Skin + Subsurf aus Skelett, Material
+  per Region). Schaf-Prototyp 3 als ein Mesh: Wollkörper mit Locken-Relief, dunkler Kopf/Beine, Wollkappe,
+  Augen/Ohren/Schwanz per Raycast. Wartet auf Romans Urteil.
+- Lager-Fenster: Ausbauen (blauer Rahmen oben) und Verkaufen (warmer Rahmen unten) getrennt.
+- PC auf Romans Wunsch per Computer-Use heruntergefahren.
+
 ## 2026-11-13 – Abend: Romans erster Test → M9.5 begonnen (Progression)
 
 - Romans Feedback komplett ins Brain (DISLIKES, DECISIONS, 11 neue Referenzen, `rejected/m9_dinos_pen.png`).

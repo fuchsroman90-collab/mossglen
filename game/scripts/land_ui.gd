@@ -13,6 +13,8 @@ var _store: Control
 var _store_title: Label
 var _store_grid: GridContainer
 var _store_bar: Control
+var _up_box: Control
+var _sell_box: Control
 var _store_silo := false
 var _store_sel := ""
 var _upgrade: Control
@@ -36,9 +38,15 @@ func _build_store() -> void:
 	var r: Array = hud._panel_window(Vector2(1240, 980), "BARN")
 	_store = r[0]
 	_store_title = r[1]
+	# upgrade strip: its own blue frame at the top, clearly apart from selling items (Roman, 2026-11-14)
+	_up_box = hud._patch("panel.png", 44, 44)
+	_up_box.position = Vector2(40, 100)
+	_up_box.size = Vector2(1160, 150)
+	_up_box.self_modulate = Color(0.62, 0.84, 1.0)
+	_store.add_child(_up_box)
 	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(50, 110)
-	scroll.size = Vector2(1140, 600)
+	scroll.position = Vector2(50, 270)
+	scroll.size = Vector2(1140, 420)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	_store.add_child(scroll)
@@ -47,9 +55,15 @@ func _build_store() -> void:
 	_store_grid.add_theme_constant_override("h_separation", 14)
 	_store_grid.add_theme_constant_override("v_separation", 14)
 	scroll.add_child(_store_grid)
+	# sell strip: warm frame at the bottom, only about the selected item
+	_sell_box = hud._patch("panel.png", 44, 44)
+	_sell_box.position = Vector2(40, 705)
+	_sell_box.size = Vector2(1160, 240)
+	_sell_box.self_modulate = Color(1.0, 0.86, 0.6)
+	_store.add_child(_sell_box)
 	_store_bar = Control.new()
-	_store_bar.position = Vector2(50, 730)
-	_store.add_child(_store_bar)
+	_store_bar.position = Vector2(30, 24)
+	_sell_box.add_child(_store_bar)
 	hud.extra_windows.append(_store)
 	_upgrade = hud._panel_window(Vector2(1000, 640), "UPGRADE")[0]
 	hud.extra_windows.append(_upgrade)
@@ -120,28 +134,53 @@ func _fill_store_bar() -> void:
 	for c in _store_bar.get_children():
 		c.queue_free()
 	var which := "silo" if _store_silo else "barn"
-	var up := hud._pill("UPGRADE", Vector2(820, 120), 320)
+	for c in _up_box.get_children():
+		c.queue_free()
+	var ico := hud._tex("ico_%s.png" % which)
+	ico.position = Vector2(24, 20)
+	_up_box.add_child(ico)
+	var cap := hud._dark(hud._label(tr("STORE_CAP") % [Game.stored(_store_silo), Game.capacity(_store_silo)], 36))
+	cap.position = Vector2(150, 14)
+	cap.size = Vector2(520, 56)
+	_up_box.add_child(cap)
+	var back := hud._patch("bar_back.png", 32, 30)
+	back.position = Vector2(150, 72)
+	back.size = Vector2(560, 56)
+	_up_box.add_child(back)
+	var fill := hud._patch("bar_fill.png", 20, 18)
+	fill.position = Vector2(10, 10)
+	fill.size = Vector2(40.0 + 500.0 * clampf(float(Game.stored(_store_silo)) / Game.capacity(_store_silo), 0, 1), 36)
+	back.add_child(fill)
+	var up := hud._pill("UPGRADE_" + which.to_upper() + "_BTN", Vector2(760, 36), 370)
 	up.pressed.connect(func() -> void: _open_upgrade(which))
-	_store_bar.add_child(up)
+	_up_box.add_child(up)
 	if _store_sel == "" or Game.count(_store_sel) <= 0:
+		var hint := hud._dark(hud._label("SELL_PICK", 32))
+		hint.size = Vector2(1100, 190)
+		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_store_bar.add_child(hint)
 		return
 	var id := _store_sel
+	var icon := hud._item_icon(id, 150)
+	icon.position = Vector2(0, 20)
+	_store_bar.add_child(icon)
 	var name_l := hud._dark(hud._label("ITEM_" + id, 42))
-	name_l.position = Vector2(0, 0)
+	name_l.position = Vector2(170, 0)
 	name_l.size = Vector2(520, 60)
 	_store_bar.add_child(name_l)
 	var coin := hud._tex("coin.png")
 	coin.scale = Vector2(0.5, 0.5)
-	coin.position = Vector2(540, 6)
+	coin.position = Vector2(710, 6)
 	_store_bar.add_child(coin)
 	var price := hud._dark(hud._label(str(Game.price(id)), 38))
-	price.position = Vector2(600, 0)
+	price.position = Vector2(770, 0)
 	price.size = Vector2(120, 60)
 	_store_bar.add_child(price)
-	var one := hud._pill("SELL_ONE", Vector2(0, 120), 360)
+	var one := hud._pill("SELL_ONE", Vector2(170, 100), 360)
 	one.pressed.connect(func() -> void: _sell(id, 1))
 	_store_bar.add_child(one)
-	var all := hud._pill("SELL_ALL", Vector2(380, 120), 300)
+	var all := hud._pill("SELL_ALL", Vector2(550, 100), 300)
 	all.pressed.connect(func() -> void: _sell(id, Game.count(id)))
 	_store_bar.add_child(all)
 

@@ -409,6 +409,43 @@ def subsurf(o, levels=2):
     return o
 
 
+def skin_mesh(name, verts, edges, radii, mats, region=None, levels=2, parent=None):
+    """One continuous organic mesh from a stick skeleton (Skin + Subdivision, applied).
+
+    verts: [(x, y, z)], edges: [(i, j)], radii: [(rx, ry)] per vertex.
+    mats: list of materials; region(co) -> material index for each face centre (default 0).
+    Like box-modelled game characters: clean silhouette, no metaball lumps.
+    """
+    me = bpy.data.meshes.new(name)
+    me.from_pydata([tuple(v) for v in verts], [tuple(e) for e in edges], [])
+    o = bpy.data.objects.new(name, me)
+    link(o)
+    sk = o.modifiers.new("skin", "SKIN")
+    sk.use_smooth_shade = True
+    sk.branch_smoothing = 0.6
+    for i, r in enumerate(radii):
+        me.skin_vertices[0].data[i].radius = r
+    me.skin_vertices[0].data[0].use_root = True
+    sub = o.modifiers.new("sub", "SUBSURF")
+    sub.levels = levels
+    sub.render_levels = levels
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    new_me = bpy.data.meshes.new_from_object(o.evaluated_get(dg))
+    bpy.data.objects.remove(o, do_unlink=True)
+    n = bpy.data.objects.new(name, new_me)
+    link(n)
+    for m in mats:
+        new_me.materials.append(m)
+    for p in new_me.polygons:
+        p.use_smooth = True
+        if region is not None:
+            p.material_index = region(p.center)
+    if parent is not None:
+        n.parent = parent
+    return n
+
+
 def curve_tube(points, r=0.03, m=None, parent=None, res=6):
     cd = bpy.data.curves.new("tube", "CURVE")
     cd.dimensions = "3D"

@@ -303,3 +303,7 @@ TUT_5	Der Lieferwagen ist zurück! Tippe ihn an und sammle die Münzen ein.	The 
 TUT_5_WAIT	Der Lieferwagen bringt die Ware ins Dorf … gleich ist er zurück.	The truck takes the goods to the village … it will be back soon.
 TUT_6	Müller Brumm braucht deine Hilfe. Tippe oben links auf seine Aufgabe.	Miller Brumm needs your help. Tap his task at the top left.
 TUT_DONE	Super! Jetzt gehört der Hof dir. Viel Spaß in Mossglen!	Great! The farm is yours now. Have fun in Mossglen!
+STORE_CAP	Belegt: %d / %d	Used: %d / %d
+UPGRADE_SILO_BTN	Silo ausbauen	Upgrade silo
+UPGRADE_BARN_BTN	Scheune ausbauen	Upgrade barn
+SELL_PICK	Tippe auf eine Ware, um sie zu verkaufen.	Tap an item to sell it.
