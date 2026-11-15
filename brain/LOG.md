@@ -2,6 +2,13 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15 (abends) – Schwein v3
+
+- Roman zu v2: „Das Schwein sieht schrecklich aus.“ → DISLIKES + `rejected/pig_v2_2026-11-15.png`.
+- v3 komplett neu **auf dem Bauplan der freigegebenen Kuh**: gleicher Kettenkörper mit verschmolzenem Kopf, gleiche
+  müde Augen, Blob-Beine (kürzer); Schwein-Teile: Tonnen-Rüssel mit dunkler Front, Dreieck-Ohren, Backen, Ringelschwanz.
+  40 Frames gerendert. Wartet auf Romans Urteil.
+
 ## 2026-11-15 (abends) – Fable 5.2: Block 4 („ganzen Plan fertig“ – Teil)
 
 - Roman: „mach alles fertig, ganzen Plan“. Der Plan ist zu groß für eine Sitzung; weiter Block für Block.

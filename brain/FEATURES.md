@@ -26,7 +26,7 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 - ⬜ Fortschrittsbalken „Reif in …“ über dem Feld / „Fertig zum Einsammeln“ über Gebäuden
 
 ## C. Tiere
-- ✅ Huhn, Kuh, Schaf (freigegeben) · 🟡 Schwein (Fehler behoben: Rüssel sitzt, Beine am Körper, Grinsen sichtbar – wartet auf Romans OK)
+- ✅ Huhn, Kuh, Schaf (freigegeben) · 🟡 Schwein v3 (v2 abgelehnt; v3 auf Kuh-Bauplan, wartet auf Romans OK)
 - ⬜ Ziege, Pferd, Hunde, Katzen, Hasen, Esel als Haustiere mit Hütte/Futternapf
 - ⬜ Füttern per Ziehen, Sammeln per Ziehen (Korb-Symbol mit Pfeil), Tiere zeigen Hunger/Fertig
 

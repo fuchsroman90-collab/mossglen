@@ -56,3 +56,9 @@ Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 - **2026-11-13 – Unfertig/Prototyp-Look.** Roman will ausdrücklich nichts, das „nach Enttäuschung“ oder
   „nach einem unfertigen Prototypen“ aussieht. **Folge:** Jedes Asset vor Abgabe im Spiel-Screenshot gegen
   die Referenzen prüfen.
+
+## 2026-11-15 – Schwein v2 abgelehnt
+- Roman: „Das Schwein sieht schrecklich aus.“ Bild: `rejected/pig_v2_2026-11-15.png`.
+- Was daran falsch war (eigene Analyse): Röhrenbeine wie Tischbeine, Kopf zu klein und als zweiter Ball angesetzt,
+  blasse einfarbige Haut ohne Schattierung, winzige Kegel-Ohren, Glupschaugen ohne Lid – nichts davon passt zur
+  freigegebenen Kuh. **Regel:** neue Tiere aus dem Bauplan der freigegebenen Kuh ableiten, nicht neu erfinden.
