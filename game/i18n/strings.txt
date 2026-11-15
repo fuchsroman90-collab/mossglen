@@ -307,3 +307,33 @@ STORE_CAP	Belegt: %d / %d	Used: %d / %d
 UPGRADE_SILO_BTN	Silo ausbauen	Upgrade silo
 UPGRADE_BARN_BTN	Scheune ausbauen	Upgrade barn
 SELL_PICK	Tippe auf eine Ware, um sie zu verkaufen.	Tap an item to sell it.
+DECO_path_dirt	Erdweg	Dirt path
+DECO_grass_tuft	Grasbüschel	Grass tuft
+DECO_flowers_white	Margeriten	Daisies
+DECO_flowers_sun	Sonnenblumen	Sunflowers
+DECO_flowers_rose	Rosen	Roses
+DECO_flowers_lavender	Lavendel	Lavender
+DECO_fence_x	Zaun quer	Fence across
+DECO_fence_y	Zaun längs	Fence along
+DECO_hay	Heuhaufen	Haystack
+DECO_crate	Kiste	Crate
+DECO_barrel	Fass	Barrel
+DECO_rock_small	Stein	Stone
+DECO_bush	Busch	Bush
+DECO_bush_berry	Beerenbusch	Berry bush
+DECO_tree_pine	Tanne	Pine
+DECO_tree_oak	Eiche	Oak
+DECO_tree_apple	Apfelbaum	Apple tree
+DECO_tree_autumn	Herbstbaum	Autumn tree
+DECO_fountain	Brunnen	Fountain
+DECO_SUB	Deko – frei platzierbar	Decoration – place anywhere
+DECO_PATH_SUB	Ziehen zum Malen, antippen entfernt	Drag to paint, tap to remove
+DECO_HINT	Ziehen und mit dem Haken setzen – so oft du willst	Drag and confirm – as often as you like
+PATH_HINT	Mit dem Finger Wege malen. Haken = fertig	Paint paths with your finger. Tick = done
+DECO_MOVE	Verschieben	Move
+DECO_SELL	Verkaufen  +%d	Sell  +%d
+DECO_grass_tuft_b	Großes Grasbüschel	Big grass tuft
+DECO_hay_bale	Strohballen	Straw bale
+DECO_hay_bale_stack	Strohballen-Stapel	Straw bale stack
+DECO_pumpkin	Kürbis	Pumpkin
+DECO_pumpkin_pile	Kürbisse	Pumpkins

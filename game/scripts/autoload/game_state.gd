@@ -84,6 +84,8 @@ const DROPS := {"axe": 10, "saw": 7, "dynamite": 7, "shovel": 10, "stake": 6, "l
 var placeables: Dictionary = {}  ## data/placeables.json
 var land: Dictionary = {}  ## unlocked parcel id -> true (the start parcels are always open)
 var cleared: Dictionary = {}  ## obstacle key "x,y" -> true
+var decos: Array = []  ## [{"k": deco kind, "x": cell x, "y": cell y}] (data/decos.json)
+var deco_defs: Dictionary = {}
 var placed: Array = []  ## [{"k": kind, "x": cell x, "y": cell y, "done": unix time the build finishes}]
 const TRUCK_TRIP := 45.0  ## seconds for the delivery round trip
 var truck_back_at := 0.0  ## unix time the delivery truck returns; 0 = parked
@@ -118,6 +120,7 @@ func _ready() -> void:
 	achievements = JSON.parse_string(FileAccess.get_file_as_string("res://data/achievements.json"))
 	season_events = _json("res://data/events.json")
 	placeables = _json("res://data/placeables.json")
+	deco_defs = _json("res://data/decos.json")
 	_load_translations()
 	var lang := OS.get_locale_language()
 	TranslationServer.set_locale(lang if lang in LOCALES else "en")
@@ -852,7 +855,7 @@ func save_game() -> void:
 		"quest": {"i": quest_index, "p": quest_progress, "s": quest_stage}, "restored": restored,
 		"museum_fossils": museum_fossils,
 		"stats": stats, "ach_claimed": ach_claimed, "tutorial": tutorial_step, "festival": festival,
-		"silo_level": silo_level, "barn_level": barn_level, "land": land, "cleared": cleared, "placed": placed,
+		"silo_level": silo_level, "barn_level": barn_level, "land": land, "cleared": cleared, "placed": placed, "decos": decos,
 		"truck": {"back": truck_back_at, "cargo": truck_cargo, "xp": truck_xp},
 		"locale": TranslationServer.get_locale().substr(0, 2),
 		"music": Audio.music_enabled,
@@ -921,6 +924,7 @@ func load_game() -> bool:
 	land = parsed.get("land", {})
 	cleared = parsed.get("cleared", {})
 	placed = parsed.get("placed", [])
+	decos = parsed.get("decos", [])
 	var tr_d: Dictionary = parsed.get("truck", {})
 	truck_back_at = float(tr_d.get("back", 0.0))
 	truck_cargo = int(tr_d.get("cargo", 0))

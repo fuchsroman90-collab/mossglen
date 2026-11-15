@@ -340,8 +340,91 @@ def cycad(seed=92, height=0.9):
     return root
 
 
+def grass_tuft(seed=95, n=22, height=0.34):
+    """Placeable grass tuft: a fan of bent blades, darker at the foot, bright tips."""
+    rng = random.Random(seed)
+    root = kit.empty("grass_tuft")
+    dark = mat("tuft_dark", "#3F9A34", rough=0.6, spec=0.15, edge=0.4, var=0.06, sss=0.1)
+    light = mat("tuft_light", "#8EDB4A", rough=0.55, spec=0.2, edge=0.45, var=0.08, sss=0.15)
+    for k in range(n):
+        yaw = rng.uniform(0, 2 * math.pi)
+        lean = rng.uniform(0.05, 0.42)
+        h = height * rng.uniform(0.55, 1.0) * (1.0 - lean * 0.5)
+        r0 = rng.uniform(0.0, 0.1)
+        base = (math.cos(yaw) * r0, math.sin(yaw) * r0, 0.0)
+        pts = []
+        for j in range(5):
+            t = j / 4
+            out = lean * h * (t ** 1.8) * 1.6
+            pts.append((base[0] + math.cos(yaw) * out, base[1] + math.sin(yaw) * out, h * (t - 0.18 * t * t)))
+        kit.curve_tube(pts, r=rng.uniform(0.016, 0.024), m=light if rng.random() < 0.45 else dark, parent=root)
+    return root
+
+
+def pumpkin(seed=96, size=0.24, pile=False):
+    """Fat ribbed pumpkin with a curled stem; pile=True adds two small ones."""
+    rng = random.Random(seed)
+    root = kit.empty("pumpkin")
+    skin = mat("pumpkin", "#F28A1E", rough=0.45, spec=0.3, edge=0.5, var=0.05)
+    stem = mat("pumpkin_stem", "#6E8A3A", rough=0.7, edge=0.4)
+
+    def one(c, r):
+        for k in range(8):
+            a = k / 8 * 2 * math.pi
+            kit.sphere(r * 0.52, skin, loc=(c[0] + math.cos(a) * r * 0.5, c[1] + math.sin(a) * r * 0.5, c[2] + r * 0.62),
+                       scale=(1.0, 1.0, 1.25), parent=root)
+        kit.sphere(r * 0.6, skin, loc=(c[0], c[1], c[2] + r * 0.62), scale=(1, 1, 1.0), parent=root)
+        kit.curve_tube([(c[0], c[1], c[2] + r * 1.15), (c[0] + r * 0.05, c[1], c[2] + r * 1.45),
+                        (c[0] + r * 0.22, c[1] + r * 0.05, c[2] + r * 1.6)], r=r * 0.1, m=stem, parent=root)
+
+    one((0, 0, 0), size)
+    if pile:
+        one((size * 1.25, -size * 0.5, 0), size * 0.7)
+        one((-size * 0.9, -size * 0.95, 0), size * 0.55)
+    return root
+
+
+def hay_bale(seed=97, stack=1):
+    """Square golden straw bale with two twine straps; stack=3 builds a little pyramid."""
+    rng = random.Random(seed)
+    root = kit.empty("hay_bale")
+    straw = mat("bale", "#F2C230", rough=0.85, edge=0.55, var=0.12)
+    twine = mat("bale_twine", "#B5722A", rough=0.7, edge=0.4)
+    tip = mat("bale_tip", "#FFE27A", rough=0.8, edge=0.3)
+
+    def one(c, yaw=0.0):
+        w, d, h = 0.62, 0.4, 0.36
+        b = kit.box((w, d, h), straw, loc=(c[0], c[1], c[2] + h / 2), rot=(0, 0, yaw), bevel=0.06, parent=root)
+        for sx in (-0.17, 0.17):
+            kit.box((0.035, d + 0.02, h + 0.02), twine,
+                    loc=(c[0] + math.cos(yaw) * sx, c[1] + math.sin(yaw) * sx, c[2] + h / 2), rot=(0, 0, yaw),
+                    bevel=0.01, parent=root)
+        for k in range(14):
+            x = rng.uniform(-w / 2, w / 2) * 0.9
+            y = rng.uniform(-d / 2, d / 2) * 0.9
+            px = c[0] + math.cos(yaw) * x - math.sin(yaw) * y
+            py = c[1] + math.sin(yaw) * x + math.cos(yaw) * y
+            kit.curve_tube([(px, py, c[2] + h - 0.01), (px + rng.uniform(-0.05, 0.05), py + rng.uniform(-0.05, 0.05),
+                            c[2] + h + rng.uniform(0.03, 0.07))], r=0.008, m=tip, parent=root)
+        return b
+
+    if stack >= 3:
+        one((-0.33, 0, 0), 0.05)
+        one((0.33, 0.02, 0), -0.06)
+        one((0, 0.0, 0.36), 0.12)
+    else:
+        one((0, 0, 0), 0.0)
+    return root
+
+
 def nature_frames():
     return {
+        "grass_tuft": lambda: grass_tuft(95),
+        "grass_tuft_b": lambda: grass_tuft(98, n=30, height=0.42),
+        "pumpkin": lambda: pumpkin(96),
+        "pumpkin_pile": lambda: pumpkin(99, pile=True),
+        "hay_bale": lambda: hay_bale(97),
+        "hay_bale_stack": lambda: hay_bale(100, stack=3),
         "tree_oak": lambda: oak(seed=11),
         "tree_oak_b": lambda: oak(seed=12, height=1.9, width=1.1),
         "tree_autumn": lambda: oak(seed=13, colors=LEAF_AUTUMN),

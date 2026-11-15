@@ -62,6 +62,7 @@ var occupied: Dictionary = {}
 var _sway_crop: ShaderMaterial
 var _sway_tree: ShaderMaterial
 var _sway_bush: ShaderMaterial
+var _sway_ever: ShaderMaterial  ## evergreens: sway but no season colours
 var _mask: Image
 var _touches: Dictionary = {}
 var _mode := Mode.NONE
@@ -81,6 +82,12 @@ var _picker_field: Field = null
 var _no_seed_warned := false
 var _placing: Field = null
 var _placing_new := false
+var _deco_kind := ""  ## decoration being placed (data/decos.json)
+var _deco_moving: Dictionary = {}  ## entry being moved (restored on cancel)
+var _deco_erase := false
+var deco_nodes: Dictionary = {}  ## "kind:x:y" -> Sprite2D
+var paths: Dictionary = {}  ## cell -> entry in Game.decos
+var _mask_tex: ImageTexture
 var _place_kind := ""  ## building/pen being placed from the shop
 var _ghost: Sprite2D
 var _ghost_floor: Polygon2D
@@ -105,6 +112,7 @@ func _ready() -> void:
 	_sway_crop = _make_sway(5.0, 1.6, 60.0)
 	_sway_tree = _make_sway(5.0, 1.1, 420.0)
 	_sway_bush = _make_sway(3.0, 1.4, 120.0)
+	_sway_ever = _make_sway(5.0, 1.1, 420.0)
 	_mask = Image.create(MASK_SIZE, MASK_SIZE, false, Image.FORMAT_RGB8)
 	objects = Node2D.new()
 	objects.y_sort_enabled = true
@@ -114,6 +122,8 @@ func _ready() -> void:
 	add_child(farm)
 	farm.setup(self)
 	_build_farm()
+	for e in Game.decos:
+		_add_deco(e)
 	_build_ground()
 	_load_world_state.call_deferred()
 	add_child(_swimmers_root)
@@ -248,7 +258,8 @@ func _build_ground() -> void:
 	m.shader = GroundShader
 	m.set_shader_parameter("grass_tex", load("res://art/generated/ground_grass.png"))
 	m.set_shader_parameter("dirt_tex", load("res://art/generated/ground_dirt.png"))
-	m.set_shader_parameter("mask_tex", ImageTexture.create_from_image(_mask))
+	_mask_tex = ImageTexture.create_from_image(_mask)
+	m.set_shader_parameter("mask_tex", _mask_tex)
 	m.set_shader_parameter("land_tex", farm.land_texture())
 	m.set_shader_parameter("mask_origin", Vector2(MAP_MIN, MAP_MIN))
 	m.set_shader_parameter("mask_size", float(MASK_SIZE))
@@ -552,6 +563,8 @@ func _add_field(cell: Vector2i) -> Field:
 
 func _add_prop(sprite_name: String, g: Vector2, mat: Material) -> Sprite2D:
 	var s := _add_static(sprite_name, g)
+	if sprite_name.begins_with("tree_pine") and mat == _sway_tree:
+		mat = _sway_ever
 	s.material = mat
 	if mat == _sway_tree or mat == _sway_bush:
 		# per-plant random for the season shader, carried in the blue channel (see sway.gdshader)
@@ -676,7 +689,7 @@ func _set_hover(n: Node2D) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and event.button_mask == 0 and _touches.is_empty():
-		_set_hover(_pick(screen_to_world(event.position)) if _place_kind == "" and _placing == null else null)
+		_set_hover(_pick(screen_to_world(event.position)) if _place_kind == "" and _placing == null and _deco_kind == "" else null)
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoom_at(event.position, 1.1)
@@ -706,6 +719,15 @@ func _on_press(pos: Vector2) -> void:
 	_press_pos = pos
 	_stroke_cells.clear()
 	_no_seed_warned = false
+	if _deco_kind != "":
+		_mode = Mode.PLACE
+		_place_cell = cell_at(screen_to_world(pos))
+		if _is_path(_deco_kind):
+			_deco_erase = paths.has(_place_cell)
+			_paint_path()
+		if _deco_kind != "":
+			_update_deco_ghost()
+		return
 	if _placing != null or _place_kind != "":
 		_mode = Mode.PLACE
 		_move_ghost(pos)
@@ -958,6 +980,10 @@ func _tap(world: Vector2) -> void:
 		if best.has_meta("site"):
 			farm.tap_site(best)
 			return
+		if best.has_meta("deco"):
+			Audio.play("click")
+			hud.land.open_deco(best)
+			return
 		if best.has_meta("parcel"):
 			Audio.play("click")
 			hud.land.open_parcel(best.get_meta("parcel"))
@@ -1085,7 +1111,12 @@ func _move_ghost(screen_pos: Vector2) -> void:
 	var c := cell_at(screen_to_world(screen_pos))
 	if c != _place_cell:
 		_place_cell = c
-		if _place_kind != "":
+		if _deco_kind != "":
+			if _is_path(_deco_kind):
+				_paint_path()
+			if _deco_kind != "":
+				_update_deco_ghost()
+		elif _place_kind != "":
 			_update_kind_ghost()
 		else:
 			_update_ghost()
@@ -1148,6 +1179,9 @@ func _update_ghost() -> void:
 
 
 func _on_place_confirm() -> void:
+	if _deco_kind != "":
+		_confirm_deco()
+		return
 	if _place_kind != "":
 		var r := Farm.footprint(_place_kind, _place_cell)
 		if not can_place_rect(r):
@@ -1179,6 +1213,9 @@ func _on_place_confirm() -> void:
 
 
 func _on_place_cancel() -> void:
+	if _deco_kind != "":
+		_end_place_deco(true)
+		return
 	if _place_kind != "":
 		_end_place_kind()
 		return
@@ -1203,6 +1240,207 @@ func _finish_place(c: Vector2i) -> void:
 	Field.squash(f, 0.2)
 	hud.set_placing(false)
 	Game.mark_dirty()
+
+
+# ------------------------------------------------------------------ decorations
+
+func _is_path(kind: String) -> bool:
+	return Game.deco_defs[kind].get("path", false)
+
+
+func _deco_rect(kind: String, cell: Vector2i) -> Rect2i:
+	var sz: Array = Game.deco_defs[kind].get("size", [1, 1])
+	return Rect2i(cell, Vector2i(int(sz[0]), int(sz[1])))
+
+
+func _deco_key(e: Dictionary) -> String:
+	return "%s:%d:%d" % [e["k"], int(e["x"]), int(e["y"])]
+
+
+func can_place_deco(kind: String, cell: Vector2i) -> bool:
+	var d: Dictionary = Game.deco_defs[kind]
+	if d.get("free", false):
+		# edge pieces and tufts only need open land and no twin on the same cell
+		if not d.has("off") and occupied.has(cell):
+			return false
+		return Farm.cell_open(cell) and not deco_nodes.has("%s:%d:%d" % [kind, cell.x, cell.y]) \
+				and not fields.has(cell)
+	return can_place_rect(_deco_rect(kind, cell))
+
+
+## Builds the node for a saved decoration entry.
+func _add_deco(e: Dictionary) -> void:
+	var kind: String = e["k"]
+	if not Game.deco_defs.has(kind):
+		return
+	var d: Dictionary = Game.deco_defs[kind]
+	var cell := Vector2i(int(e["x"]), int(e["y"]))
+	if d.get("path", false):
+		paths[cell] = e
+		occupied[cell] = true
+		_set_dirt(cell, 1.0)
+		return
+	var r := _deco_rect(kind, cell)
+	var off: Array = d.get("off", [0, 0])
+	var g := Vector2(cell) + Vector2(r.size - Vector2i.ONE) * 0.5 + Vector2(float(off[0]), float(off[1]))
+	var mat: Material = null
+	match str(d.get("sway", "")):
+		"bush":
+			mat = _sway_bush
+		"tree":
+			mat = _sway_tree
+		"grass":
+			mat = _sway_crop
+	var s := _add_prop(d["sprite"], g, mat)
+	s.set_meta("deco", e)
+	deco_nodes[_deco_key(e)] = s
+	if not d.get("free", false):
+		for x in range(r.position.x, r.end.x):
+			for y in range(r.position.y, r.end.y):
+				occupied[Vector2i(x, y)] = true
+
+
+func _remove_deco(e: Dictionary) -> void:
+	var kind: String = e["k"]
+	var d: Dictionary = Game.deco_defs[kind]
+	var cell := Vector2i(int(e["x"]), int(e["y"]))
+	Game.decos.erase(e)
+	if d.get("path", false):
+		paths.erase(cell)
+		occupied.erase(cell)
+		_set_dirt(cell, 0.0)
+	else:
+		var key := _deco_key(e)
+		if deco_nodes.has(key):
+			var s: Sprite2D = deco_nodes[key]
+			props.erase(s)
+			s.queue_free()
+			deco_nodes.erase(key)
+		if not d.get("free", false):
+			var r := _deco_rect(kind, cell)
+			for x in range(r.position.x, r.end.x):
+				for y in range(r.position.y, r.end.y):
+					occupied.erase(Vector2i(x, y))
+	Game.mark_dirty()
+
+
+func _set_dirt(cell: Vector2i, amount: float) -> void:
+	var p := cell - Vector2i(MAP_MIN, MAP_MIN)
+	if p.x < 0 or p.y < 0 or p.x >= MASK_SIZE or p.y >= MASK_SIZE:
+		return
+	var cur := _mask.get_pixelv(p)
+	_mask.set_pixelv(p, Color(amount, cur.g, cur.b))
+	if _mask_tex != null:
+		_mask_tex.update(_mask)
+
+
+## Shop: place a decoration. Stays active so several can be set in a row.
+func start_place_deco(kind: String, moving: Dictionary = {}) -> void:
+	_deco_kind = kind
+	_deco_moving = moving
+	_place_cell = cell_at(cam.position) if moving.is_empty() else Vector2i(int(moving["x"]), int(moving["y"]))
+	var d: Dictionary = Game.deco_defs[kind]
+	_ghost = Atlas.sprite(d["sprite"]) if d.has("sprite") else Sprite2D.new()
+	_ghost.modulate = Color(1, 1, 1, 0.75)
+	_ghost.z_index = 50
+	_ghost_floor = Polygon2D.new()
+	_ghost_floor.z_index = 49
+	add_child(_ghost_floor)
+	add_child(_ghost)
+	_update_deco_ghost()
+	hud.set_placing(true)
+	hud.set_place_hint("PATH_HINT" if _is_path(kind) else "DECO_HINT")
+
+
+func _update_deco_ghost() -> void:
+	var d: Dictionary = Game.deco_defs[_deco_kind]
+	var r := _deco_rect(_deco_kind, _place_cell)
+	var ok := can_place_deco(_deco_kind, _place_cell) or (_is_path(_deco_kind) and paths.has(_place_cell))
+	var off: Array = d.get("off", [0, 0])
+	_ghost.position = grid_to_world(Vector2(_place_cell) + Vector2(r.size - Vector2i.ONE) * 0.5
+			+ Vector2(float(off[0]), float(off[1])))
+	var a := grid_to_world(Vector2(r.position) - Vector2(0.5, 0.5))
+	var b := grid_to_world(Vector2(r.end.x, r.position.y) - Vector2(0.5, 0.5))
+	var c := grid_to_world(Vector2(r.end) - Vector2(0.5, 0.5))
+	var e := grid_to_world(Vector2(r.position.x, r.end.y) - Vector2(0.5, 0.5))
+	_ghost_floor.polygon = PackedVector2Array([a, b, c, e])
+	_ghost_floor.color = Color(0.45, 1.0, 0.4, 0.35) if ok else Color(1.0, 0.3, 0.25, 0.4)
+
+
+## Finger painting for paths: the first touched cell decides between drawing and erasing.
+func _paint_path() -> void:
+	var price := int(Game.deco_defs[_deco_kind]["price"])
+	if _deco_erase:
+		if paths.has(_place_cell):
+			_remove_deco(paths[_place_cell])
+			Game.add_coins(price)
+			Audio.play("pop", 0.9)
+		return
+	if not can_place_deco(_deco_kind, _place_cell):
+		return
+	if not Game.spend_coins(price):
+		Game.toast.emit(tr("NOT_ENOUGH_COINS"), "coin.png")
+		_end_place_deco(false)
+		return
+	var e := {"k": _deco_kind, "x": _place_cell.x, "y": _place_cell.y}
+	Game.decos.append(e)
+	_add_deco(e)
+	Audio.play("plant", 1.2)
+	Game.mark_dirty()
+
+
+func _confirm_deco() -> void:
+	if _is_path(_deco_kind):
+		_end_place_deco(false)
+		return
+	if not can_place_deco(_deco_kind, _place_cell):
+		Audio.play("pop", 0.7)
+		Field.squash(_ghost, 0.15)
+		return
+	var moving := not _deco_moving.is_empty()
+	if not moving and not Game.spend_coins(int(Game.deco_defs[_deco_kind]["price"])):
+		Game.toast.emit(tr("NOT_ENOUGH_COINS"), "coin.png")
+		_end_place_deco(false)
+		return
+	var e := {"k": _deco_kind, "x": _place_cell.x, "y": _place_cell.y}
+	Game.decos.append(e)
+	_add_deco(e)
+	Field.squash(deco_nodes[_deco_key(e)], 0.2)
+	Audio.play("plant", 0.9)
+	Game.mark_dirty()
+	if moving:
+		_deco_moving = {}
+		_end_place_deco(false)
+	else:
+		_update_deco_ghost()
+
+
+func _end_place_deco(restore: bool) -> void:
+	if restore and not _deco_moving.is_empty():
+		Game.decos.append(_deco_moving)
+		_add_deco(_deco_moving)
+	_deco_moving = {}
+	_deco_kind = ""
+	if _ghost:
+		_ghost.queue_free()
+		_ghost_floor.queue_free()
+	_ghost = null
+	hud.set_placing(false)
+
+
+## Deco popup: pick a placed decoration up again.
+func move_deco(s: Sprite2D) -> void:
+	var e: Dictionary = s.get_meta("deco")
+	_remove_deco(e)
+	start_place_deco(e["k"], e)
+
+
+func sell_deco(s: Sprite2D) -> void:
+	var e: Dictionary = s.get_meta("deco")
+	Game.add_coins(int(Game.deco_defs[e["k"]]["price"]) / 2)
+	_puff(s.position + Vector2(0, -40), "fx_smoke", 3)
+	_remove_deco(e)
+	Audio.play("pop")
 
 
 # ------------------------------------------------------------------ day / night
@@ -1467,6 +1705,26 @@ func _debug_ui(which: String) -> void:
 			hud.open_barn()
 		"shop":
 			hud.open_shop()
+		"deco":
+			Game.level = maxi(Game.level, 5)
+			hud.land.open_shop("deco")
+		"decodemo":
+			# a little decorated corner for screenshots
+			var o := Vector2i.ZERO
+			for yy in range(2, 20):
+				for xx in range(1, 20):
+					if o == Vector2i.ZERO and can_place_rect(Rect2i(xx, yy, 4, 4)):
+						o = Vector2i(xx, yy)
+			var demo := [["path_dirt", 0, 0], ["path_dirt", 1, 0], ["path_dirt", 2, 0], ["path_dirt", 2, 1],
+				["path_dirt", 2, 2], ["hay_bale_stack", 0, 1], ["pumpkin_pile", 1, 1], ["flowers_rose", 0, 2], ["pumpkin", 1, 2],
+				["grass_tuft", 3, 0], ["grass_tuft_b", 0, 3], ["grass_tuft", 1, 3], ["hay_bale", 2, 3], ["fence_x", 0, 0], ["fence_x", 1, 0], ["tree_pine", 3, 2], ["barrel", 3, 1]]
+			for it in demo:
+				var c := o + Vector2i(int(it[1]), int(it[2]))
+				if can_place_deco(it[0], c):
+					var e := {"k": it[0], "x": c.x, "y": c.y}
+					Game.decos.append(e)
+					_add_deco(e)
+			print("decodemo at ", o)
 		"prod":
 			Game.add_item("egg", 3, true)
 			hud.open_production(production["bakery"])
@@ -1655,6 +1913,30 @@ func _run_smoke() -> void:
 	_on_place_confirm()
 	if not fields.has(to) or fields.has(free):
 		errors.append("moving a field failed")
+	# decorations: place a prop, paint and erase a path, sell the prop
+	Game.add_coins(500)
+	var dspot := _find_spot("field")
+	start_place_deco("hay")
+	_place_cell = dspot
+	_confirm_deco()
+	_end_place_deco(false)
+	if Game.decos.size() != 1 or not occupied.has(dspot) or not deco_nodes.has("hay:%d:%d" % [dspot.x, dspot.y]):
+		errors.append("placing a decoration failed")
+	var pspot := _find_spot("field")
+	start_place_deco("path_dirt")
+	_place_cell = pspot
+	_deco_erase = false
+	_paint_path()
+	if not paths.has(pspot) or Game.decos.size() != 2:
+		errors.append("painting a path failed")
+	_deco_erase = true
+	_paint_path()
+	_end_place_deco(false)
+	if paths.has(pspot) or occupied.has(pspot):
+		errors.append("erasing a path failed")
+	sell_deco(deco_nodes["hay:%d:%d" % [dspot.x, dspot.y]])
+	if not Game.decos.is_empty() or occupied.has(dspot):
+		errors.append("selling a decoration failed")
 	# Hay Day sowing: press a seed in the picker and drag it over empty fields
 	for ff: Field in fields.values():
 		if ff.state != Field.State.EMPTY:

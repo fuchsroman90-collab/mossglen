@@ -54,3 +54,13 @@ Neueste oben. Format: Datum – Entscheidung – Begründung – wer.
   ein Layout oder Kit in Figma hat. Connector kann über claude.ai verbunden werden. – Claude
 - **Früher (siehe GOAL.md Abschnitt 0 und 14):** Free-to-play, Zielgruppe alle, Budget 0 €, iPhone 11 als
   Referenz, öffentliches GitHub-Repo, Launch zuerst itch.io + APK.
+
+## 2026-11-15 – Alles ist platzierbare Deko; Feature-Umfang
+- Roman: „Grasbüschel sind Deko-Bauten, die man platzieren kann, Wege auch – also eigentlich alles.“
+  → Grasbüschel, Wege, Zäune, Blumen, Bäume usw. kommen **nicht** fest in den Boden, sondern sind kaufbare Deko
+  (`game/data/decos.json`, Reiter „Deko“ im Laden). Wege werden mit dem Finger gemalt.
+- Roman: Das Spiel ist nur für ihn und seine Freundin (PC + Handys), „extrem viele Features“, alles, was auf den
+  Referenzbildern zu erkennen ist. Bauliste: `brain/FEATURES.md`.
+- Funktionen werden wie im Vorbild gebaut. Grafiken, Figuren und Namen bleiben selbst gemacht (Regel 3 bleibt,
+  Repo ist öffentlich).
+- Tannen bleiben im Herbst grün (eigenes Material `_sway_ever`).

@@ -1,0 +1,151 @@
+{
+ "path_dirt": {
+  "path": true,
+  "price": 2,
+  "unlock": 1,
+  "icon": "ground"
+ },
+ "grass_tuft": {
+  "sprite": "grass_tuft",
+  "price": 5,
+  "unlock": 1,
+  "sway": "grass",
+  "free": true
+ },
+ "grass_tuft_b": {
+  "sprite": "grass_tuft_b",
+  "price": 8,
+  "unlock": 1,
+  "sway": "grass",
+  "free": true
+ },
+ "flowers_white": {
+  "sprite": "flowers_white",
+  "price": 10,
+  "unlock": 1,
+  "sway": "bush"
+ },
+ "flowers_sun": {
+  "sprite": "flowers_sun",
+  "price": 12,
+  "unlock": 1,
+  "sway": "bush"
+ },
+ "flowers_rose": {
+  "sprite": "flowers_rose",
+  "price": 15,
+  "unlock": 2,
+  "sway": "bush"
+ },
+ "flowers_lavender": {
+  "sprite": "flowers_lavender",
+  "price": 15,
+  "unlock": 2,
+  "sway": "bush"
+ },
+ "fence_x": {
+  "sprite": "fence_x",
+  "price": 4,
+  "unlock": 1,
+  "off": [
+   0,
+   -0.5
+  ],
+  "free": true
+ },
+ "fence_y": {
+  "sprite": "fence_y",
+  "price": 4,
+  "unlock": 1,
+  "off": [
+   -0.5,
+   0
+  ],
+  "free": true
+ },
+ "hay": {
+  "sprite": "hay",
+  "price": 20,
+  "unlock": 1
+ },
+ "hay_bale": {
+  "sprite": "hay_bale",
+  "price": 25,
+  "unlock": 1
+ },
+ "hay_bale_stack": {
+  "sprite": "hay_bale_stack",
+  "price": 60,
+  "unlock": 2
+ },
+ "pumpkin": {
+  "sprite": "pumpkin",
+  "price": 20,
+  "unlock": 1
+ },
+ "pumpkin_pile": {
+  "sprite": "pumpkin_pile",
+  "price": 45,
+  "unlock": 2
+ },
+ "crate": {
+  "sprite": "crate",
+  "price": 20,
+  "unlock": 2
+ },
+ "barrel": {
+  "sprite": "barrel",
+  "price": 25,
+  "unlock": 2
+ },
+ "rock_small": {
+  "sprite": "rock_small",
+  "price": 15,
+  "unlock": 2
+ },
+ "bush": {
+  "sprite": "bush",
+  "price": 30,
+  "unlock": 2,
+  "sway": "bush"
+ },
+ "bush_berry": {
+  "sprite": "bush_berry",
+  "price": 45,
+  "unlock": 3,
+  "sway": "bush"
+ },
+ "tree_pine": {
+  "sprite": "tree_pine",
+  "price": 60,
+  "unlock": 3,
+  "sway": "tree"
+ },
+ "tree_oak": {
+  "sprite": "tree_oak",
+  "price": 80,
+  "unlock": 3,
+  "sway": "tree"
+ },
+ "tree_apple": {
+  "sprite": "tree_apple",
+  "price": 120,
+  "unlock": 4,
+  "sway": "tree"
+ },
+ "tree_autumn": {
+  "sprite": "tree_autumn",
+  "price": 120,
+  "unlock": 4,
+  "sway": "tree"
+ },
+ "fountain": {
+  "sprite": "fountain",
+  "price": 500,
+  "unlock": 5,
+  "size": [
+   2,
+   2
+  ]
+ }
+}

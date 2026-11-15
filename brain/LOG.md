@@ -2,6 +2,15 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15 – Fable 5.2: Deko-System (Bauliste A)
+
+- 4 neue Zielbilder ausgewertet (REFERENCES.md), Feature-Analyse + Bauliste in `brain/FEATURES.md`.
+- **Deko-System**: `decos.json` (24 Teile), Laden-Reiter „Deko“, Platzieren mehrfach hintereinander, Wege mit dem
+  Finger malen/entfernen (Bodenmaske live), Deko antippen → Verschieben/Verkaufen (halber Preis), Spielstand
+  speichert `decos`. Neue Modelle: `grass_tuft(_b)`, `pumpkin(_pile)`, `hay_bale(_stack)`.
+- Screenshot-Modi `--ui=deco`, `--ui=decodemo`. Smoke-Test um Deko erweitert.
+- Offen: Grasbüschel dünner modellieren; Romans Urteil zu UI v2 und zur Deko-Ecke.
+
 ## 2026-11-15 – Fable 5.2: UI v2 Layouts (Schritt 1, wartet auf Romans OK)
 
 - Brain + alle 26 Referenzbilder gelesen. UI komplett neu entworfen, **noch nichts im Spiel geändert**.

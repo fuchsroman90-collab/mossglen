@@ -867,6 +867,10 @@ func _bar_button(tex: String, icon: String, pos: Vector2) -> TextureButton:
 	return b
 
 
+func set_place_hint(key: String) -> void:
+	_hint.text = key
+
+
 func set_placing(on: bool) -> void:
 	_place_bar.visible = on
 	_hint.offset_top = -330 if on else -150
@@ -876,7 +880,7 @@ func set_placing(on: bool) -> void:
 		_hint.text = "PLACE_HINT"
 		_hint.modulate.a = 1.0
 		_hint.show()
-	elif _hint.text == "PLACE_HINT":
+	elif _hint.text in ["PLACE_HINT", "DECO_HINT", "PATH_HINT"]:
 		_hint.hide()
 
 

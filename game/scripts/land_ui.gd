@@ -5,7 +5,7 @@ extends Node
 
 const TILE := 176.0
 const CARD := Vector2(330, 440)
-const TABS := ["fields", "buildings", "animals"]
+const TABS := ["fields", "buildings", "animals", "deco"]
 
 var hud: Hud
 var world: Node
@@ -326,6 +326,32 @@ func open_obstacle(s: Sprite2D) -> void:
 	hud._open(_popup)
 
 
+## A placed decoration: move it or sell it back for half the price.
+func open_deco(s: Sprite2D) -> void:
+	var e: Dictionary = s.get_meta("deco")
+	var d: Dictionary = Game.deco_defs[e["k"]]
+	_clear_popup(tr("DECO_" + str(e["k"])))
+	var pic := TextureRect.new()
+	pic.texture = Atlas.tex(d["sprite"])
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	pic.position = Vector2(300, 110)
+	pic.size = Vector2(300, 260)
+	_popup.add_child(pic)
+	var mv := hud._pill("DECO_MOVE", Vector2(80, 440), 340)
+	mv.pressed.connect(func() -> void:
+		_popup.hide()
+		world.move_deco(s))
+	_popup.add_child(mv)
+	var sell := hud._pill("", Vector2(480, 440), 340)
+	(sell.get_child(0) as Label).text = tr("DECO_SELL") % (int(d["price"]) / 2)
+	sell.pressed.connect(func() -> void:
+		_popup.hide()
+		world.sell_deco(s))
+	_popup.add_child(sell)
+	hud._open(_popup)
+
+
 # ------------------------------------------------------------------ shop
 
 func _build_shop() -> void:
@@ -444,6 +470,17 @@ func _fill_shop() -> void:
 				var owned := Game.placed_count(k) > 0
 				_shop_row.add_child(_card("@" + k, "PLACE_" + k, "OWNED" if owned else "BUILD_SUB_" + k,
 					int(d["price"]), int(d["unlock"]), func() -> void: _buy_place(k), owned))
+		"deco":
+			for k in Game.deco_defs:
+				var d: Dictionary = Game.deco_defs[k]
+				var icon: String = "@" + str(d["sprite"]) if d.has("sprite") else "deco_path"
+				_shop_row.add_child(_card(icon, "DECO_" + k, "DECO_PATH_SUB" if d.get("path", false) else "DECO_SUB",
+					int(d["price"]), int(d["unlock"]), func() -> void:
+						if Game.coins < int(d["price"]):
+							Game.toast.emit(tr("NOT_ENOUGH_COINS"), "coin.png")
+							return
+						_shop.hide()
+						world.start_place_deco(k)))
 		"animals":
 			for k in Game.placeables:
 				var d: Dictionary = Game.placeables[k]

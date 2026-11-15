@@ -1068,6 +1068,15 @@ def m95_images() -> dict:
         "item_nail": item_nail(), "item_hinge": item_hinge(), "item_paint": item_paint(),
         "ico_sickle": sickle(), "ico_silo": silo_glyph(), "ico_truck": truck_glyph(), "ico_build": hammer_glyph(), "ico_lock": lock(96),
         "tab_fields": tab(field_svg), "tab_buildings": tab(house_svg), "tab_animals": tab(hen_svg),
+        "tab_deco": tab(f'<path d="M54 110 L54 58" stroke="#3E9B3A" stroke-width="9" stroke-linecap="round"/>'
+                        f'<path d="M54 92 C34 90 28 76 30 68 C44 70 52 80 54 92 Z" fill="#5CC24A" {o}/>'
+                        + "".join(f'<circle cx="{54 + 22 * __import__("math").cos(a * 1.2566):.1f}" '
+                                  f'cy="{44 + 22 * __import__("math").sin(a * 1.2566):.1f}" r="15" fill="#FF7FA8" {o}/>'
+                                  for a in range(5))
+                        + f'<circle cx="54" cy="44" r="13" fill="#FFD23F" {o}/>'),
+        "deco_path": render(f'<path d="M20 150 L130 40 L190 70 L80 180 Z" fill="#C89A62" {o}/>'
+                            f'<path d="M44 150 L134 62 M70 164 L160 76" stroke="#A97B48" stroke-width="6" '
+                            f'stroke-linecap="round" stroke-dasharray="14 18"/>', 210, 210),
     }
 
 
