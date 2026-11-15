@@ -523,6 +523,30 @@ func dig_mine(tool: String) -> Dictionary:
 	return got
 
 
+## A visitor's wish: {"item", "n", "pay"} - prefers goods the player has in stock, pays well above the barn price.
+func make_visitor_offer() -> Dictionary:
+	var pool: Array = []
+	for k in inventory:
+		var d: Dictionary = items.get(k, {})
+		if count(k) > 0 and d.has("sell") and d.get("kind", "") != "tool":
+			pool.append(k)
+	if pool.is_empty():
+		pool = ["wheat", "egg"]
+	var item: String = pool.pick_random()
+	var n := clampi(randi_range(1, 5), 1, maxi(1, count(item)))
+	return {"item": item, "n": n, "pay": int(ceil(float(items[item]["sell"]) * n * 1.6))}
+
+
+## Sells to the visitor; false if the goods are missing.
+func accept_visitor(o: Dictionary) -> bool:
+	if not take_item(o["item"], int(o["n"])):
+		return false
+	add_coins(int(o["pay"]))
+	add_xp(int(o["n"]))
+	mark_dirty()
+	return true
+
+
 func wheel_free() -> bool:
 	return wheel_day != today()
 

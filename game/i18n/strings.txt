@@ -370,3 +370,14 @@ ITEM_ore_gold	Golderz	Gold ore
 ITEM_ore_platinum	Platinerz	Platinum ore
 ITEM_ore_iron	Eisenerz	Iron ore
 ITEM_coal	Kohle	Coal
+PLACE_smelter	Schmelzofen	Smelter
+BUILD_SUB_smelter	Schmilzt Erz zu Barren	Smelts ore into bars
+ITEM_bar_iron	Eisenbarren	Iron bar
+ITEM_bar_silver	Silberbarren	Silver bar
+ITEM_bar_gold	Goldbarren	Gold bar
+ITEM_bar_platinum	Platinbarren	Platinum bar
+VISITOR_TITLE	Besuch auf dem Hof	A visitor
+VISITOR_ASK	Hallo! Hast du das für mich? Ich zahle gut.	Hello! Do you have this for me? I pay well.
+VISITOR_HAVE	Du hast: %d× %s	You have: %d× %s
+VISITOR_YES	Ja, bitte sehr!	Yes, here you go!
+VISITOR_NO	Heute leider nicht	Not today, sorry

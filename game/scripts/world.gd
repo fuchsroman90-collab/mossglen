@@ -84,6 +84,8 @@ var _placing: Field = null
 var _placing_new := false
 var chests: Array[Sprite2D] = []  ## treasure chests waiting to be tapped
 var _chest_t := 200.0
+var visitor: Sprite2D  ## wandering buyer waiting at the order board
+var _visitor_t := 230.0
 var _deco_kind := ""  ## decoration being placed (data/decos.json)
 var _deco_moving: Dictionary = {}  ## entry being moved (restored on cancel)
 var _deco_erase := false
@@ -162,6 +164,7 @@ func _ready() -> void:
 	hud.place_confirm.connect(_on_place_confirm)
 	hud.place_cancel.connect(_on_place_cancel)
 	hud.move_deco.connect(move_deco)
+	hud.visitor_done.connect(dismiss_visitor)
 	Game.leveled_up.connect(_on_level_up)
 	Game.world_saver = _save_world
 	_build_daylight()
@@ -983,6 +986,10 @@ func _tap(world: Vector2) -> void:
 		if best.has_meta("site"):
 			farm.tap_site(best)
 			return
+		if best.has_meta("visitor"):
+			Audio.play("click")
+			hud.rewards.open_visitor(best)
+			return
 		if best.has_meta("chest"):
 			open_chest(best)
 			return
@@ -1249,6 +1256,52 @@ func _finish_place(c: Vector2i) -> void:
 	Field.squash(f, 0.2)
 	hud.set_placing(false)
 	Game.mark_dirty()
+
+
+# ------------------------------------------------------------------ visiting buyer
+
+## A buyer walks up to the order board and asks for goods (tap to answer).
+func spawn_visitor() -> Sprite2D:
+	if visitor != null or not farm.fixed.has("order_board"):
+		return visitor
+	var board: Sprite2D = farm.fixed["order_board"]
+	var s := Atlas.sprite("npc_pip_0")
+	s.position = board.position + Vector2(210, 70)
+	s.set_meta("visitor", Game.make_visitor_offer())
+	s.set_meta("squash", 0.1)
+	objects.add_child(s)
+	props.append(s)
+	var bubble := Sprite2D.new()
+	bubble.texture = load(Hud.UI + "slot.png")
+	bubble.position = Vector2(0, -Atlas.anchor("npc_pip_0").y - 70)
+	bubble.scale = Vector2(0.75, 0.75)
+	s.add_child(bubble)
+	var icon := Sprite2D.new()
+	icon.texture = Hud.item_texture(s.get_meta("visitor")["item"])
+	icon.scale = Vector2(0.9, 0.9)
+	bubble.add_child(icon)
+	var tw := create_tween().set_loops()
+	tw.tween_property(bubble, "position:y", bubble.position.y - 14, 0.6).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(bubble, "position:y", bubble.position.y, 0.6).set_trans(Tween.TRANS_SINE)
+	s.set_meta("tween", tw)
+	s.modulate.a = 0.0
+	create_tween().tween_property(s, "modulate:a", 1.0, 0.5)
+	visitor = s
+	Audio.play("pop", 1.1)
+	return s
+
+
+func dismiss_visitor() -> void:
+	if visitor == null:
+		return
+	(visitor.get_meta("tween") as Tween).kill()
+	props.erase(visitor)
+	var v := visitor
+	visitor = null
+	_visitor_t = 0.0
+	var tw := create_tween()
+	tw.tween_property(v, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(v.queue_free)
 
 
 # ------------------------------------------------------------------ treasure chests
@@ -1758,6 +1811,9 @@ func _debug_ui(which: String) -> void:
 			hud.open_shop()
 		"wheel":
 			hud.rewards.open_wheel()
+		"visitor":
+			Game.add_item("egg", 6, true)
+			hud.rewards.open_visitor(spawn_visitor())
 		"mine":
 			Game.add_item("pickaxe", 3, true)
 			Game.add_item("dynamite", 1, true)
@@ -1992,6 +2048,21 @@ func _run_smoke() -> void:
 	Game.daily_day = ""
 	if Game.claim_daily().is_empty() or not Game.claim_daily().is_empty():
 		errors.append("daily gift failed")
+	# visiting buyer: sells goods for more than the barn price
+	Game.add_item("egg", 5, true)
+	var vis := spawn_visitor()
+	if vis == null:
+		errors.append("no visitor")
+	else:
+		var offer: Dictionary = vis.get_meta("visitor")
+		var c0 := Game.coins
+		var had := Game.count(offer["item"])
+		if not Game.accept_visitor(offer) or Game.coins != c0 + int(offer["pay"]) \
+				or Game.count(offer["item"]) != had - int(offer["n"]):
+			errors.append("visitor trade failed")
+		dismiss_visitor()
+		if visitor != null:
+			errors.append("visitor did not leave")
 	# mine: a pickaxe gives two ores
 	Game.add_item("pickaxe", 1, true)
 	var ores := Game.dig_mine("pickaxe")
@@ -2258,6 +2329,11 @@ func _setup_bench() -> void:
 
 
 func _process(delta: float) -> void:
+	_visitor_t += delta
+	if _visitor_t > 300.0:
+		_visitor_t = 0.0
+		if not _args.has("smoke") and Game.level >= 2:
+			spawn_visitor()
 	_chest_t += delta
 	if _chest_t > 240.0:
 		_chest_t = 0.0

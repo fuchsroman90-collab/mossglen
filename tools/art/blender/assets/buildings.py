@@ -847,7 +847,43 @@ def sign_post(text_color="#FFF4E2"):
     return root
 
 
+def smelter():
+    """Stone smelting furnace with a glowing mouth, chimney, coal heap and ingot mould."""
+    from mathutils import Vector as _V
+    rng = random.Random(61)
+    d = _V((kit.TO_CAM.x, kit.TO_CAM.y, 0)).normalized()
+    root = kit.empty("smelter", rot=(0, 0, math.atan2(d.y, d.x) + math.radians(30) + math.pi / 2))
+    stone = mat("smelt_stone", "#A9A49A", rough=0.85, spec=0.1, edge=0.6, var=0.1)
+    dark = mat("smelt_dark", "#6E6A64", rough=0.9, edge=0.5, var=0.08)
+    kit.cyl(0.95, 0.3, dark, loc=(0, 0, 0), verts=10, bevel=0.05, parent=root)
+    kit.cyl(0.8, 1.0, stone, loc=(0, 0, 0.28), r2=0.55, verts=10, bevel=0.06, parent=root)
+    kit.cyl(0.58, 0.16, dark, loc=(0, 0, 1.26), verts=10, bevel=0.04, parent=root)
+    kit.cyl(0.3, 0.75, stone, loc=(0, 0.1, 1.38), r2=0.24, verts=8, bevel=0.04, parent=root)
+    kit.cyl(0.32, 0.1, dark, loc=(0, 0.1, 2.1), verts=8, bevel=0.03, parent=root)
+    for k in range(9):
+        a = math.radians(-70 + k * 17.5)
+        kit.box((0.16, 0.2, 0.14), dark, loc=(math.sin(a) * 0.36, -0.7, 0.42 + math.cos(a) * 0.36),
+                rot=(0, -a, 0), bevel=0.03, parent=root)
+    kit.box((0.5, 0.3, 0.5), mat("smelt_fire", "#FF8A1E", emit=3.0, rough=0.5), loc=(0, -0.6, 0.48), bevel=0.1, parent=root)
+    kit.sphere(0.14, mat("smelt_core", "#FFE27A", emit=5.0), loc=(0, -0.72, 0.42), parent=root)
+    coal = mat("smelt_coal", "#2E3238", rough=0.5, spec=0.4, edge=0.4)
+    for k in range(12):
+        kit.ico(rng.uniform(0.07, 0.11), coal, loc=(0.85 + rng.uniform(-0.18, 0.18), -0.6 + rng.uniform(-0.18, 0.18),
+                rng.uniform(0.05, 0.2)), sub=1, parent=root)
+    gold = mat("smelt_bar", "#FFC928", rough=0.3, spec=0.7, edge=0.4, metal=0.7)
+    for k in range(3):
+        kit.box((0.3, 0.14, 0.09), gold, loc=(-0.85, -0.7 + (k % 2) * 0.03, 0.05 + k * 0.09), rot=(0, 0, 0.2 * k),
+                bevel=0.025, parent=root)
+    return root
+
+
 def building_frames():
+    d = _building_frames()
+    d["smelter"] = smelter
+    return d
+
+
+def _building_frames():
     return {
         "barn": barn,
         "feed_mill": feed_mill,

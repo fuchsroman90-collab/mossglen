@@ -198,5 +198,17 @@
  "coal": {
   "sell": 15,
   "kind": "barn"
+ },
+ "bar_iron": {
+  "sell": 90
+ },
+ "bar_silver": {
+  "sell": 150
+ },
+ "bar_gold": {
+  "sell": 220
+ },
+ "bar_platinum": {
+  "sell": 340
  }
 }

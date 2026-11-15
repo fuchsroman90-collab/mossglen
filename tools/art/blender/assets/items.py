@@ -646,8 +646,18 @@ def _ore(name, color, metal=0.7, rough=0.3):
     return _norm(root)
 
 
+def _bar(name, color):
+    root = _root(name, yaw=28)
+    m = mat(name, color, rough=0.25, spec=0.8, edge=0.45, metal=0.8)
+    for x, y, z, r in ((-0.2, 0.0, 0.0, 0.1), (0.22, 0.02, 0.0, -0.12), (0.0, 0.0, 0.2, 0.3)):
+        kit.box((0.62, 0.3, 0.2), m, loc=(x, y, z + 0.1), rot=(0, 0, r), bevel=0.06, parent=root)
+    return _norm(root)
+
+
 def item_frames():
-    extra = {"pickaxe": pickaxe, "tnt": tnt,
+    extra = {"bar_iron": lambda: _bar("bar_iron", "#9AA3AA"), "bar_silver": lambda: _bar("bar_silver", "#E6EEF4"),
+             "bar_gold": lambda: _bar("bar_gold", "#FFC928"), "bar_platinum": lambda: _bar("bar_platinum", "#9FE0E6"),
+"pickaxe": pickaxe, "tnt": tnt,
              "ore_silver": lambda: _ore("ore_silver", "#DDE6EC"), "ore_gold": lambda: _ore("ore_gold", "#FFC928"),
              "ore_platinum": lambda: _ore("ore_platinum", "#9FE0E6"), "ore_iron": lambda: _ore("ore_iron", "#8C6A5A", 0.4, 0.5),
              "coal": lambda: _ore("coal", "#2E3238", 0.1, 0.45)}

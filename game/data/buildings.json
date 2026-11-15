@@ -1,426 +1,481 @@
 {
-	"feed_mill": {
-		"slots": 3,
-		"fx": {
-			"sails": [
-				0,
-				-187
-			]
-		},
-		"recipes": [
-			{
-				"out": "feed_chicken",
-				"n": 3,
-				"in": {
-					"wheat": 2
-				},
-				"time": 30,
-				"xp": 1,
-				"unlock": 1
-			},
-			{
-				"out": "feed_cow",
-				"n": 3,
-				"in": {
-					"corn": 2,
-					"carrot": 1
-				},
-				"time": 45,
-				"xp": 2,
-				"unlock": 3
-			},
-			{
-				"out": "feed_sheep",
-				"n": 3,
-				"in": {
-					"wheat": 1,
-					"carrot": 1
-				},
-				"time": 40,
-				"xp": 2,
-				"unlock": 5
-			},
-			{
-				"out": "feed_pig",
-				"n": 3,
-				"in": {
-					"corn": 1,
-					"tomato": 1
-				},
-				"time": 50,
-				"xp": 2,
-				"unlock": 6
-			}
-		]
-	},
-	"bakery": {
-		"slots": 3,
-		"fx": {
-			"smoke": [
-				-19,
-				-345
-			]
-		},
-		"recipes": [
-			{
-				"out": "bread",
-				"n": 1,
-				"in": {
-					"wheat": 3
-				},
-				"time": 45,
-				"xp": 2,
-				"unlock": 1
-			},
-			{
-				"out": "corn_bread",
-				"n": 1,
-				"in": {
-					"corn": 2,
-					"egg": 2
-				},
-				"time": 90,
-				"xp": 4,
-				"unlock": 3
-			},
-			{
-				"out": "carrot_cake",
-				"n": 1,
-				"in": {
-					"carrot": 2,
-					"egg": 1,
-					"milk": 1
-				},
-				"time": 150,
-				"xp": 6,
-				"unlock": 4
-			},
-			{
-				"out": "giant_pancake",
-				"n": 1,
-				"in": {
-					"primeval_egg": 1,
-					"milk": 1,
-					"wheat": 2
-				},
-				"time": 180,
-				"xp": 8,
-				"unlock": 6
-			}
-		]
-	},
-	"dairy": {
-		"slots": 3,
-		"fx": {},
-		"recipes": [
-			{
-				"out": "cream",
-				"n": 1,
-				"in": {
-					"milk": 1
-				},
-				"time": 40,
-				"xp": 2,
-				"unlock": 3
-			},
-			{
-				"out": "butter",
-				"n": 1,
-				"in": {
-					"milk": 2
-				},
-				"time": 75,
-				"xp": 3,
-				"unlock": 4
-			},
-			{
-				"out": "cheese",
-				"n": 1,
-				"in": {
-					"milk": 3
-				},
-				"time": 120,
-				"xp": 5,
-				"unlock": 5
-			}
-		]
-	},
-	"beehive": {
-		"slots": 3,
-		"auto": true,
-		"fx": {
-			"bees": true
-		},
-		"recipes": [
-			{
-				"out": "honey",
-				"n": 1,
-				"in": {},
-				"time": 150,
-				"xp": 2,
-				"unlock": 1
-			}
-		]
-	},
-	"jam_kitchen": {
-		"slots": 3,
-		"fx": {},
-		"recipes": [
-			{
-				"out": "strawberry_jam",
-				"n": 1,
-				"in": {
-					"strawberry": 3
-				},
-				"time": 120,
-				"xp": 5,
-				"unlock": 5
-			},
-			{
-				"out": "honey_jam",
-				"n": 1,
-				"in": {
-					"strawberry": 1,
-					"honey": 2
-				},
-				"time": 150,
-				"xp": 6,
-				"unlock": 6
-			}
-		]
-	},
-	"loom": {
-		"slots": 2,
-		"fx": {},
-		"recipes": [
-			{
-				"out": "cloth",
-				"n": 1,
-				"in": {
-					"wool": 2
-				},
-				"time": 120,
-				"xp": 4,
-				"unlock": 5
-			},
-			{
-				"out": "scarf",
-				"n": 1,
-				"in": {
-					"wool": 3
-				},
-				"time": 180,
-				"xp": 6,
-				"unlock": 6
-			}
-		]
-	},
-	"popcorn": {
-		"slots": 3,
-		"fx": {},
-		"recipes": [
-			{
-				"out": "popcorn",
-				"n": 1,
-				"in": {
-					"corn": 2
-				},
-				"time": 60,
-				"xp": 2,
-				"unlock": 2
-			},
-			{
-				"out": "butter_popcorn",
-				"n": 1,
-				"in": {
-					"corn": 2,
-					"butter": 1
-				},
-				"time": 120,
-				"xp": 5,
-				"unlock": 5
-			}
-		]
-	},
-	"sauce_kitchen": {
-		"slots": 3,
-		"fx": {},
-		"recipes": [
-			{
-				"out": "tomato_sauce",
-				"n": 1,
-				"in": {
-					"tomato": 3
-				},
-				"time": 120,
-				"xp": 5,
-				"unlock": 4
-			},
-			{
-				"out": "truffle_sauce",
-				"n": 1,
-				"in": {
-					"truffle": 1,
-					"cream": 1
-				},
-				"time": 150,
-				"xp": 6,
-				"unlock": 7
-			}
-		]
-	},
-	"candle_maker": {
-		"slots": 2,
-		"fx": {},
-		"recipes": [
-			{
-				"out": "candle",
-				"n": 1,
-				"in": {
-					"honey": 2
-				},
-				"time": 150,
-				"xp": 5,
-				"unlock": 4
-			},
-			{
-				"out": "festive_candle",
-				"n": 1,
-				"in": {
-					"honey": 3,
-					"cloth": 1
-				},
-				"time": 240,
-				"xp": 9,
-				"unlock": 7
-			},
-			{
-				"out": "amber_candle",
-				"n": 1,
-				"in": {
-					"candle": 1,
-					"amber": 1
-				},
-				"time": 200,
-				"xp": 9,
-				"unlock": 6
-			}
-		]
-	},
-	"nest": {
-		"slots": 2,
-		"fx": {},
-		"recipes": [
-			{
-				"out": "dino_moosaurus",
-				"n": 1,
-				"in": {
-					"egg_moosaurus": 1
-				},
-				"time": 300,
-				"xp": 10,
-				"unlock": 4,
-				"spawn": true
-			},
-			{
-				"out": "dino_trikeri",
-				"n": 1,
-				"in": {
-					"egg_trikeri": 1
-				},
-				"time": 300,
-				"xp": 10,
-				"unlock": 4,
-				"spawn": true
-			},
-			{
-				"out": "dino_stegolino",
-				"n": 1,
-				"in": {
-					"egg_stegolino": 1
-				},
-				"time": 300,
-				"xp": 10,
-				"unlock": 4,
-				"spawn": true
-			},
-			{
-				"out": "dino_parasauri",
-				"n": 1,
-				"in": {
-					"egg_parasauri": 1
-				},
-				"time": 300,
-				"xp": 10,
-				"unlock": 4,
-				"spawn": true
-			},
-			{
-				"out": "dino_ankyknubbel",
-				"n": 1,
-				"in": {
-					"egg_ankyknubbel": 1
-				},
-				"time": 360,
-				"xp": 12,
-				"unlock": 4,
-				"spawn": true
-			},
-			{
-				"out": "dino_segelruecken",
-				"n": 1,
-				"in": {
-					"egg_segelruecken": 1
-				},
-				"time": 360,
-				"xp": 12,
-				"unlock": 4,
-				"spawn": true
-			},
-			{
-				"out": "dino_pachy",
-				"n": 1,
-				"in": {
-					"egg_pachy": 1
-				},
-				"time": 360,
-				"xp": 12,
-				"unlock": 4,
-				"spawn": true
-			},
-			{
-				"out": "dino_stachelchen",
-				"n": 1,
-				"in": {
-					"egg_stachelchen": 1
-				},
-				"time": 360,
-				"xp": 12,
-				"unlock": 4,
-				"spawn": true
-			},
-			{
-				"out": "dino_flauschi",
-				"n": 1,
-				"in": {
-					"egg_flauschi": 1
-				},
-				"time": 420,
-				"xp": 14,
-				"unlock": 4,
-				"spawn": true
-			},
-			{
-				"out": "dino_brontobeere",
-				"n": 1,
-				"in": {
-					"egg_brontobeere": 1
-				},
-				"time": 480,
-				"xp": 16,
-				"unlock": 4,
-				"spawn": true
-			}
-		]
-	}
+ "feed_mill": {
+  "slots": 3,
+  "fx": {
+   "sails": [
+    0,
+    -187
+   ]
+  },
+  "recipes": [
+   {
+    "out": "feed_chicken",
+    "n": 3,
+    "in": {
+     "wheat": 2
+    },
+    "time": 30,
+    "xp": 1,
+    "unlock": 1
+   },
+   {
+    "out": "feed_cow",
+    "n": 3,
+    "in": {
+     "corn": 2,
+     "carrot": 1
+    },
+    "time": 45,
+    "xp": 2,
+    "unlock": 3
+   },
+   {
+    "out": "feed_sheep",
+    "n": 3,
+    "in": {
+     "wheat": 1,
+     "carrot": 1
+    },
+    "time": 40,
+    "xp": 2,
+    "unlock": 5
+   },
+   {
+    "out": "feed_pig",
+    "n": 3,
+    "in": {
+     "corn": 1,
+     "tomato": 1
+    },
+    "time": 50,
+    "xp": 2,
+    "unlock": 6
+   }
+  ]
+ },
+ "bakery": {
+  "slots": 3,
+  "fx": {
+   "smoke": [
+    -19,
+    -345
+   ]
+  },
+  "recipes": [
+   {
+    "out": "bread",
+    "n": 1,
+    "in": {
+     "wheat": 3
+    },
+    "time": 45,
+    "xp": 2,
+    "unlock": 1
+   },
+   {
+    "out": "corn_bread",
+    "n": 1,
+    "in": {
+     "corn": 2,
+     "egg": 2
+    },
+    "time": 90,
+    "xp": 4,
+    "unlock": 3
+   },
+   {
+    "out": "carrot_cake",
+    "n": 1,
+    "in": {
+     "carrot": 2,
+     "egg": 1,
+     "milk": 1
+    },
+    "time": 150,
+    "xp": 6,
+    "unlock": 4
+   },
+   {
+    "out": "giant_pancake",
+    "n": 1,
+    "in": {
+     "primeval_egg": 1,
+     "milk": 1,
+     "wheat": 2
+    },
+    "time": 180,
+    "xp": 8,
+    "unlock": 6
+   }
+  ]
+ },
+ "dairy": {
+  "slots": 3,
+  "fx": {},
+  "recipes": [
+   {
+    "out": "cream",
+    "n": 1,
+    "in": {
+     "milk": 1
+    },
+    "time": 40,
+    "xp": 2,
+    "unlock": 3
+   },
+   {
+    "out": "butter",
+    "n": 1,
+    "in": {
+     "milk": 2
+    },
+    "time": 75,
+    "xp": 3,
+    "unlock": 4
+   },
+   {
+    "out": "cheese",
+    "n": 1,
+    "in": {
+     "milk": 3
+    },
+    "time": 120,
+    "xp": 5,
+    "unlock": 5
+   }
+  ]
+ },
+ "beehive": {
+  "slots": 3,
+  "auto": true,
+  "fx": {
+   "bees": true
+  },
+  "recipes": [
+   {
+    "out": "honey",
+    "n": 1,
+    "in": {},
+    "time": 150,
+    "xp": 2,
+    "unlock": 1
+   }
+  ]
+ },
+ "jam_kitchen": {
+  "slots": 3,
+  "fx": {},
+  "recipes": [
+   {
+    "out": "strawberry_jam",
+    "n": 1,
+    "in": {
+     "strawberry": 3
+    },
+    "time": 120,
+    "xp": 5,
+    "unlock": 5
+   },
+   {
+    "out": "honey_jam",
+    "n": 1,
+    "in": {
+     "strawberry": 1,
+     "honey": 2
+    },
+    "time": 150,
+    "xp": 6,
+    "unlock": 6
+   }
+  ]
+ },
+ "loom": {
+  "slots": 2,
+  "fx": {},
+  "recipes": [
+   {
+    "out": "cloth",
+    "n": 1,
+    "in": {
+     "wool": 2
+    },
+    "time": 120,
+    "xp": 4,
+    "unlock": 5
+   },
+   {
+    "out": "scarf",
+    "n": 1,
+    "in": {
+     "wool": 3
+    },
+    "time": 180,
+    "xp": 6,
+    "unlock": 6
+   }
+  ]
+ },
+ "popcorn": {
+  "slots": 3,
+  "fx": {},
+  "recipes": [
+   {
+    "out": "popcorn",
+    "n": 1,
+    "in": {
+     "corn": 2
+    },
+    "time": 60,
+    "xp": 2,
+    "unlock": 2
+   },
+   {
+    "out": "butter_popcorn",
+    "n": 1,
+    "in": {
+     "corn": 2,
+     "butter": 1
+    },
+    "time": 120,
+    "xp": 5,
+    "unlock": 5
+   }
+  ]
+ },
+ "sauce_kitchen": {
+  "slots": 3,
+  "fx": {},
+  "recipes": [
+   {
+    "out": "tomato_sauce",
+    "n": 1,
+    "in": {
+     "tomato": 3
+    },
+    "time": 120,
+    "xp": 5,
+    "unlock": 4
+   },
+   {
+    "out": "truffle_sauce",
+    "n": 1,
+    "in": {
+     "truffle": 1,
+     "cream": 1
+    },
+    "time": 150,
+    "xp": 6,
+    "unlock": 7
+   }
+  ]
+ },
+ "candle_maker": {
+  "slots": 2,
+  "fx": {},
+  "recipes": [
+   {
+    "out": "candle",
+    "n": 1,
+    "in": {
+     "honey": 2
+    },
+    "time": 150,
+    "xp": 5,
+    "unlock": 4
+   },
+   {
+    "out": "festive_candle",
+    "n": 1,
+    "in": {
+     "honey": 3,
+     "cloth": 1
+    },
+    "time": 240,
+    "xp": 9,
+    "unlock": 7
+   },
+   {
+    "out": "amber_candle",
+    "n": 1,
+    "in": {
+     "candle": 1,
+     "amber": 1
+    },
+    "time": 200,
+    "xp": 9,
+    "unlock": 6
+   }
+  ]
+ },
+ "nest": {
+  "slots": 2,
+  "fx": {},
+  "recipes": [
+   {
+    "out": "dino_moosaurus",
+    "n": 1,
+    "in": {
+     "egg_moosaurus": 1
+    },
+    "time": 300,
+    "xp": 10,
+    "unlock": 4,
+    "spawn": true
+   },
+   {
+    "out": "dino_trikeri",
+    "n": 1,
+    "in": {
+     "egg_trikeri": 1
+    },
+    "time": 300,
+    "xp": 10,
+    "unlock": 4,
+    "spawn": true
+   },
+   {
+    "out": "dino_stegolino",
+    "n": 1,
+    "in": {
+     "egg_stegolino": 1
+    },
+    "time": 300,
+    "xp": 10,
+    "unlock": 4,
+    "spawn": true
+   },
+   {
+    "out": "dino_parasauri",
+    "n": 1,
+    "in": {
+     "egg_parasauri": 1
+    },
+    "time": 300,
+    "xp": 10,
+    "unlock": 4,
+    "spawn": true
+   },
+   {
+    "out": "dino_ankyknubbel",
+    "n": 1,
+    "in": {
+     "egg_ankyknubbel": 1
+    },
+    "time": 360,
+    "xp": 12,
+    "unlock": 4,
+    "spawn": true
+   },
+   {
+    "out": "dino_segelruecken",
+    "n": 1,
+    "in": {
+     "egg_segelruecken": 1
+    },
+    "time": 360,
+    "xp": 12,
+    "unlock": 4,
+    "spawn": true
+   },
+   {
+    "out": "dino_pachy",
+    "n": 1,
+    "in": {
+     "egg_pachy": 1
+    },
+    "time": 360,
+    "xp": 12,
+    "unlock": 4,
+    "spawn": true
+   },
+   {
+    "out": "dino_stachelchen",
+    "n": 1,
+    "in": {
+     "egg_stachelchen": 1
+    },
+    "time": 360,
+    "xp": 12,
+    "unlock": 4,
+    "spawn": true
+   },
+   {
+    "out": "dino_flauschi",
+    "n": 1,
+    "in": {
+     "egg_flauschi": 1
+    },
+    "time": 420,
+    "xp": 14,
+    "unlock": 4,
+    "spawn": true
+   },
+   {
+    "out": "dino_brontobeere",
+    "n": 1,
+    "in": {
+     "egg_brontobeere": 1
+    },
+    "time": 480,
+    "xp": 16,
+    "unlock": 4,
+    "spawn": true
+   }
+  ]
+ },
+ "smelter": {
+  "slots": 2,
+  "fx": {
+   "smoke": [
+    0,
+    -330
+   ]
+  },
+  "recipes": [
+   {
+    "out": "bar_iron",
+    "n": 1,
+    "in": {
+     "ore_iron": 2,
+     "coal": 1
+    },
+    "time": 120,
+    "xp": 5,
+    "unlock": 4
+   },
+   {
+    "out": "bar_silver",
+    "n": 1,
+    "in": {
+     "ore_silver": 3,
+     "coal": 1
+    },
+    "time": 180,
+    "xp": 7,
+    "unlock": 4
+   },
+   {
+    "out": "bar_gold",
+    "n": 1,
+    "in": {
+     "ore_gold": 3,
+     "coal": 1
+    },
+    "time": 240,
+    "xp": 10,
+    "unlock": 5
+   },
+   {
+    "out": "bar_platinum",
+    "n": 1,
+    "in": {
+     "ore_platinum": 3,
+     "coal": 2
+    },
+    "time": 360,
+    "xp": 15,
+    "unlock": 6
+   }
+  ]
+ }
 }

@@ -18,6 +18,8 @@ var _spinning := false
 var _mine: Control
 var _mine_body: Control
 var _mine_sprite: Sprite2D
+var _vis: Control
+var _vis_body: Control
 var _daily: Control
 var _daily_row: HBoxContainer
 var _daily_btn: TextureButton
@@ -56,6 +58,10 @@ func setup(h: Hud) -> void:
 	_build_wheel()
 	_build_daily()
 	_build_mine()
+	_vis = hud._panel_window(Vector2(1320, 760), "VISITOR_TITLE")[0]
+	hud.extra_windows.append(_vis)
+	_vis_body = Control.new()
+	_vis.add_child(_vis_body)
 	refresh()
 
 
@@ -324,3 +330,70 @@ func _dig(tool: String) -> void:
 	for k in got:
 		Game.toast.emit("+%d %s" % [int(got[k]), tr("ITEM_" + str(k))], "item_%s.png" % k)
 	_fill_mine()
+
+
+# ------------------------------------------------------------------ visiting buyer
+
+func open_visitor(s: Sprite2D) -> void:
+	if s == null:
+		return
+	var o: Dictionary = s.get_meta("visitor")
+	for c in _vis_body.get_children():
+		c.queue_free()
+	var pic := TextureRect.new()
+	pic.texture = Atlas.tex("npc_pip_0")
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	pic.position = Vector2(30, 110)
+	pic.size = Vector2(420, 600)
+	_vis_body.add_child(pic)
+	# speech bubble with the offer in its own frame
+	var bub := hud._patch("panel.png", 44, 44)
+	bub.position = Vector2(470, 110)
+	bub.size = Vector2(790, 330)
+	bub.self_modulate = Color(1, 1, 1)
+	_vis_body.add_child(bub)
+	var say := hud._dark(hud._label(tr("VISITOR_ASK"), 36))
+	say.position = Vector2(30, 22)
+	say.size = Vector2(730, 60)
+	say.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bub.add_child(say)
+	var n := hud._label("%d×" % int(o["n"]), 60)
+	n.position = Vector2(110, 120)
+	n.size = Vector2(130, 80)
+	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	bub.add_child(n)
+	var ic := hud._item_icon(o["item"], 140)
+	ic.position = Vector2(250, 92)
+	bub.add_child(ic)
+	var arrow := hud._label("➜", 60)
+	arrow.position = Vector2(400, 120)
+	arrow.modulate = Color("#FFD23F")
+	bub.add_child(arrow)
+	var coin := hud._tex("coin.png")
+	coin.position = Vector2(480, 116)
+	bub.add_child(coin)
+	var pay := hud._label(Hud.fmt(int(o["pay"])), 60)
+	pay.position = Vector2(580, 120)
+	bub.add_child(pay)
+	var have := Game.count(o["item"])
+	var hv := hud._dark(hud._label(tr("VISITOR_HAVE") % [have, tr("ITEM_" + str(o["item"]))], 30))
+	hv.position = Vector2(30, 262)
+	hv.size = Vector2(730, 44)
+	hv.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bub.add_child(hv)
+	var yes := hud._pill("VISITOR_YES", Vector2(560, 480), 620, have >= int(o["n"]))
+	yes.pressed.connect(func() -> void:
+		if Game.accept_visitor(o):
+			Audio.play("levelup")
+			Game.toast.emit("+%s" % Hud.fmt(int(o["pay"])), "coin.png")
+			_vis.hide()
+			hud.visitor_done.emit())
+	_vis_body.add_child(yes)
+	var no := hud._pill("VISITOR_NO", Vector2(560, 600), 620)
+	no.self_modulate = Color(1.0, 0.85, 0.4)
+	no.pressed.connect(func() -> void:
+		_vis.hide()
+		hud.visitor_done.emit())
+	_vis_body.add_child(no)
+	hud._open(_vis)
