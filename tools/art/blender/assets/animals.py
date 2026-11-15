@@ -671,55 +671,93 @@ PIG_PINK = "#FFB3B5"
 
 
 def pig(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squash=0.0):
-    """Round chibi pig, ~0.55 m tall. Sniffs for truffles."""
+    """Pig matched to the reference pig in hd_animals_pets.png (2026-11-15): body and head are ONE cast, a big
+    flat snout disc, a wide grin with teeth, small eyes high up, pointed ears with flopping tips, short legs with
+    dark hooves, a curly tail. Everything attached is placed on the real surface."""
+    kit.character_light()
     root = kit.empty("pig", rot=(0, 0, math.radians(yaw)))
     body = kit.empty("body", loc=(0, 0, body_z), parent=root)
     s = 1.0 + squash
-    skin = mat("pig_skin", PIG_PINK, rough=0.5, spec=0.25, edge=0.55, edge_color="#B05A66", sss=0.08)
+    skin = mat("pig_skin2", "#FFC9B4", rough=0.48, spec=0.28, edge=0.55, edge_color="#B9705E", sss=0.1)
     hx, hd = head
-    head_c = Vector((0.3 + hx, 0, 0.4 - hd))
-    bo = kit.to_mesh(kit.blob(
-        kit.chain([(-0.22, 0, 0.32), (0.0, 0, 0.34 * s), (0.18 + hx * 0.5, 0, 0.36 - hd * 0.5)],
-                  [0.22, 0.27, 0.22], steps=6)
-        + [{"co": tuple(head_c), "r": 0.22, "type": "ELLIPSOID", "size": (0.95, 1.0, 0.95), "stiff": 2.0}],
-        skin, name="pig", parent=body))
+    head_c = Vector((0.3 + hx, 0, 0.44 - hd))
+    bo = kit.to_mesh(kit.blob([
+        {"co": (-0.06, 0, 0.36 * s), "r": 0.38, "type": "ELLIPSOID", "size": (1.2, 0.95, 0.95 / s), "stiff": 2.0},
+        {"co": tuple(head_c), "r": 0.3, "type": "ELLIPSOID", "size": (0.95, 1.0, 0.95), "stiff": 2.0},
+        {"co": tuple(head_c + Vector((0.14, 0, -0.06))), "r": 0.17, "stiff": 2.0},
+    ], skin, name="pig", res=0.008, parent=body))
     surf = kit.Surface([bo])
-    snout_m = mat("pig_snout", "#FF9AA2", rough=0.4, spec=0.35, edge=0.5, edge_color="#A8505C")
-    sn = head_c + Vector((0.16, 0, -0.04))
-    kit.cyl(0.1, 0.1, snout_m, r2=0.095, loc=sn, rot=(0, math.radians(90), 0), bevel=0.035, verts=28, parent=body)
-    nos = mat("pig_nostril", "#8A3442", rough=0.6, edge=0.0)
-    for side in (-1, 1):
-        kit.sphere(0.024, nos, loc=sn + Vector((0.1, side * 0.038, 0.005)), scale=(0.45, 1, 1.4), seg=10, parent=body)
-    # a happy mouth under the snout
-    kit.curve_tube([tuple(sn + Vector((0.05, -0.07, -0.085))), tuple(sn + Vector((0.08, 0.0, -0.105))),
-                    tuple(sn + Vector((0.05, 0.07, -0.085)))], r=0.008, m=nos, parent=body)
-    look = _rotz(kit.TO_CAM, -yaw)
     hw = kit.world(body, head_c)
+    to_local = body.matrix_world.inverted()
+    o_w = kit.world(root, (0, 0, 0))
+
+    def on_head(d):
+        p, n = surf.toward(hw, kit.world(root, d) - o_w)
+        if p is None:
+            return head_c + Vector(d).normalized() * 0.2, Vector(d).normalized()
+        return to_local @ p, (to_local.to_3x3() @ n).normalized()
+
+    # snout: a flat disc on the front of the face with two big dark nostrils
+    snout_m = mat("pig_snout2", "#FFB2A0", rough=0.42, spec=0.32, edge=0.55, edge_color="#A85A4A")
+    sp, sn = on_head((1.0, 0, -0.25))
+    disc = kit.cyl(0.09, 0.06, snout_m, r2=0.088, loc=(0, 0, 0), bevel=0.025, verts=32, scale=(1.0, 1.15, 1.0))
+    kit.place_on(disc, sp + sn * 0.005, sn)
+    disc.parent = body
+    disc.matrix_parent_inverse = body.matrix_world.inverted()
+    nos = mat("pig_nostril2", "#5A2A22", rough=0.6, edge=0.0)
+    side_v = sn.cross(Vector((0, 0, 1))).normalized()
+    up_v = side_v.cross(sn).normalized()
     for side in (-1, 1):
-        dl = Vector((0.62, side * 0.55, 0.42))
-        p, n = surf.toward(hw, kit.world(root, dl) - kit.world(root, (0, 0, 0)))
+        kit.sphere(0.03, nos, loc=sp + sn * 0.065 + side_v * (side * 0.04) + up_v * 0.005, scale=(0.7, 0.7, 0.7),
+                   seg=12, parent=body)
+    # wide grin with teeth under the snout
+    mp, mn = on_head((0.9, 0, -0.75))
+    mouth = mat("pig_mouth", "#6A2A26", rough=0.6, edge=0.0)
+    pts = []
+    for k in range(7):
+        a = (k / 6 - 0.5) * 2.2
+        d = Vector((0.75, math.sin(a) * 0.9, -0.75 + abs(math.sin(a)) * 0.32))
+        q, _ = on_head(tuple(d))
+        pts.append(tuple(q + (q - head_c).normalized() * 0.004))
+    kit.curve_tube(pts, r=0.014, m=mouth, parent=body)
+    tooth = mat("pig_tooth", "#FFFDF4", rough=0.3, spec=0.4, edge=0.3)
+    for k in (2, 3, 4):
+        tp = Vector(pts[k])
+        kit.box((0.026, 0.03, 0.03), tooth, loc=tp + (tp - head_c).normalized() * 0.006 + Vector((0, 0, 0.012)),
+                bevel=0.006, parent=body)
+    # small eyes high on the head
+    look = _rotz(kit.TO_CAM, -yaw)
+    for side in (-1, 1):
+        dl = Vector((0.55, side * 0.45, 0.7))
+        p, n = surf.toward(hw, kit.world(root, dl) - o_w)
         if p is not None:
-            hr = (body.matrix_world.inverted() @ p - head_c).length
-            eye(head_c, hr, dl, 0.062, body, look=look, lid=blink, lid_color=PIG_PINK, droop=0.22)
-        # big floppy ears folding forward
-        ear = kit.empty("ear", loc=head_c + Vector((0.0, side * 0.12, 0.15)), rot=(side * -0.35, 1.25, 0),
-                        parent=body)
-        kit.sphere(0.1, skin, loc=(0.06, 0, 0), scale=(1.0, 0.75, 0.22), seg=16, parent=ear)
-        kit.sphere(0.035, mat("pig_cheek", "#FF8A96", rough=0.6, edge=0.2),
-                   loc=head_c + Vector((0.1, side * 0.12, -0.06)), scale=(1, 1, 0.5), seg=10, parent=body)
-    # curly tail
-    pts = [(-0.33, 0, 0.36)]
-    for k in range(1, 7):
-        a = k * 1.1
-        pts.append((-0.39 - 0.022 * math.sin(a), 0.028 * math.cos(a), 0.38 + k * 0.01))
-    kit.curve_tube(pts, r=0.013, m=skin, parent=body)
-    hoof = mat("pig_hoof", "#C77882", rough=0.5, edge=0.3)
-    for (lx, ly, ang) in ((0.14, -0.12, legs[0]), (0.14, 0.12, legs[1]), (-0.16, -0.12, legs[1]),
-                          (-0.16, 0.12, legs[0])):
+            hr = (to_local @ p - head_c).length
+            eye(head_c, hr, dl, 0.055, body, look=look, lid=blink, lid_color="#FFC9B4", droop=0.12)
+        # pointed ears standing up, tips flopping forward
+        ep, en = on_head((-0.15, side * 0.6, 0.8))
+        ear = kit.empty("ear", loc=ep - en * 0.01, rot=(side * -0.35, 0.1, 0), parent=body)
+        kit.cyl(0.07, 0.13, skin, r2=0.012, loc=(0, 0, 0), bevel=0.0, verts=18, parent=ear, scale=(0.5, 1.0, 1.0))
+        tip = kit.empty("tip", loc=(0, 0, 0.11), rot=(0, 0.9, 0), parent=ear)
+        kit.cyl(0.03, 0.07, skin, r2=0.004, loc=(0, 0, 0), bevel=0.0, verts=12, parent=tip, scale=(0.5, 1.0, 1.0))
+        kit.cyl(0.045, 0.1, mat("pig_ear_in", "#F49A8A", rough=0.6, edge=0.2), r2=0.008,
+                loc=(0.018, 0, 0.01), bevel=0.0, verts=14, parent=ear, scale=(0.3, 0.8, 1.0))
+    # curly tail on the rump
+    tp_, tn = None, None
+    p, n = surf.toward(kit.world(body, (0, 0, 0.36 * s)), kit.world(root, (-1.0, 0, 0.35)) - o_w)
+    base = (to_local @ p) if p is not None else Vector((-0.45, 0, 0.42))
+    pts = [tuple(base - Vector((-0.01, 0, 0)))]
+    for k in range(1, 8):
+        a = k * 1.05
+        pts.append(tuple(base + Vector((-0.04 - 0.028 * math.sin(a), 0.034 * math.cos(a) - 0.034, k * 0.012))))
+    kit.curve_tube(pts, r=0.014, m=skin, parent=body)
+    hoof = mat("pig_hoof2", "#4A2A22", rough=0.4, spec=0.4, edge=0.3)
+    for (lx, ly, ang) in ((0.16, -0.13, legs[0]), (0.16, 0.13, legs[1]), (-0.2, -0.13, legs[1]),
+                          (-0.2, 0.13, legs[0])):
         hip = kit.empty("hip", loc=(lx, ly, 0.2), rot=(0, math.radians(ang), 0), parent=root)
-        kit.cyl(0.075, 0.17, skin, r2=0.06, loc=(0, 0, -0.17), bevel=0.03, verts=16, parent=hip)
-        kit.sphere(0.075, skin, loc=(0, 0, 0.0), seg=14, parent=hip)
-        kit.cyl(0.062, 0.045, hoof, r2=0.058, loc=(0, 0, -0.2), bevel=0.015, verts=16, parent=hip)
+        kit.cyl(0.07, 0.17, skin, r2=0.055, loc=(0, 0, -0.17), bevel=0.02, verts=16, parent=hip)
+        for cy in (-0.022, 0.022):
+            kit.cyl(0.032, 0.04, hoof, r2=0.03, loc=(0.006, cy, -0.2), bevel=0.01, verts=12, parent=hip,
+                    scale=(1.2, 0.85, 1.0))
     return root
 
 

@@ -3,6 +3,9 @@
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
 ## 2026-11-15
+- Schaf freigegeben (aus einem Guss, Kapuze), alle Frames im Spiel. Schwein-Prototyp nach Referenz begonnen
+  (ein Guss, Rüsselscheibe, Grinsen mit Zähnen, Spitzohren) – noch nicht gezeigt.
+- Roman: Übergabe an Claude Fable 5.2 → Auftrag in `brain/HANDOFF_FABLE.md`.
 
 - Schaf Prototyp 3 (Skin-Mesh) abgelehnt („noch schlimmer“). Prototyp 4 direkt am Referenz-Schaf aus
   `hd_animals_pets.png` ausgerichtet: cremefarbenes glattes Woll-Ei mit Locken-Relief, großer brauner Kopf nach
