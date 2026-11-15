@@ -2,6 +2,10 @@
 
 Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 
+- **2026-11-15 – Schaf-Prototyp 3 (Skin-Mesh): „sieht jetzt sogar noch schlimmer aus“.** Bild:
+  `rejected/m95_sheep_proto3_skin.png`. Glatter Wurst-Körper, dicke Säulenbeine, Kopf klein und verdeckt.
+  Drei Schaf-Versuche abgelehnt → nicht weiter blind probieren, erst genau abstimmen, was Roman beim Schaf sehen will.
+
 - **2026-11-14 (03:41) – „Die Benutzeroberfläche sieht weiterhin schrecklich aus, man hat keine Differenzierung.“**
   Besonders: **Ausbauen stand direkt neben Verkaufen** → man denkt, man könne die Axt ausbauen.
   **Folge:** Lager-Fenster getrennt in blauen Ausbau-Rahmen oben (Kapazität + Knopf) und warmen Verkaufs-Rahmen

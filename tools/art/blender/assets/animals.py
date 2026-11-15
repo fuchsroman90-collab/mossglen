@@ -552,7 +552,7 @@ def _wool_curl_mat():
     key = ("wool_curl",)
     if key in kit._mats:
         return kit._mats[key]
-    m = mat("wool_curl", "#FFFDF7", rough=0.85, spec=0.12, edge=0.55, edge_color="#B4AA98", sss=0.1).copy()
+    m = mat("wool_curl", "#F6EED8", rough=0.85, spec=0.12, edge=0.55, edge_color="#A89A78", sss=0.1).copy()
     nt = m.node_tree
     bsdf = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
     tc = nt.nodes.new("ShaderNodeTexCoord")
@@ -570,44 +570,30 @@ def _wool_curl_mat():
 
 
 def sheep(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squash=0.0, style=None):
-    """Sheep built like a box-modelled game character (Roman's low-poly concept, 2026-11-14): ONE continuous
-    mesh from a stick skeleton (body, neck, head, snout, four legs) via Skin + Subdivision. The body is curly
-    white wool, head and legs dark; big lidded eyes and ears sit on the real surface."""
+    """Sheep matched to the reference sheep in hd_animals_pets.png (after 3 rejected attempts, 2026-11-15):
+    a smooth warm-cream wool egg with a soft curl relief, a brown face that sticks out forward, heavy-lidded big
+    eyes, cream ears held sideways, short thin dark legs. Parts are placed on the real surfaces (ray cast)."""
     kit.character_light()
     root = kit.empty("sheep", rot=(0, 0, math.radians(yaw)))
     body = kit.empty("body", loc=(0, 0, body_z), parent=root)
     s = 1.0 + squash
     hx, hd = head
     wool = _wool_curl_mat()
-    dark = mat("sheep_dark", "#3A3330", rough=0.5, spec=0.3, edge=0.5, edge_color="#120E0C")
-    hoof = mat("sheep_hoof2", "#1A1514", rough=0.35, spec=0.45, edge=0.3)
-    head_c = Vector((0.42 + hx, 0, 0.66 - hd))
-    snout = head_c + Vector((0.13, 0, -0.07))
-    V = [(-0.2, 0, 0.47 * s), (0.0, 0, 0.5 * s), (0.17, 0, 0.5 * s), (0.31 + hx * 0.5, 0, 0.6 - hd * 0.5),
-         tuple(head_c), tuple(snout)]
-    R = [(0.27, 0.27), (0.31, 0.31), (0.28, 0.28), (0.12, 0.12), (0.15, 0.15), (0.1, 0.1)]
-    E = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)]
-    swing = {}
-    for k, (lx, ly, ang) in enumerate(((0.15, -0.12, legs[0]), (0.15, 0.12, legs[1]), (-0.18, -0.12, legs[1]),
-                                       (-0.18, 0.12, legs[0]))):
-        top = Vector((lx, ly, 0.32))
-        a = math.radians(ang)
-        foot = top + Vector((-math.sin(a) * 0.3, 0, -math.cos(a) * 0.3))
-        i = len(V)
-        V += [tuple(top), tuple((top + foot) / 2), tuple(foot)]
-        R += [(0.06, 0.06), (0.045, 0.045), (0.05, 0.05)]
-        E += [(2 if lx > 0 else 0, i), (i, i + 1), (i + 1, i + 2)]
-        swing[k] = foot
-
-    def region(c):
-        if c.z < 0.06:
-            return 2
-        if c.x > 0.33 or c.z < 0.27:
-            return 1
-        return 0
-
-    bo = kit.skin_mesh("sheep", V, E, R, [wool, dark, hoof], region=region, parent=body)
-    surf = kit.Surface([bo])
+    wool_c = mat("sheep_cream", "#F4ECD6", rough=0.8, spec=0.15, edge=0.55, edge_color="#A89A78", sss=0.08)
+    face = mat("sheep_brown", "#7A5236", rough=0.5, spec=0.3, edge=0.5, edge_color="#2E1A0E")
+    legm = mat("sheep_legs", "#4A3426", rough=0.5, spec=0.3, edge=0.45)
+    # wool body: one smooth egg, slightly higher at the back
+    bo = kit.sphere(0.26, wool, loc=(-0.06, 0, 0.4 * s), scale=(1.25, 0.98, 1.0 / s), seg=48, parent=body)
+    bo.data.materials.clear()
+    bo.data.materials.append(wool)
+    # head: a long rounded brown face pointing forward and a little down, its back buried in the wool
+    head_c = Vector((0.3 + hx, 0, 0.5 - hd))
+    ho = kit.to_mesh(kit.blob([
+        {"co": tuple(head_c), "r": 0.19, "type": "ELLIPSOID", "size": (1.0, 0.85, 0.95), "stiff": 2.0},
+        {"co": tuple(head_c + Vector((0.17, 0, -0.07))), "r": 0.14, "type": "ELLIPSOID", "size": (1.15, 0.78, 0.85),
+         "stiff": 2.0},
+    ], face, name="shead", res=0.008, parent=body))
+    surf = kit.Surface([ho])
     hw = kit.world(body, head_c)
     to_local = body.matrix_world.inverted()
     o_w = kit.world(root, (0, 0, 0))
@@ -616,31 +602,34 @@ def sheep(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, s
         p, _n = surf.toward(hw, kit.world(root, d) - o_w)
         return (to_local @ p) if p is not None else head_c + Vector(d).normalized() * 0.12
 
-    # a curly wool cap between the ears, resting on the head
-    cap = on_head((-0.2, 0, 1.0))
-    for dx, dy, r in [(0.0, 0.0, 0.075), (-0.03, 0.05, 0.06), (-0.03, -0.05, 0.06), (0.04, 0.0, 0.055)]:
-        kit.sphere(r, wool, loc=cap + Vector((dx, dy, 0.02)), scale=(1, 1, 0.8), seg=18, parent=body)
     look = _rotz(kit.TO_CAM, -yaw)
-    inner = mat("sheep_ear_in", "#D98A8A", rough=0.6, edge=0.3)
     for side in (-1, 1):
-        dl = Vector((0.65, side * 0.62, 0.2))
+        dl = Vector((0.35, side * 0.55, 0.75))
         p, n = surf.toward(hw, kit.world(root, dl) - o_w)
         if p is not None:
             hr = (to_local @ p - head_c).length
-            eye(head_c, hr, dl, 0.068, body, look=look, lid=blink, lid_color="#3A3330", droop=0.16)
-        ear_p = on_head((-0.25, side * 1.0, 0.3))
-        ear = kit.empty("ear", loc=ear_p, rot=(side * 0.6, 0.2, 0), parent=body)
-        kit.sphere(0.075, dark, loc=(0, side * 0.06, 0), scale=(0.5, 1.4, 0.36), seg=16, parent=ear)
-        kit.sphere(0.048, inner, loc=(0.012, side * 0.07, 0.006), scale=(0.42, 1.15, 0.22), seg=12, parent=ear)
-    nose = on_head((1.0, 0, -0.35))
-    nos = mat("sheep_nose", "#120E0C", rough=0.5, edge=0.0)
+            eye(head_c, hr, dl, 0.08, body, look=look, lid=blink, lid_color="#7A5236", droop=0.17)
+        # cream ears held out sideways, just behind the eyes
+        ear_p = on_head((-0.55, side * 1.0, 0.15))
+        ear = kit.empty("ear", loc=ear_p, rot=(side * 1.35, 0.5, 0), parent=body)
+        kit.sphere(0.09, wool_c, loc=(0, 0, 0.07), scale=(0.55, 0.3, 1.25), seg=16, parent=ear)
+        kit.sphere(0.045, mat("sheep_ear_in", "#E8A898", rough=0.6, edge=0.3), loc=(0.012, side * -0.01, 0.06),
+                   scale=(0.45, 0.2, 1.0), seg=12, parent=ear)
+    nose = on_head((1.0, 0, -0.1))
+    nos = mat("sheep_nose", "#2A160C", rough=0.5, edge=0.0)
     for side in (-1, 1):
-        kit.sphere(0.014, nos, loc=nose + Vector((0.0, side * 0.03, 0.01)), scale=(0.6, 1.0, 1.3), seg=10,
+        kit.sphere(0.014, nos, loc=nose + Vector((-0.005, side * 0.03, 0.01)), scale=(0.6, 1.0, 1.3), seg=10,
                    parent=body)
-    # a little wool tail, resting on the rump
-    p, _n = surf.toward(kit.world(body, (0, 0, 0.5 * s)), kit.world(root, (-1.0, 0, 0.25)) - o_w)
-    if p is not None:
-        kit.sphere(0.065, wool, loc=to_local @ p, seg=16, parent=body)
+    # a cream wool tuft on the forehead, sitting on the head
+    # little wool tail
+    kit.sphere(0.055, wool, loc=(-0.37, 0, 0.47 * s), seg=16, parent=body)
+    # short thin dark legs, slightly tucked under the wool
+    for (lx, ly, ang) in ((0.17, -0.11, legs[0]), (0.17, 0.11, legs[1]), (-0.2, -0.11, legs[1]),
+                          (-0.2, 0.11, legs[0])):
+        hip = kit.empty("hip", loc=(lx * 0.75, ly, 0.3), rot=(0, math.radians(ang), 0), parent=root)
+        kit.cyl(0.036, 0.28, legm, r2=0.026, loc=(0, 0, -0.28), bevel=0.012, verts=14, parent=hip)
+        kit.cyl(0.03, 0.04, mat("sheep_hoof", "#1E1410", rough=0.4, spec=0.4), r2=0.029, loc=(0.004, 0, -0.3),
+                bevel=0.01, verts=14, parent=hip, scale=(1.2, 1.0, 1.0))
     return root
 
 

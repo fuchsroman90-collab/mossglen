@@ -2,6 +2,12 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15
+
+- Schaf Prototyp 3 (Skin-Mesh) abgelehnt („noch schlimmer“). Prototyp 4 direkt am Referenz-Schaf aus
+  `hd_animals_pets.png` ausgerichtet: cremefarbenes glattes Woll-Ei mit Locken-Relief, großer brauner Kopf nach
+  vorn, große Augen, kurze dünne Beine. Vergleichsbild Referenz/Prototyp an Roman geschickt.
+
 ## 2026-11-14 – Nacht
 
 - Roman fragte nach einem Low-Poly-Konzept fürs Schaf → `kit.skin_mesh()` (Skin + Subsurf aus Skelett, Material
