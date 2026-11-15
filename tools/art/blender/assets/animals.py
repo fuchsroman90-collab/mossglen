@@ -582,10 +582,6 @@ def sheep(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, s
     wool_c = mat("sheep_cream", "#F4ECD6", rough=0.8, spec=0.15, edge=0.55, edge_color="#A89A78", sss=0.08)
     face = mat("sheep_brown", "#7A5236", rough=0.5, spec=0.3, edge=0.5, edge_color="#2E1A0E")
     legm = mat("sheep_legs", "#4A3426", rough=0.5, spec=0.3, edge=0.45)
-    # wool body: one smooth egg, slightly higher at the back
-    bo = kit.sphere(0.26, wool, loc=(-0.06, 0, 0.4 * s), scale=(1.25, 0.98, 1.0 / s), seg=48, parent=body)
-    bo.data.materials.clear()
-    bo.data.materials.append(wool)
     # head: a long rounded brown face pointing forward and a little down, its back buried in the wool
     head_c = Vector((0.3 + hx, 0, 0.5 - hd))
     ho = kit.to_mesh(kit.blob([
@@ -602,10 +598,14 @@ def sheep(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, s
         p, _n = surf.toward(hw, kit.world(root, d) - o_w)
         return (to_local @ p) if p is not None else head_c + Vector(d).normalized() * 0.12
 
-    # wool hood: the wool hump grows over the back and top of the head, only the face stays brown
-    hood_c = head_c + Vector((-0.1, 0, 0.07))
-    kit.sphere(0.175, wool, loc=hood_c, scale=(1.0, 1.05, 0.9), seg=40, parent=body)
-    kit.sphere(0.17, wool, loc=(head_c + Vector((-0.2, 0, 0.0))), scale=(1.0, 0.95, 0.95), seg=40, parent=body)
+    # wool: body, neck and hood are ONE cast (Roman: "wie ein Guss", not two balls) - three large metaball
+    # elements melt into a single smooth shape that runs from the rump over the back of the head
+    hood_c = head_c + Vector((-0.05, 0, 0.11))
+    fleece = kit.to_mesh(kit.blob([
+        {"co": (-0.06, 0, 0.4 * s), "r": 0.4, "type": "ELLIPSOID", "size": (1.25, 0.98, 1.0 / s), "stiff": 2.0},
+        {"co": tuple(head_c + Vector((-0.18, 0, 0.0))), "r": 0.26, "stiff": 2.0},
+        {"co": tuple(hood_c), "r": 0.245, "type": "ELLIPSOID", "size": (1.0, 1.05, 0.9), "stiff": 2.0},
+    ], wool, name="fleece", res=0.008, parent=body))
     look = _rotz(kit.TO_CAM, -yaw)
     for side in (-1, 1):
         dl = Vector((0.75, side * 0.55, 0.35))

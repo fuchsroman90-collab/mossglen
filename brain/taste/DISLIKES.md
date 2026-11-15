@@ -2,6 +2,11 @@
 
 Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 
+- **2026-11-15 – Schaf mit Wollkapuze: „es muss wie ein Guss aussehen, aktuell sieht es wie 2 Bälle aus“.**
+  Folge: Körper, Hals und Kapuze aus wenigen großen Metaballs zu EINER Form verschmolzen (Metaball-Radien ~1,35×
+  größer wählen, die Oberfläche liegt weit innen). Regel: **Tierkörper immer als eine verschmolzene Form, nie
+  sichtbar zusammengesteckte Kugeln.**
+
 - **2026-11-15 – Schaf-Prototyp 3 (Skin-Mesh): „sieht jetzt sogar noch schlimmer aus“.** Bild:
   `rejected/m95_sheep_proto3_skin.png`. Glatter Wurst-Körper, dicke Säulenbeine, Kopf klein und verdeckt.
   Drei Schaf-Versuche abgelehnt → nicht weiter blind probieren, erst genau abstimmen, was Roman beim Schaf sehen will.
