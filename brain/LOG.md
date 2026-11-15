@@ -2,6 +2,13 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15 (spät) – Look-Pass Teil 2
+
+- Pflanzen dichter und schlanker (Raster bis an die Zellkante, Mais 3×3 mit dünnen Stängeln, Karotte/Erdbeere 4×4,
+  Tomate 3×3), Zäune dünner (Pfosten 0,06, Latten 0,03), Landschilder 0,72 skaliert, Wiese mit hellen Büscheln
+  und Blümchen im Boden-Shader. Screenshot `--ui=wheatdemo --at=13,9`.
+- Offen im Look: Gebäude-Kleinteile, Grasdecke der Mine, Deko verschlanken, UI v2 einbauen.
+
 ## 2026-11-15 (spät) – Look-Pass nach Romans Kritik
 
 - Roman: Weizen wie Mais, Gesamtlook nicht stimmig, Boden „fett“, ich höre zu früh auf (DISLIKES).

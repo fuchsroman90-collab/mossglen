@@ -196,6 +196,7 @@ func _place_signs() -> void:
 		var r := parcel_rect(id)
 		var s: Sprite2D = w._add_prop("sign_parcel", Vector2(r.position) + Vector2(r.size) * 0.5 - Vector2(0.5, 0.5), null)
 		s.set_meta("parcel", id)
+		s.scale = Vector2(0.72, 0.72)  # look pass: quieter meadow
 		s.set_meta("squash", 0.1)
 		s.z_index = 1
 		signs[id] = s

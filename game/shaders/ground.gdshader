@@ -27,6 +27,12 @@ void fragment() {
 	// look pass 2026-11-15: one bright, saturated meadow green and red-brown earth, like the reference farm
 	float gl = dot(grass, vec3(0.3, 0.59, 0.11));
 	grass = mix(grass, vec3(0.47, 0.76, 0.16) * (0.55 + gl * 0.95), 0.62);
+	// painted-looking meadow detail: lighter tufts and a sprinkle of tiny pale flowers
+	float tuft = smoothstep(0.74, 0.84, texture(grass_tex, g * 1.7 + vec2(0.13, 0.57)).a);
+	grass = mix(grass, grass * vec3(1.2, 1.13, 0.7) + vec3(0.03, 0.04, 0.0), tuft * 0.5);
+	float fl = smoothstep(0.9, 0.93, texture(grass_tex, g * 2.9 + vec2(0.41, 0.23)).a)
+			* smoothstep(0.55, 0.7, texture(grass_tex, g / 6.0 + vec2(0.8, 0.1)).a);
+	grass = mix(grass, vec3(1.0, 0.97, 0.78), fl * 0.75);
 	vec3 dirt = texture(dirt_tex, g / 3.0).rgb;
 	float dl = dot(dirt, vec3(0.3, 0.59, 0.11));
 	dirt = mix(dirt, vec3(0.74, 0.40, 0.22) * (0.45 + dl * 0.95), 0.7);

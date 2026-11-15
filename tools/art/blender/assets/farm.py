@@ -144,11 +144,12 @@ def _wheat_carpet(root, rng):
 
 
 def _grid(n, jitter, rng):
-    step = 0.78 / n
+    # look pass: plants reach the cell edge so neighbouring fields read as one plot
+    step = 0.92 / n
     for gx in range(n):
         for gy in range(n):
-            yield Vector((-0.39 + step * (gx + 0.5) + rng.uniform(-jitter, jitter),
-                          -0.39 + step * (gy + 0.5) + rng.uniform(-jitter, jitter), FIELD_TOP - 0.01))
+            yield Vector((-0.46 + step * (gx + 0.5) + rng.uniform(-jitter, jitter),
+                          -0.46 + step * (gy + 0.5) + rng.uniform(-jitter, jitter), FIELD_TOP - 0.01))
 
 
 def _sprouts(root, rng, n, green):
@@ -169,8 +170,8 @@ def corn(stage: int, seed=21):
     kern = mat("corn_kernel", "#FFD23F", rough=0.45, spec=0.35, edge=0.5, edge_color="#C98A10")
     tassel = mat("corn_tassel", "#E6C46A", rough=0.7, edge=0.4)
     h = {1: 0.2, 2: 0.48, 3: 0.56}[stage]
-    for base in _grid(2, 0.04, rng):
-        kit.cyl(0.022, h, green, loc=base, bevel=0.0, verts=8, parent=root)
+    for base in _grid(3, 0.04, rng):
+        kit.cyl(0.015, h, green, loc=base, bevel=0.0, verts=8, parent=root)
         for k in range(5 if stage > 1 else 3):
             a = k * 2.4 + rng.random()
             z = base.z + h * (0.15 + 0.17 * k)
@@ -200,7 +201,7 @@ def carrot(stage: int, seed=31):
     orange = mat("carrot", "#FF8A2B", rough=0.45, spec=0.35, edge=0.5, edge_color="#B4501A")
     fm = foliage_mat("carrot_top", "#8FD455", "#2F8A2C",
                                                                           noise_scale=26.0, z0=0.1, z1=0.4)
-    for base in _grid(3, 0.03, rng):
+    for base in _grid(4, 0.03, rng):
         n = {1: 5, 2: 9, 3: 10}[stage]
         h = {1: 0.11, 2: 0.17, 3: 0.19}[stage]
         for k in range(n):
@@ -232,7 +233,7 @@ def tomato(stage: int, seed=41):
     stake = wood("stake", "#B98654")
     red = mat("tomato", "#F0402F", rough=0.25, spec=0.6, edge=0.45, coat=0.4, edge_color="#8A1A10")
     flower = mat("tomato_flower", "#FFE04A", rough=0.5, edge=0.3)
-    for base in _grid(2, 0.03, rng):
+    for base in _grid(3, 0.03, rng):
         h = {1: 0.16, 2: 0.36, 3: 0.4}[stage]
         if stage >= 2:
             kit.box((0.025, 0.025, h + 0.08), stake, loc=base + Vector((0.07, -0.07, (h + 0.08) / 2)), bevel=0.008,
@@ -267,7 +268,7 @@ def strawberry(stage: int, seed=51):
     red = mat("strawberry", "#F2384A", rough=0.3, spec=0.5, edge=0.45, coat=0.3, edge_color="#8A1222")
     seedm = mat("straw_seed", "#FFE38A", rough=0.5, edge=0.0)
     white = mat("straw_flower", "#FFFFFF", rough=0.5, edge=0.3)
-    for base in _grid(3, 0.02, rng):
+    for base in _grid(4, 0.02, rng):
         r = {1: 0.055, 2: 0.075, 3: 0.08}[stage]
         leaf_clump(base + Vector((0, 0, r * 0.6)), r, fm, rng, parent=root, squash=0.7)
         if stage == 2 and rng.random() < 0.7:
@@ -322,10 +323,10 @@ def fence(axis="x", moss=True, seed=3):
     w = wood("fence_wood", "#B07547")
     post = wood("fence_post", "#9C6539")
     for x in (-0.5, 0.5):
-        kit.box((0.09, 0.09, 0.42), post, loc=(x, 0, 0.21), bevel=0.025, parent=root)
-        kit.sphere(0.052, post, loc=(x, 0, 0.42), scale=(1.0, 1.0, 0.6), seg=14, parent=root)
+        kit.box((0.06, 0.06, 0.4), post, loc=(x, 0, 0.2), bevel=0.018, parent=root)
+        kit.sphere(0.036, post, loc=(x, 0, 0.4), scale=(1.0, 1.0, 0.6), seg=14, parent=root)
     for z in (0.17, 0.32):
-        o = kit.box((1.0, 0.045, 0.075), w, loc=(0, 0, z), bevel=0.018, parent=root)
+        o = kit.box((1.0, 0.03, 0.05), w, loc=(0, 0, z), bevel=0.012, parent=root)
         o.rotation_euler = (0, rng.uniform(-0.02, 0.02), 0)
     if moss:
         moss_tufts([(-0.5, 0, 0.46), (-0.47, 0.03, 0.44)], rng, parent=root, size=0.05)
