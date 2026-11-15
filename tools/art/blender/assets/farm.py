@@ -48,6 +48,9 @@ def wheat(stage: int, seed=7):
     if stage == 3:
         _wheat_carpet(root, rng)
         return root
+    if stage in (1, 2):
+        _wheat_young(root, rng, stage)
+        return root
     grid = 3
     step = 0.78 / grid
     for gx in range(grid):
@@ -87,6 +90,29 @@ def wheat(stage: int, seed=7):
                     _blade(green if stage == 2 else stalk_gold, base, 0.14, Vector((math.cos(a), math.sin(a), 0)),
                            0.6, 0.016, root)
     return root
+
+
+def _wheat_young(root, rng, stage):
+    """Growing wheat in the same language as the ripe one: thin green strands, short (1) or tall (2)."""
+    g1 = mat("wheat_g1", "#5FB83A", rough=0.6, spec=0.15, edge=0.1, var=0.06)
+    g2 = mat("wheat_g2", "#9AD84A", rough=0.6, spec=0.15, edge=0.1, var=0.06)
+    ear = mat("wheat_gear", "#C6E060", rough=0.5, spec=0.2, edge=0.12, var=0.05)
+    n = 9 if stage == 1 else 12
+    step = 0.95 / n
+    for gx in range(n):
+        for gy in range(n):
+            p = Vector((-0.475 + step * (gx + 0.5) + rng.uniform(-0.03, 0.03),
+                        -0.475 + step * (gy + 0.5) + rng.uniform(-0.03, 0.03), FIELD_TOP - 0.005))
+            h = rng.uniform(0.12, 0.2) if stage == 1 else rng.uniform(0.3, 0.44)
+            a = rng.uniform(0, 2 * math.pi)
+            lean = rng.uniform(0.05, 0.3)
+            d = Vector((math.cos(a), math.sin(a), 0))
+            rot = (d.y * -lean, d.x * lean, 0)
+            kit.cyl(0.007, h, g2 if rng.random() < 0.4 else g1, r2=0.002 if stage == 1 else 0.005, loc=p, rot=rot,
+                    bevel=0.0, verts=4, parent=root)
+            if stage == 2:
+                top = p + Vector((d.x * math.sin(lean), d.y * math.sin(lean), math.cos(lean))) * h
+                kit.sphere(0.011, ear, loc=top, scale=(1.0, 1.0, 3.6), rot=rot, seg=6, parent=root)
 
 
 def _wheat_carpet(root, rng):
