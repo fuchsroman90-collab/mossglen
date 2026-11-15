@@ -649,8 +649,6 @@ SHEEP_VARIANTS = {
 
 def sheep_frames():
     out = {}
-    out["preview_sheep_a"] = lambda: sheep(0.0)
-    out["preview_sheep_b"] = lambda: sheep(90.0)
     for facing, yaw in (("se", 0.0), ("ne", 90.0)):
         for i in range(6):
             w = math.sin(i / 6 * 2 * math.pi)

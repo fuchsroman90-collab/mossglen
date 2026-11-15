@@ -2,6 +2,9 @@
 
 Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 
+- **2026-11-15 (11:19) – Schaf freigegeben: „Okay das ist gut“.** Bild: `taste/sheep_approved.png` – cremiges
+  Woll-Ei aus einem Guss inkl. Kapuze, braunes Gesicht vorne, große Augen, kurze dünne Beine.
+
 - **2026-11-15 – Schaf Prototyp 4 „deutlich besser“** (am Referenz-Schaf ausgerichtet). Korrektur: Der Woll-Buckel
   muss den Kopf mit einschließen – „aktuell hat der eine Glatze hahaha“ → Wolle als Kapuze über Hinterkopf und
   Stirn, nur das Gesicht vorne braun.
