@@ -1870,6 +1870,23 @@ func _debug_ui(which: String) -> void:
 			hud.open_shop()
 		"wheel":
 			hud.rewards.open_wheel()
+		"wheatdemo":
+			# ripe wheat block with mine and a few decorations beside it (free corner of the start land)
+			var wo := Vector2i(14, 10)
+			for fx in 3:
+				for fy in 2:
+					if can_place(wo + Vector2i(fx, fy)):
+						var fld := _add_field(wo + Vector2i(fx, fy))
+						fld.plant("wheat", Time.get_unix_time_from_system() - 99999.0)
+			for it in [["mine", 3, 0], ["path_dirt", 0, 2], ["path_dirt", 1, 2], ["path_dirt", 2, 2], ["path_dirt", 3, 2],
+					["path_dirt", 4, 2], ["hay_bale_stack", 0, 3], ["pumpkin_pile", 1, 3], ["scarecrow", 2, 3],
+					["bench", 3, 3], ["lantern", 4, 3], ["picket_x", 0, 0], ["picket_x", 1, 0], ["picket_x", 2, 0],
+					["grass_tuft_b", -1, 3], ["grass_tuft", -1, 2]]:
+				var dc: Vector2i = wo + Vector2i(int(it[1]), int(it[2]))
+				if can_place_deco(it[0], dc):
+					var de := {"k": it[0], "x": dc.x, "y": dc.y}
+					Game.decos.append(de)
+					_add_deco(de)
 		"movetest":
 			if not Game.skip_intro:
 				if Game.placed_count("coop") == 0:

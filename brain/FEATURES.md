@@ -21,7 +21,7 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 
 ## B. Felder & Ernte
 - ✅ Felder kaufen/verschieben, Zieh-Säen, Wisch-Ernte, 5 Pflanzen
-- ⬜ Weizen als dichter goldener Teppich (Grafik), Äcker mit Furchen-Struktur
+- ✅ Reifer Weizen als dichter goldener Teppich, Nachbarfelder wachsen zusammen · ⬜ Äcker mit Furchen-Struktur, andere Pflanzen ebenso dicht
 - ⬜ Mehr Pflanzen (Soja, Zuckerrohr, Kürbis, Indigo, Baumwolle, Chili …), Obstbäume/-büsche mit Ernte + Verwelken/Wiederbeleben
 - ⬜ Fortschrittsbalken „Reif in …“ über dem Feld / „Fertig zum Einsammeln“ über Gebäuden
 
@@ -38,7 +38,8 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 - ✅ Mine als platzierbares Gebäude (Laden → Deko, Level 3), Fenster mit Schaufel/Spitzhacke/Dynamit/TNT-Fass
 - ✅ Erze im Lager (Kohle, Eisen, Silber, Gold, Platin), verkaufbar; Spitzhacke/TNT als Fund und in Kisten
 - ✅ Schmelzofen (Level 4): Eisen-, Silber-, Gold-, Platinbarren
-- ⬜ Schmuck aus Barren; Fels der Mine kantiger + bemoost
+- ✅ Schmelzofen neu aus Ziegeln (blaues Dach, Blasebalg, Kohlekiste) · ✅ Minenfels kantig
+- ⬜ Schmuck aus Barren; Grasdecke auf dem Minenfels (zwei Versuche: erst Neon-Scheiben, dann im Fels versunken)
 - ⬜ Schienen mit Lore
 
 ## F. Handel & Aufträge

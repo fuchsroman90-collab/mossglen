@@ -848,32 +848,61 @@ def sign_post(text_color="#FFF4E2"):
 
 
 def smelter():
-    """Stone smelting furnace with a glowing mouth, chimney, coal heap and ingot mould."""
+    """Brick smelting furnace: red-brick body with pale bands, glowing arched mouth, tiled cap,
+    bellows, coal crate and a stack of gold bars."""
     from mathutils import Vector as _V
     rng = random.Random(61)
     d = _V((kit.TO_CAM.x, kit.TO_CAM.y, 0)).normalized()
     root = kit.empty("smelter", rot=(0, 0, math.atan2(d.y, d.x) + math.radians(30) + math.pi / 2))
-    stone = mat("smelt_stone", "#A9A49A", rough=0.85, spec=0.1, edge=0.6, var=0.1)
-    dark = mat("smelt_dark", "#6E6A64", rough=0.9, edge=0.5, var=0.08)
-    kit.cyl(0.95, 0.3, dark, loc=(0, 0, 0), verts=10, bevel=0.05, parent=root)
-    kit.cyl(0.8, 1.0, stone, loc=(0, 0, 0.28), r2=0.55, verts=10, bevel=0.06, parent=root)
-    kit.cyl(0.58, 0.16, dark, loc=(0, 0, 1.26), verts=10, bevel=0.04, parent=root)
-    kit.cyl(0.3, 0.75, stone, loc=(0, 0.1, 1.38), r2=0.24, verts=8, bevel=0.04, parent=root)
-    kit.cyl(0.32, 0.1, dark, loc=(0, 0.1, 2.1), verts=8, bevel=0.03, parent=root)
+    stone = mat("smelt_stone", "#B9B2A4", rough=0.85, spec=0.1, edge=0.55, var=0.1)
+    brick = mat("smelt_brick", "#D9694A", rough=0.7, spec=0.15, edge=0.55, var=0.12, edge_color="#7A2E1C")
+    brick2 = mat("smelt_brick2", "#F0A070", rough=0.7, spec=0.15, edge=0.45, var=0.1)
+    cream = mat("smelt_cream", "#FFF0D2", rough=0.6, spec=0.2, edge=0.45, edge_color="#B9A48A")
+    roof = mat("smelt_roof", "#4E7FB8", rough=0.5, spec=0.3, edge=0.5, edge_color="#27466E")
+    kit.cyl(0.98, 0.22, stone, loc=(0, 0, 0), verts=12, bevel=0.06, parent=root)
+    # body: brick rings, slightly tapering, every third ring pale
+    rings = 7
+    for k in range(rings):
+        r = 0.82 - k * 0.035
+        z = 0.2 + k * 0.14
+        nb = 14
+        for j in range(nb):
+            a = (j + (k % 2) * 0.5) / nb * 2 * math.pi
+            if abs(math.sin(a + math.pi) - 1) < 0.0 :
+                continue
+            x, y = math.cos(a) * r, math.sin(a) * r
+            if y < -0.45 and abs(x) < 0.34 and z < 0.78:
+                continue  # leave the furnace mouth open
+            kit.box((2 * math.pi * r / nb * 0.96, 0.2, 0.135), brick2 if (j * 7 + k * 3) % 5 == 0 else brick,
+                    loc=(x, y, z + 0.07), rot=(0, 0, a + math.pi / 2), bevel=0.025, parent=root)
+    kit.cyl(0.66, 1.0, mat("smelt_inner", "#3A2A22", rough=1.0), loc=(0, 0, 0.2), verts=14, bevel=0.0, parent=root)
+    kit.cyl(0.66, 0.1, cream, loc=(0, 0, 1.18), verts=14, bevel=0.035, parent=root)
+    kit.cyl(0.7, 0.42, roof, loc=(0, 0, 1.27), r2=0.3, verts=14, bevel=0.03, parent=root)
+    kit.cyl(0.24, 0.5, brick, loc=(0, 0, 1.6), verts=10, bevel=0.03, parent=root)
+    kit.cyl(0.29, 0.09, cream, loc=(0, 0, 2.08), verts=10, bevel=0.03, parent=root)
+    # mouth: cream arch stones + fire
     for k in range(9):
-        a = math.radians(-70 + k * 17.5)
-        kit.box((0.16, 0.2, 0.14), dark, loc=(math.sin(a) * 0.36, -0.7, 0.42 + math.cos(a) * 0.36),
+        a = math.radians(-80 + k * 20)
+        kit.box((0.15, 0.2, 0.13), cream, loc=(math.sin(a) * 0.36, -0.72, 0.44 + math.cos(a) * 0.36),
                 rot=(0, -a, 0), bevel=0.03, parent=root)
-    kit.box((0.5, 0.3, 0.5), mat("smelt_fire", "#FF8A1E", emit=3.0, rough=0.5), loc=(0, -0.6, 0.48), bevel=0.1, parent=root)
-    kit.sphere(0.14, mat("smelt_core", "#FFE27A", emit=5.0), loc=(0, -0.72, 0.42), parent=root)
+    kit.box((0.52, 0.3, 0.52), mat("smelt_fire", "#FF8A1E", emit=3.0, rough=0.5), loc=(0, -0.56, 0.48), bevel=0.1, parent=root)
+    kit.sphere(0.15, mat("smelt_core", "#FFE27A", emit=5.0), loc=(0, -0.7, 0.4), parent=root)
+    # coal crate
+    wood = mat("smelt_wood", "#B07A44", rough=0.8, edge=0.5, var=0.08)
+    kit.box((0.46, 0.4, 0.26), wood, loc=(0.92, -0.62, 0.13), bevel=0.03, parent=root)
     coal = mat("smelt_coal", "#2E3238", rough=0.5, spec=0.4, edge=0.4)
     for k in range(12):
-        kit.ico(rng.uniform(0.07, 0.11), coal, loc=(0.85 + rng.uniform(-0.18, 0.18), -0.6 + rng.uniform(-0.18, 0.18),
-                rng.uniform(0.05, 0.2)), sub=1, parent=root)
+        kit.ico(rng.uniform(0.07, 0.1), coal, loc=(0.92 + rng.uniform(-0.15, 0.15), -0.62 + rng.uniform(-0.12, 0.12),
+                0.27 + rng.uniform(0.0, 0.08)), sub=1, parent=root)
+    # bellows
+    kit.box((0.3, 0.42, 0.08), wood, loc=(-0.92, -0.45, 0.32), rot=(0.25, 0, 0.3), bevel=0.03, parent=root)
+    kit.box((0.26, 0.36, 0.16), mat("smelt_leather", "#7A4A30", rough=0.8, edge=0.45), loc=(-0.92, -0.45, 0.2),
+            rot=(0.12, 0, 0.3), bevel=0.05, parent=root)
+    kit.box((0.3, 0.42, 0.06), wood, loc=(-0.92, -0.45, 0.07), rot=(0, 0, 0.3), bevel=0.02, parent=root)
     gold = mat("smelt_bar", "#FFC928", rough=0.3, spec=0.7, edge=0.4, metal=0.7)
-    for k in range(3):
-        kit.box((0.3, 0.14, 0.09), gold, loc=(-0.85, -0.7 + (k % 2) * 0.03, 0.05 + k * 0.09), rot=(0, 0, 0.2 * k),
-                bevel=0.025, parent=root)
+    for k in range(4):
+        kit.box((0.3, 0.14, 0.09), gold, loc=(-0.5 + (k % 2) * 0.1, -1.02 + (k // 2) * 0.03, 0.05 + (k // 2) * 0.09),
+                rot=(0, 0, 0.5 + 0.25 * k), bevel=0.025, parent=root)
     return root
 
 

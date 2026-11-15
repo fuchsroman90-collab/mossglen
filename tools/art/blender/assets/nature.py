@@ -577,9 +577,28 @@ def mine():
     ang = math.atan2(d.y, d.x) + math.radians(38)
     root = kit.empty("mine", rot=(0, 0, ang + math.pi / 2))
     stone = mat("mine_rock", "#B9A98C", rough=0.85, spec=0.1, edge=0.6, var=0.07)
-    for i, (x, y, r, h) in enumerate(((0, 0.25, 0.95, 0.9), (-0.55, 0.35, 0.6, 0.6), (0.6, 0.4, 0.62, 0.66), (0.1, 0.75, 0.7, 0.7))):
-        o = kit.ico(r, stone, loc=(x, y, h * 0.42), scale=(1.0, 0.9, h / r * 0.95), sub=4, parent=root)
-        kit.displace(o, strength=0.16, scale=0.5, seed=81 + i)
+    stone2 = mat("mine_rock2", "#D6C7A6", rough=0.85, spec=0.1, edge=0.55, var=0.06)
+    for i, (x, y, r, h) in enumerate(((0, 0.25, 0.95, 1.05), (-0.6, 0.3, 0.62, 0.7), (0.62, 0.38, 0.66, 0.8), (0.1, 0.8, 0.7, 0.8),
+                                      (-0.25, 0.55, 0.5, 1.2), (0.4, 0.1, 0.4, 0.95))):
+        # low-subdivision rocks keep hard, chiselled facets
+        o = kit.ico(r, stone2 if i % 2 else stone, loc=(x, y, h * 0.42), scale=(1.0, 0.9, h / r * 0.95), sub=1,
+                    parent=root)
+        o.rotation_euler = (rng.uniform(-0.25, 0.25), rng.uniform(-0.25, 0.25), rng.uniform(0, 3))
+    grass = mat("mine_grass", "#6FAE38", rough=0.8, spec=0.05, edge=0.35, var=0.12)
+    grass2 = mat("mine_grass2", "#8CC44A", rough=0.8, spec=0.05, edge=0.3, var=0.1)
+    # mossy grass cap: many small overlapping lumps instead of flat discs
+    for k in range(34):
+        a = rng.uniform(0, 6.28)
+        rr = rng.uniform(0, 0.62) ** 0.7 * 0.62
+        x, y = math.cos(a) * rr * 1.1, 0.42 + math.sin(a) * rr * 0.75
+        z = 1.06 - rr * 0.55 + rng.uniform(-0.03, 0.03)
+        kit.sphere(rng.uniform(0.13, 0.2), grass2 if k % 3 == 0 else grass, loc=(x, y, z), scale=(1, 1, 0.6), seg=10,
+                   parent=root)
+    for k in range(16):
+        a = rng.uniform(0, 6.28)
+        rr = rng.uniform(0.05, 0.5)
+        kit.cyl(0.013, 0.17, grass2, loc=(math.cos(a) * rr, 0.42 + math.sin(a) * rr * 0.7, 1.08 - rr * 0.45), r2=0.002,
+                rot=(rng.uniform(-0.4, 0.4), rng.uniform(-0.4, 0.4), 0), verts=5, bevel=0.0, parent=root)
     w = _wood("mine_wood", "#8A5A34")
     dark = mat("mine_dark", "#1E1410", rough=1.0, spec=0.0, edge=0.0)
     kit.box((0.62, 0.5, 0.74), dark, loc=(0, -0.42, 0.37), bevel=0.02, parent=root)
@@ -601,7 +620,6 @@ def mine():
     for sx in (-0.2, 0.2):
         for sy in (-1.27, -1.03):
             kit.cyl(0.06, 0.03, iron, loc=(sx, sy, 0.06), rot=(0, math.radians(90), 0), parent=root, verts=12)
-    moss_tufts([(0.2, 0.2, 0.86), (-0.3, 0.3, 0.7), (0.5, 0.5, 0.62), (-0.6, 0.4, 0.5)], rng, parent=root, size=0.12)
     return root
 
 

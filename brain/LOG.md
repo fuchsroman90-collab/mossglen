@@ -2,6 +2,14 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15 (abends) – Fable 5.2: Block 3 „alles noch schöner“
+
+- **Weizen reif** (`farm.py::_wheat_carpet`): 9×9 Halme bis an die Zellkante, dunkler Fuß, dicke helle Ähren →
+  Felder wachsen zu einem goldenen Block zusammen (Zielbild `hd_style_harvest_corner`).
+- **Schmelzofen** neu: rote Ziegelringe mit hellen Steinen, cremefarbener Bogen, blaues Kegeldach, Blasebalg, Kohlekiste.
+- **Mine**: Fels aus kantigen Brocken in zwei Tönen. Grasdecke fehlt noch (sitzt im Fels, nicht sichtbar).
+- Screenshot-Modus `--ui=wheatdemo` (Weizenblock + Mine + Deko bei Zelle 14,10; `--at=16,11.5 --zoom=0.8`).
+
 ## 2026-11-15 – Fable 5.2: Block 2 („komplett weitermachen“)
 
 - **Schmelzofen** (Produktionsgebäude, Level 4, 700 Münzen): Erz + Kohle → Eisen-/Silber-/Gold-/Platinbarren, neue Icons.

@@ -43,7 +43,10 @@ def wheat(stage: int, seed=7):
     green = mat("wheat_green", "#7CC44A", rough=0.6, spec=0.2, edge=0.45, var=0.08, sss=0.1)
     gold = mat("wheat_gold", "#F2C443", rough=0.55, spec=0.25, edge=0.5, var=0.07, edge_color="#B57A1E")
     stalk_gold = mat("wheat_stalk", "#E3B23C", rough=0.6, spec=0.2, edge=0.45, var=0.06)
-    grid = 3 if stage < 3 else 4
+    if stage == 3:
+        _wheat_carpet(root, rng)
+        return root
+    grid = 3
     step = 0.78 / grid
     for gx in range(grid):
         for gy in range(grid):
@@ -82,6 +85,32 @@ def wheat(stage: int, seed=7):
                     _blade(green if stage == 2 else stalk_gold, base, 0.14, Vector((math.cos(a), math.sin(a), 0)),
                            0.6, 0.016, root)
     return root
+
+
+def _wheat_carpet(root, rng):
+    """Ripe wheat as one dense golden carpet: dark foot, packed stalks, bright fat ears on top.
+    Reaches right to the cell edge so neighbouring fields grow together."""
+    foot = mat("wheat_foot", "#D9A223", rough=0.8, spec=0.05, edge=0.25, var=0.1)
+    stalk = mat("wheat_stalk2", "#E9B62E", rough=0.6, spec=0.2, edge=0.4, var=0.08)
+    ear = mat("wheat_ear", "#FFD83A", rough=0.5, spec=0.3, edge=0.5, var=0.07, edge_color="#C98A1E")
+    tip = mat("wheat_tip", "#FFEE8A", rough=0.5, spec=0.3, edge=0.35, var=0.05)
+    kit.box((0.95, 0.95, 0.2), foot, loc=(0, 0, FIELD_TOP + 0.09), bevel=0.07, parent=root)
+    n = 9
+    step = 0.96 / n
+    for gx in range(n):
+        for gy in range(n):
+            cx = -0.48 + step * (gx + 0.5) + rng.uniform(-0.035, 0.035)
+            cy = -0.48 + step * (gy + 0.5) + rng.uniform(-0.035, 0.035)
+            h = rng.uniform(0.4, 0.5)
+            a = rng.uniform(0, 2 * math.pi)
+            lean = rng.uniform(0.03, 0.2)
+            d = Vector((math.cos(a), math.sin(a), 0))
+            p = Vector((cx, cy, FIELD_TOP))
+            rot = (d.y * -lean, d.x * lean, 0)
+            kit.cyl(0.014, h, stalk, loc=p, rot=rot, bevel=0.0, verts=5, parent=root)
+            top = p + Vector((d.x * math.sin(lean), d.y * math.sin(lean), math.cos(lean))) * h
+            kit.sphere(0.045, tip if rng.random() < 0.35 else ear, loc=top, scale=(1.0, 1.0, 2.3), rot=rot, seg=10,
+                       parent=root)
 
 
 def _grid(n, jitter, rng):
