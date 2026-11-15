@@ -62,3 +62,13 @@ Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 - Was daran falsch war (eigene Analyse): Röhrenbeine wie Tischbeine, Kopf zu klein und als zweiter Ball angesetzt,
   blasse einfarbige Haut ohne Schattierung, winzige Kegel-Ohren, Glupschaugen ohne Lid – nichts davon passt zur
   freigegebenen Kuh. **Regel:** neue Tiere aus dem Bauplan der freigegebenen Kuh ableiten, nicht neu erfinden.
+
+## 2026-11-15 – Weizen-Teppich, Gesamtlook, „fetter“ Boden, Arbeitsweise
+- Roman (mit Referenz `hd_ref_coherent_farm.png`): „Der Weizen sieht eher aus wie Mais, Weizen muss mehr aussehen wie
+  einzelne Stränge. Mir gefällt der Look von allem nicht, in dem Referenzbild sieht alles so stimmig aus, bei uns
+  irgendwie nicht, und bei uns ist der Farmboden auch irgendwie so fett.“ Bild: `rejected/wheat_carpet_look_2026-11-15.png`.
+- Roman zur Arbeitsweise: „Du hörst nach jedem kleinen Schritt auf, statt große, schwere und fordernde Aufgaben
+  abzuarbeiten. Mach dir Gedanken zu allem, um alles zu verbessern.“ → **Große Blöcke am Stück, nicht nach jedem
+  Kleinteil zurückmelden.**
+- Regeln daraus: Weizen = dünne Halme in Büscheln, keine dicken Kolben. Äcker = flach auf dem Boden mit Furchen,
+  kein dicker Sockel. Stimmigkeit vor Einzelteil: Boden, Wege, Licht und Größenverhältnisse zuerst.

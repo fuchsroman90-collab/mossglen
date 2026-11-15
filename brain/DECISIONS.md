@@ -64,3 +64,15 @@ Neueste oben. Format: Datum – Entscheidung – Begründung – wer.
 - Funktionen werden wie im Vorbild gebaut. Grafiken, Figuren und Namen bleiben selbst gemacht (Regel 3 bleibt,
   Repo ist öffentlich).
 - Tannen bleiben im Herbst grün (eigenes Material `_sway_ever`).
+
+## 2026-11-15 – Look-Pass „stimmig wie die Referenz“ (nach Romans Kritik)
+Vergleich mit `hd_ref_coherent_farm.png` ergab, warum unser Bild nicht stimmig wirkte – und was jetzt gilt:
+1. **Boden**: ein helles, sattes Wiesengrün und **rotbraune** Wege (Shader `ground.gdshader`, Farb-Angleichung);
+   gesperrtes Land nur noch leicht gedämpft statt dunkelgrau.
+2. **Äcker flach**: `FIELD_TOP` 0,10 → 0,03, 7 feine Furchen, bis an die Zellkante → Felder bilden eine Fläche.
+3. **Weizen = dünne Einzelhalme** (13×13×2 Halme, schmale helle Ähren, leichte Windrichtung). Der „Teppich“ mit
+   dicken Kolben ist verworfen („sieht aus wie Mais“).
+4. **Kamera weiter weg**: `ZOOM_START` 0,52 → 0,44 – Objekte wirken zierlicher.
+5. **Laubbäume kleiner** (Sprite-Skalierung 0,72) – Gebäude und Felder tragen das Bild, nicht die Baumkronen.
+Noch offen für die Stimmigkeit: Gebäude-Dächer/Farben angleichen, Landschilder reduzieren, Gras-Details malen,
+übrige Pflanzen fein statt klobig, Zäune dünner, UI v2.

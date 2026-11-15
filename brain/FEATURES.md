@@ -21,7 +21,8 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 
 ## B. Felder & Ernte
 - ✅ Felder kaufen/verschieben, Zieh-Säen, Wisch-Ernte, 5 Pflanzen
-- ✅ Reifer Weizen als dichter goldener Teppich, Nachbarfelder wachsen zusammen · ⬜ Äcker mit Furchen-Struktur, andere Pflanzen ebenso dicht
+- ✅ Reifer Weizen aus dünnen Einzelhalmen (Teppich mit dicken Kolben verworfen) · ✅ flache Äcker mit Furchen
+- ⬜ Junger Weizen und übrige Pflanzen ebenso fein
 - ⬜ Mehr Pflanzen (Soja, Zuckerrohr, Kürbis, Indigo, Baumwolle, Chili …), Obstbäume/-büsche mit Ernte + Verwelken/Wiederbeleben
 - ⬜ Fortschrittsbalken „Reif in …“ über dem Feld / „Fertig zum Einsammeln“ über Gebäuden
 

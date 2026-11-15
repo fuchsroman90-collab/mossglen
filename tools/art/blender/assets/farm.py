@@ -10,7 +10,7 @@ from .. import kit
 from ..kit import mat
 from .nature import foliage_mat, leaf_clump, moss_tufts  # noqa: F401
 
-FIELD_TOP = 0.1
+FIELD_TOP = 0.03  # flat on the ground (Roman 2026-11-15: "der Farmboden ist so fett")
 
 
 def wood(name="wood", color="#B87C4B"):
@@ -18,15 +18,17 @@ def wood(name="wood", color="#B87C4B"):
 
 
 def field():
+    """Flat ploughed soil lying on the ground: red-brown, fine furrows, reaches the cell edge so
+    neighbouring fields form one plot (reference hd_ref_coherent_farm)."""
     root = kit.empty("field")
-    soil = mat("soil", "#7E4E2E", rough=0.95, spec=0.05, edge=0.45)
-    ridge = mat("soil_ridge", "#9A6238", rough=0.95, spec=0.05, edge=0.45, var=0.05)
-    kit.box((0.92, 0.92, FIELD_TOP), soil, loc=(0, 0, FIELD_TOP / 2), bevel=0.045, parent=root)
-    for i in range(4):
-        y = -0.33 + i * 0.22
-        o = kit.cyl(0.055, 0.84, ridge, loc=(-0.42, y, FIELD_TOP - 0.02), rot=(0, math.radians(90), 0),
-                    bevel=0.0, verts=16, parent=root, scale=(0.7, 1.0, 1.0))
-        kit.displace(o, strength=0.015, scale=0.05, seed=i + 1)
+    soil = mat("soil", "#8C4A2A", rough=0.95, spec=0.03, edge=0.3, var=0.05)
+    ridge = mat("soil_ridge", "#A55C34", rough=0.95, spec=0.03, edge=0.3, var=0.06)
+    kit.box((0.985, 0.985, FIELD_TOP), soil, loc=(0, 0, FIELD_TOP / 2), bevel=0.012, parent=root)
+    for i in range(7):
+        y = -0.42 + i * 0.14
+        o = kit.cyl(0.04, 0.94, ridge, loc=(-0.47, y, FIELD_TOP - 0.012), rot=(0, math.radians(90), 0),
+                    bevel=0.0, verts=12, parent=root, scale=(0.45, 1.0, 1.0))
+        kit.displace(o, strength=0.008, scale=0.05, seed=i + 1)
     return root
 
 
@@ -88,29 +90,31 @@ def wheat(stage: int, seed=7):
 
 
 def _wheat_carpet(root, rng):
-    """Ripe wheat as one dense golden carpet: dark foot, packed stalks, bright fat ears on top.
-    Reaches right to the cell edge so neighbouring fields grow together."""
-    foot = mat("wheat_foot", "#D9A223", rough=0.8, spec=0.05, edge=0.25, var=0.1)
-    stalk = mat("wheat_stalk2", "#E9B62E", rough=0.6, spec=0.2, edge=0.4, var=0.08)
-    ear = mat("wheat_ear", "#FFD83A", rough=0.5, spec=0.3, edge=0.5, var=0.07, edge_color="#C98A1E")
-    tip = mat("wheat_tip", "#FFEE8A", rough=0.5, spec=0.3, edge=0.35, var=0.05)
-    kit.box((0.95, 0.95, 0.2), foot, loc=(0, 0, FIELD_TOP + 0.09), bevel=0.07, parent=root)
-    n = 9
-    step = 0.96 / n
+    """Ripe wheat as many thin single strands (Roman 2026-11-15: 'sieht aus wie Mais, muss wie einzelne
+    Straenge aussehen'): hair-thin stalks in loose tufts, each ending in a slim pale ear, leaning slightly
+    in one wind direction; darker gold low down, lemon yellow on top."""
+    low = mat("wheat_low", "#F2B41E", rough=0.7, spec=0.1, edge=0.08, var=0.06)
+    stalk = mat("wheat_stalk2", "#FFD42E", rough=0.6, spec=0.2, edge=0.08, var=0.05)
+    ear = mat("wheat_ear", "#FFE640", rough=0.5, spec=0.25, edge=0.12, var=0.05, edge_color="#E0A21E")
+    pale = mat("wheat_tip", "#FFF6B0", rough=0.5, spec=0.25, edge=0.08, var=0.04)
+    wind = Vector((0.6, -0.8, 0)).normalized()
+    n = 13
+    step = 0.97 / n
     for gx in range(n):
         for gy in range(n):
-            cx = -0.48 + step * (gx + 0.5) + rng.uniform(-0.035, 0.035)
-            cy = -0.48 + step * (gy + 0.5) + rng.uniform(-0.035, 0.035)
-            h = rng.uniform(0.4, 0.5)
-            a = rng.uniform(0, 2 * math.pi)
-            lean = rng.uniform(0.03, 0.2)
-            d = Vector((math.cos(a), math.sin(a), 0))
-            p = Vector((cx, cy, FIELD_TOP))
-            rot = (d.y * -lean, d.x * lean, 0)
-            kit.cyl(0.014, h, stalk, loc=p, rot=rot, bevel=0.0, verts=5, parent=root)
-            top = p + Vector((d.x * math.sin(lean), d.y * math.sin(lean), math.cos(lean))) * h
-            kit.sphere(0.045, tip if rng.random() < 0.35 else ear, loc=top, scale=(1.0, 1.0, 2.3), rot=rot, seg=10,
-                       parent=root)
+            cx = -0.485 + step * (gx + 0.5) + rng.uniform(-0.03, 0.03)
+            cy = -0.485 + step * (gy + 0.5) + rng.uniform(-0.03, 0.03)
+            for k in range(2):
+                p = Vector((cx + rng.uniform(-0.02, 0.02), cy + rng.uniform(-0.02, 0.02), FIELD_TOP - 0.005))
+                h = rng.uniform(0.38, 0.56)
+                a = rng.uniform(0, 2 * math.pi)
+                d = (wind * 0.6 + Vector((math.cos(a), math.sin(a), 0)) * 0.6).normalized()
+                lean = rng.uniform(0.04, 0.2)
+                rot = (d.y * -lean, d.x * lean, 0)
+                kit.cyl(0.0055, h, low if k else stalk, loc=p, rot=rot, bevel=0.0, verts=4, parent=root)
+                top = p + Vector((d.x * math.sin(lean), d.y * math.sin(lean), math.cos(lean))) * h
+                kit.sphere(0.013, pale if rng.random() < 0.3 else ear, loc=top, scale=(1.0, 1.0, 4.6), rot=rot, seg=6,
+                           parent=root)
 
 
 def _grid(n, jitter, rng):

@@ -26,7 +26,7 @@ const MAP_MAX := 36
 const MASK_SIZE := 64
 const ZOOM_MIN := 0.2
 const ZOOM_MAX := 1.0
-const ZOOM_START := 0.52
+const ZOOM_START := 0.44
 const TAP_SLOP := 14.0
 const BRUSH_STEP := 18.0
 
@@ -573,6 +573,8 @@ func _add_prop(sprite_name: String, g: Vector2, mat: Material) -> Sprite2D:
 	var s := _add_static(sprite_name, g)
 	if sprite_name.begins_with("tree_pine") and mat == _sway_tree:
 		mat = _sway_ever
+	if sprite_name.begins_with("tree_") and not sprite_name.begins_with("tree_pine"):
+		s.scale = Vector2(0.72, 0.72)  # look pass: slimmer trees so buildings and fields carry the picture
 	s.material = mat
 	if mat == _sway_tree or mat == _sway_bush:
 		# per-plant random for the season shader, carried in the blue channel (see sway.gdshader)

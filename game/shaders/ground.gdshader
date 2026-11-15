@@ -24,7 +24,12 @@ void fragment() {
 	// large, slow colour variation so the repeat is not visible
 	float macro = texture(grass_tex, g / 29.0 + vec2(0.31, 0.77)).a;
 	vec3 grass = gr.rgb * mix(0.92, 1.07, macro);
+	// look pass 2026-11-15: one bright, saturated meadow green and red-brown earth, like the reference farm
+	float gl = dot(grass, vec3(0.3, 0.59, 0.11));
+	grass = mix(grass, vec3(0.47, 0.76, 0.16) * (0.55 + gl * 0.95), 0.62);
 	vec3 dirt = texture(dirt_tex, g / 3.0).rgb;
+	float dl = dot(dirt, vec3(0.3, 0.59, 0.11));
+	dirt = mix(dirt, vec3(0.74, 0.40, 0.22) * (0.45 + dl * 0.95), 0.7);
 
 	float m = texture(mask_tex, (g - mask_origin + 0.5) / mask_size).r;
 	float n = texture(grass_tex, g / 2.3 + vec2(0.5)).a - 0.5;
@@ -73,6 +78,6 @@ void fragment() {
 	// land that is not yours yet: a little darker and greyer, with a soft edge
 	float own = smoothstep(0.25, 0.75, texture(land_tex, (g - mask_origin + 0.5) / mask_size).r);
 	float lum = dot(col, vec3(0.3, 0.59, 0.11));
-	col = mix(mix(col, vec3(lum), 0.35) * vec3(0.78, 0.8, 0.78), col, own);
+	col = mix(mix(col, vec3(lum), 0.18) * vec3(0.9, 0.92, 0.9), col, own);
 	COLOR = vec4(col, 1.0);
 }

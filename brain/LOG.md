@@ -2,6 +2,13 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15 (spät) – Look-Pass nach Romans Kritik
+
+- Roman: Weizen wie Mais, Gesamtlook nicht stimmig, Boden „fett“, ich höre zu früh auf (DISLIKES).
+- Umgesetzt (siehe DECISIONS „Look-Pass“): Boden-/Wegfarben, flache Äcker mit Furchen, Weizen als dünne Halme,
+  Kamera weiter weg, Laubbäume kleiner. Alle 25 Pflanzen-Frames neu gerendert (wegen `FIELD_TOP`).
+- Vergleichsbild oben Spiel / unten Referenz gebaut (`/tmp/cmp.png`, nicht im Repo).
+
 ## 2026-11-15 (abends) – Schwein v3.1
 
 - Roman zu v3: „du hast mit deiner Einschätzung recht beim Schwein, änder das“ (Schwanz zu lang, Lächeln unsichtbar).
