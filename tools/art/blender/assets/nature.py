@@ -623,8 +623,41 @@ def mine():
     return root
 
 
+def stall():
+    """Roadside stand: wooden counter with crates of goods and a red-white striped canopy."""
+    d = Vector((kit.TO_CAM.x, kit.TO_CAM.y, 0)).normalized()
+    root = kit.empty("stall", rot=(0, 0, math.atan2(d.y, d.x) + math.radians(35) + math.pi / 2))
+    w = _wood("stall_wood", "#C98A52")
+    dk = _wood("stall_dark", "#8A5A34")
+    kit.box((1.5, 0.6, 0.5), w, loc=(0, 0, 0.25), bevel=0.03, parent=root)
+    for k in range(5):
+        kit.box((0.26, 0.02, 0.44), dk if k % 2 else w, loc=(-0.6 + k * 0.3, -0.31, 0.25), bevel=0.01, parent=root)
+    kit.box((1.6, 0.7, 0.06), dk, loc=(0, 0, 0.53), bevel=0.02, parent=root)
+    for sx in (-0.72, 0.72):
+        for sy in (-0.28, 0.28):
+            kit.cyl(0.035, 1.5, dk, loc=(sx, sy, 0), verts=10, parent=root)
+    red = mat("stall_red", "#E8473B", rough=0.5, spec=0.25, edge=0.5, edge_color="#7A1E16")
+    white = mat("stall_white", "#FFF4E2", rough=0.55, spec=0.2, edge=0.4, edge_color="#B9A48A")
+    for k in range(8):
+        kit.box((0.2, 0.95, 0.05), red if k % 2 == 0 else white, loc=(-0.7 + k * 0.2, -0.08, 1.52),
+                rot=(math.radians(12), 0, 0), bevel=0.015, parent=root)
+        kit.sphere(0.1, red if k % 2 == 0 else white, loc=(-0.7 + k * 0.2, -0.55, 1.4), scale=(1, 0.3, 1), seg=12,
+                   parent=root)
+    crate = _wood("stall_crate", "#E2B87A")
+    rng = random.Random(55)
+    for x, col in ((-0.5, "#E8402E"), (0.0, "#FFD23F"), (0.5, "#F28A1E")):
+        kit.box((0.4, 0.4, 0.14), crate, loc=(x, 0, 0.63), bevel=0.02, parent=root)
+        fm = mat("stall_fruit_" + col, col, rough=0.4, spec=0.4, edge=0.45)
+        for j in range(9):
+            kit.sphere(0.065, fm, loc=(x + rng.uniform(-0.13, 0.13), rng.uniform(-0.13, 0.13), 0.73 + rng.uniform(0, 0.04)),
+                       seg=10, parent=root)
+    kit.box((0.5, 0.04, 0.2), mat("stall_sign", "#FFF6DC", rough=0.6, edge=0.4), loc=(0, -0.34, 0.3), bevel=0.02, parent=root)
+    return root
+
+
 def nature_frames():
     return {
+        "stall": stall,
         "mine": mine,
         "scarecrow": scarecrow, "bench": bench, "lantern": lantern,
         "picket_x": lambda: picket("x"), "picket_y": lambda: picket("y"),

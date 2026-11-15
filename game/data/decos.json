@@ -230,5 +230,16 @@
   ],
   "use": "mine",
   "max": 1
+ },
+ "stall": {
+  "sprite": "stall",
+  "price": 250,
+  "unlock": 3,
+  "size": [
+   2,
+   2
+  ],
+  "use": "stand",
+  "max": 1
  }
 }

@@ -2,6 +2,17 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15 (abends) – Fable 5.2: Block 4 („ganzen Plan fertig“ – Teil)
+
+- Roman: „mach alles fertig, ganzen Plan“. Der Plan ist zu groß für eine Sitzung; weiter Block für Block.
+- **Schwein**: Rüsselscheibe saß in der NE-Ansicht daneben (Welt/Lokal vertauscht) → behoben; Beine höher angesetzt
+  und kurz; Grinsen dicker. Alle 40 Frames neu gerendert. **Noch nicht von Roman freigegeben.**
+- **Straßenstand**: `Game.stand` (4 Plätze), Preisstufen 0,8×/1,2×/1,8× mit Zeitfaktor 0,5/1/2,5, Fenster mit
+  getrennten Rahmen (Theke oben, Auswahl unten), Modell `stall`. Screenshot `--ui=stand`.
+- Preis-Abfrage für Besucher/Stand über `Game.price()` (Feldfrüchte stehen nicht in items.json).
+- Offen aus dem Plan: UI v2 einbauen, Dinos + Haustiere im neuen Stil, Item-Blasen, Helfer, übrige Pflanzen
+  dicht, Furchen, Felskante, Schmuck, Freunde/Supabase, iPhone-Test.
+
 ## 2026-11-15 (abends) – Fable 5.2: Block 3 „alles noch schöner“
 
 - **Weizen reif** (`farm.py::_wheat_carpet`): 9×9 Halme bis an die Zellkante, dunkler Fuß, dicke helle Ähren →

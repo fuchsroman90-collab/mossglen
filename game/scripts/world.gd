@@ -1005,8 +1005,11 @@ func _tap(world: Vector2) -> void:
 			return
 		if best.has_meta("deco"):
 			Audio.play("click")
-			if Game.deco_defs[best.get_meta("deco")["k"]].get("use", "") == "mine":
+			var use: String = Game.deco_defs[best.get_meta("deco")["k"]].get("use", "")
+			if use == "mine":
 				hud.rewards.open_mine(best)
+			elif use == "stand":
+				hud.rewards.open_stand(best)
 			else:
 				hud.land.open_deco(best)
 			return
@@ -1901,6 +1904,13 @@ func _debug_ui(which: String) -> void:
 						return
 			else:
 				print("reloaded after move")
+		"stand":
+			Game.add_item("egg", 6, true)
+			Game.add_item("wheat", 9, true)
+			Game.stand_put("egg", 3, 1)
+			Game.stand_put("wheat", 4, 0)
+			Game.stand[1]["t0"] = 0.0
+			hud.rewards.open_stand(null)
 		"visitor":
 			Game.add_item("egg", 6, true)
 			hud.rewards.open_visitor(spawn_visitor())
@@ -2174,6 +2184,15 @@ func _run_smoke() -> void:
 		dismiss_visitor()
 		if visitor != null:
 			errors.append("visitor did not leave")
+	# roadside stand: put goods on, they sell after a while, collect the money
+	Game.add_item("wheat", 4, true)
+	var sc0 := Game.coins
+	if not Game.stand_put("wheat", 2, 0) or Game.stand_collect(0) != 0:
+		errors.append("stand put failed")
+	else:
+		Game.stand[0]["t0"] = 0.0
+		if Game.stand_collect(0) <= 0 or Game.coins <= sc0 or not Game.stand.is_empty():
+			errors.append("stand sale failed")
 	# mine: a pickaxe gives two ores
 	Game.add_item("pickaxe", 1, true)
 	var ores := Game.dig_mine("pickaxe")

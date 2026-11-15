@@ -26,7 +26,7 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 - ⬜ Fortschrittsbalken „Reif in …“ über dem Feld / „Fertig zum Einsammeln“ über Gebäuden
 
 ## C. Tiere
-- ✅ Huhn, Kuh, Schaf (freigegeben) · 🟡 Schwein (Prototyp fehlerhaft)
+- ✅ Huhn, Kuh, Schaf (freigegeben) · 🟡 Schwein (Fehler behoben: Rüssel sitzt, Beine am Körper, Grinsen sichtbar – wartet auf Romans OK)
 - ⬜ Ziege, Pferd, Hunde, Katzen, Hasen, Esel als Haustiere mit Hütte/Futternapf
 - ⬜ Füttern per Ziehen, Sammeln per Ziehen (Korb-Symbol mit Pfeil), Tiere zeigen Hunger/Fertig
 
@@ -44,7 +44,8 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 
 ## F. Handel & Aufträge
 - ✅ Auftragstafel + Lieferwagen · ✅ Besucher an der Auftragstafel (alle 5 Min, zahlt 1,6× Lagerpreis; nutzt vorerst die Figur von Händler Pip)
-- ⬜ Eigene Besucher-Figuren · ⬜ Straßenstand (eigene Waren zum Preis einstellen)
+- ✅ Straßenstand (Laden → Deko, Level 3): 4 Plätze, günstig/normal/teuer – teurer dauert länger, dann kassieren
+- ⬜ Eigene Besucher-Figuren
 - ⬜ Schiff am Steg (Kisten füllen, Frist), Zug/Stadt-Besucher, Zeitung mit Angeboten
 - ⬜ Freunde: Hof von Elli besuchen, helfen, handeln (braucht Supabase – Entscheidung offen)
 

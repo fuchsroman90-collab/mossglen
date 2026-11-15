@@ -18,6 +18,10 @@ var _spinning := false
 var _mine: Control
 var _mine_body: Control
 var _mine_sprite: Sprite2D
+var _stand: Control
+var _stand_body: Control
+var _stand_sprite: Sprite2D
+var _stand_pick := ""
 var _vis: Control
 var _vis_body: Control
 var _daily: Control
@@ -58,6 +62,10 @@ func setup(h: Hud) -> void:
 	_build_wheel()
 	_build_daily()
 	_build_mine()
+	_stand = hud._panel_window(Vector2(1400, 900), "STAND_TITLE")[0]
+	hud.extra_windows.append(_stand)
+	_stand_body = Control.new()
+	_stand.add_child(_stand_body)
 	_vis = hud._panel_window(Vector2(1320, 760), "VISITOR_TITLE")[0]
 	hud.extra_windows.append(_vis)
 	_vis_body = Control.new()
@@ -397,3 +405,152 @@ func open_visitor(s: Sprite2D) -> void:
 		hud.visitor_done.emit())
 	_vis_body.add_child(no)
 	hud._open(_vis)
+
+
+# ------------------------------------------------------------------ roadside stand
+
+func open_stand(s: Sprite2D) -> void:
+	_stand_sprite = s
+	_stand_pick = ""
+	_fill_stand()
+	hud._open(_stand)
+
+
+func _process(_d: float) -> void:
+	if _stand != null and _stand.visible and Engine.get_process_frames() % 30 == 0:
+		_fill_stand()
+
+
+func _fill_stand() -> void:
+	for c in _stand_body.get_children():
+		c.queue_free()
+	var now := Time.get_unix_time_from_system()
+	# top frame: the four slots on the counter
+	for i in Game.STAND_SLOTS:
+		var t := hud._patch("panel.png", 44, 44)
+		t.position = Vector2(60 + i * 322, 110)
+		t.size = Vector2(300, 330)
+		_stand_body.add_child(t)
+		if i >= Game.stand.size():
+			t.self_modulate = Color(0.9, 0.88, 0.8)
+			var e := hud._dark(hud._label("STAND_EMPTY", 30))
+			e.position = Vector2(0, 140)
+			e.size = Vector2(300, 44)
+			e.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			t.add_child(e)
+			continue
+		var sl: Dictionary = Game.stand[i]
+		var sold := Game.stand_sold(i)
+		t.self_modulate = Color(0.78, 0.95, 0.7) if sold else Color(1.0, 0.93, 0.7)
+		var ic := hud._item_icon(sl["item"], 130)
+		ic.position = Vector2(85, 16)
+		t.add_child(ic)
+		var n := hud._label("x%d" % int(sl["n"]), 40)
+		n.position = Vector2(180, 100)
+		t.add_child(n)
+		var coin := hud._tex("coin.png")
+		coin.scale = Vector2(0.55, 0.55)
+		coin.position = Vector2(70, 160)
+		t.add_child(coin)
+		var pay := hud._label(Hud.fmt(int(sl["pay"])), 40)
+		pay.position = Vector2(130, 162)
+		t.add_child(pay)
+		if sold:
+			var b := hud._pill("STAND_COLLECT", Vector2(30, 232), 240)
+			b.pressed.connect(func() -> void:
+				var got := Game.stand_collect(i)
+				if got > 0:
+					Audio.play("levelup")
+					Game.toast.emit("+%s" % Hud.fmt(got), "coin.png")
+				_fill_stand())
+			t.add_child(b)
+		else:
+			var left := int(ceil(float(sl["t0"]) + float(sl["dur"]) - now))
+			var w := hud._dark(hud._label(tr("STAND_WAIT") % [left / 60, left % 60], 30))
+			w.position = Vector2(0, 250)
+			w.size = Vector2(300, 44)
+			w.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			t.add_child(w)
+	# bottom frame: choose goods, then a price
+	var box := hud._patch("panel.png", 44, 44)
+	box.position = Vector2(60, 470)
+	box.size = Vector2(1280, 370)
+	box.self_modulate = Color(0.86, 0.93, 1.0)
+	_stand_body.add_child(box)
+	if Game.stand.size() >= Game.STAND_SLOTS:
+		var f := hud._dark(hud._label("STAND_FULL", 34))
+		f.position = Vector2(0, 150)
+		f.size = Vector2(1280, 50)
+		f.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		box.add_child(f)
+		return
+	if _stand_pick == "" or Game.count(_stand_pick) < 1:
+		_stand_pick = ""
+		var h := hud._dark(hud._label("STAND_PICK", 32))
+		h.position = Vector2(30, 16)
+		box.add_child(h)
+		var goods: Array = []
+		for k in Game.inventory:
+			if Game.count(k) > 0 and Game.price(k) > 0 and Game.items.get(k, {}).get("kind", "") != "tool":
+				goods.append(k)
+		goods.sort_custom(func(a: String, b: String) -> bool: return Game.count(a) > Game.count(b))
+		for j in mini(goods.size(), 16):
+			var k: String = goods[j]
+			var gb := TextureButton.new()
+			gb.texture_normal = load(Hud.UI + "slot.png")
+			gb.position = Vector2(30 + (j % 8) * 152, 70 + (j / 8) * 146)
+			gb.pressed.connect(func() -> void:
+				_stand_pick = k
+				Audio.play("click")
+				_fill_stand())
+			box.add_child(gb)
+			var gi := hud._item_icon(k, 96)
+			gi.position = Vector2(22, 12)
+			gi.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			gb.add_child(gi)
+			var gl := hud._label(str(Game.count(k)), 32)
+			gl.position = Vector2(80, 92)
+			gl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			gb.add_child(gl)
+		return
+	var n_put := mini(Game.count(_stand_pick), 5)
+	var pi := hud._item_icon(_stand_pick, 150)
+	pi.position = Vector2(40, 40)
+	box.add_child(pi)
+	var pl := hud._dark(hud._label("%d× %s" % [n_put, tr("ITEM_" + _stand_pick)], 36))
+	pl.position = Vector2(30, 210)
+	box.add_child(pl)
+	var back := hud._pill("STAND_BACK", Vector2(30, 280), 220)
+	back.pressed.connect(func() -> void:
+		_stand_pick = ""
+		_fill_stand())
+	box.add_child(back)
+	for lv in 3:
+		var pay_v := int(ceil(float(Game.price(_stand_pick)) * n_put * float(Game.STAND_PRICES[lv][0])))
+		var secs := int(45.0 * n_put * float(Game.STAND_PRICES[lv][1]))
+		var pt := hud._patch("panel.png", 44, 44)
+		pt.position = Vector2(300 + lv * 322, 30)
+		pt.size = Vector2(300, 310)
+		box.add_child(pt)
+		var tl := hud._dark(hud._label(["STAND_CHEAP", "STAND_FAIR", "STAND_DEAR"][lv], 32))
+		tl.position = Vector2(0, 16)
+		tl.size = Vector2(300, 44)
+		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		pt.add_child(tl)
+		var pv := hud._label(Hud.fmt(pay_v), 56)
+		pv.position = Vector2(0, 70)
+		pv.size = Vector2(300, 70)
+		pv.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		pt.add_child(pv)
+		var tv := hud._dark(hud._label(tr("STAND_WAIT") % [secs / 60, secs % 60], 28))
+		tv.position = Vector2(0, 146)
+		tv.size = Vector2(300, 40)
+		tv.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		pt.add_child(tv)
+		var pb := hud._pill("STAND_PUT", Vector2(30, 210), 240)
+		pb.pressed.connect(func() -> void:
+			if Game.stand_put(_stand_pick, n_put, lv):
+				Audio.play("pop")
+				_stand_pick = ""
+			_fill_stand())
+		pt.add_child(pb)

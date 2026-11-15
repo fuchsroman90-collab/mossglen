@@ -1,6 +1,7 @@
 """Animals: chicken and baby dino. Built per pose, rendered per frame."""
 from __future__ import annotations
 
+import bpy
 import math
 import random
 
@@ -701,9 +702,11 @@ def pig(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squ
     snout_m = mat("pig_snout2", "#FFB2A0", rough=0.42, spec=0.32, edge=0.55, edge_color="#A85A4A")
     sp, sn = on_head((1.0, 0, -0.25))
     disc = kit.cyl(0.09, 0.06, snout_m, r2=0.088, loc=(0, 0, 0), bevel=0.025, verts=32, scale=(1.0, 1.15, 1.0))
-    kit.place_on(disc, sp + sn * 0.005, sn)
+    bpy.context.view_layer.update()
+    bw = body.matrix_world
+    kit.place_on(disc, bw @ (sp + sn * 0.005), (bw.to_3x3() @ sn).normalized())
     disc.parent = body
-    disc.matrix_parent_inverse = body.matrix_world.inverted()
+    disc.matrix_parent_inverse = bw.inverted()
     nos = mat("pig_nostril2", "#5A2A22", rough=0.6, edge=0.0)
     side_v = sn.cross(Vector((0, 0, 1))).normalized()
     up_v = side_v.cross(sn).normalized()
@@ -719,7 +722,7 @@ def pig(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squ
         d = Vector((0.75, math.sin(a) * 0.9, -0.75 + abs(math.sin(a)) * 0.32))
         q, _ = on_head(tuple(d))
         pts.append(tuple(q + (q - head_c).normalized() * 0.004))
-    kit.curve_tube(pts, r=0.014, m=mouth, parent=body)
+    kit.curve_tube(pts, r=0.024, m=mouth, parent=body)
     tooth = mat("pig_tooth", "#FFFDF4", rough=0.3, spec=0.4, edge=0.3)
     for k in (2, 3, 4):
         tp = Vector(pts[k])
@@ -753,10 +756,10 @@ def pig(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squ
     hoof = mat("pig_hoof2", "#4A2A22", rough=0.4, spec=0.4, edge=0.3)
     for (lx, ly, ang) in ((0.16, -0.13, legs[0]), (0.16, 0.13, legs[1]), (-0.2, -0.13, legs[1]),
                           (-0.2, 0.13, legs[0])):
-        hip = kit.empty("hip", loc=(lx, ly, 0.2), rot=(0, math.radians(ang), 0), parent=root)
-        kit.cyl(0.07, 0.17, skin, r2=0.055, loc=(0, 0, -0.17), bevel=0.02, verts=16, parent=hip)
+        hip = kit.empty("hip", loc=(lx, ly, 0.25), rot=(0, math.radians(ang), 0), parent=root)
+        kit.cyl(0.075, 0.22, skin, r2=0.058, loc=(0, 0, -0.22), bevel=0.02, verts=16, parent=hip)
         for cy in (-0.022, 0.022):
-            kit.cyl(0.032, 0.04, hoof, r2=0.03, loc=(0.006, cy, -0.2), bevel=0.01, verts=12, parent=hip,
+            kit.cyl(0.034, 0.04, hoof, r2=0.032, loc=(0.006, cy, -0.25), bevel=0.01, verts=12, parent=hip,
                     scale=(1.2, 0.85, 1.0))
     return root
 

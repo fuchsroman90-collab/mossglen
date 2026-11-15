@@ -85,6 +85,9 @@ var placeables: Dictionary = {}  ## data/placeables.json
 var land: Dictionary = {}  ## unlocked parcel id -> true (the start parcels are always open)
 var cleared: Dictionary = {}  ## obstacle key "x,y" -> true
 var skip_intro := false  ## set before a scene reload (moving a building)
+var stand: Array = []  ## roadside stand slots: {"item", "n", "pay", "t0", "dur"}
+const STAND_SLOTS := 4
+const STAND_PRICES := [[0.8, 0.5], [1.2, 1.0], [1.8, 2.5]]  ## [price factor, time factor]
 var wheel_day := ""  ## date of the last free wheel spin
 var daily_day := ""  ## date of the last claimed daily gift
 var daily_streak := 0  ## gifts claimed in a row (0..6 = next tile)
@@ -528,14 +531,13 @@ func dig_mine(tool: String) -> Dictionary:
 func make_visitor_offer() -> Dictionary:
 	var pool: Array = []
 	for k in inventory:
-		var d: Dictionary = items.get(k, {})
-		if count(k) > 0 and d.has("sell") and d.get("kind", "") != "tool":
+		if count(k) > 0 and price(k) > 0 and items.get(k, {}).get("kind", "") != "tool":
 			pool.append(k)
 	if pool.is_empty():
 		pool = ["wheat", "egg"]
 	var item: String = pool.pick_random()
 	var n := clampi(randi_range(1, 5), 1, maxi(1, count(item)))
-	return {"item": item, "n": n, "pay": int(ceil(float(items[item]["sell"]) * n * 1.6))}
+	return {"item": item, "n": n, "pay": int(ceil(float(price(item)) * n * 1.6))}
 
 
 ## Sells to the visitor; false if the goods are missing.
@@ -546,6 +548,34 @@ func accept_visitor(o: Dictionary) -> bool:
 	add_xp(int(o["n"]))
 	mark_dirty()
 	return true
+
+
+## Puts n of an item on the roadside stand at price level 0..2 (cheap sells fast, dear sells slowly).
+func stand_put(item: String, n: int, level: int) -> bool:
+	if stand.size() >= STAND_SLOTS or n < 1 or not take_item(item, n):
+		return false
+	var base := float(price(item)) * n
+	stand.append({"item": item, "n": n, "pay": int(ceil(base * float(STAND_PRICES[level][0]))),
+		"t0": Time.get_unix_time_from_system(), "dur": 45.0 * n * float(STAND_PRICES[level][1])})
+	mark_dirty()
+	return true
+
+
+func stand_sold(i: int) -> bool:
+	var s: Dictionary = stand[i]
+	return Time.get_unix_time_from_system() >= float(s["t0"]) + float(s["dur"])
+
+
+## Takes the money of a sold slot; 0 if it has not sold yet.
+func stand_collect(i: int) -> int:
+	if i < 0 or i >= stand.size() or not stand_sold(i):
+		return 0
+	var pay := int(stand[i]["pay"])
+	stand.remove_at(i)
+	add_coins(pay)
+	add_xp(1)
+	mark_dirty()
+	return pay
 
 
 func wheel_free() -> bool:
@@ -969,7 +999,7 @@ func save_game() -> void:
 		"meadow": meadow, "dino_seen": dino_seen, "digs": digs,
 		"quest": {"i": quest_index, "p": quest_progress, "s": quest_stage}, "restored": restored,
 		"museum_fossils": museum_fossils,
-		"wheel_day": wheel_day, "daily_day": daily_day, "daily_streak": daily_streak, "stats": stats, "ach_claimed": ach_claimed, "tutorial": tutorial_step, "festival": festival,
+		"stand": stand, "wheel_day": wheel_day, "daily_day": daily_day, "daily_streak": daily_streak, "stats": stats, "ach_claimed": ach_claimed, "tutorial": tutorial_step, "festival": festival,
 		"silo_level": silo_level, "barn_level": barn_level, "land": land, "cleared": cleared, "placed": placed, "decos": decos,
 		"truck": {"back": truck_back_at, "cargo": truck_cargo, "xp": truck_xp},
 		"locale": TranslationServer.get_locale().substr(0, 2),
@@ -1040,6 +1070,7 @@ func load_game() -> bool:
 	cleared = parsed.get("cleared", {})
 	placed = parsed.get("placed", [])
 	decos = parsed.get("decos", [])
+	stand = parsed.get("stand", [])
 	wheel_day = str(parsed.get("wheel_day", ""))
 	daily_day = str(parsed.get("daily_day", ""))
 	daily_streak = int(parsed.get("daily_streak", 0))
