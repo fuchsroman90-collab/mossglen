@@ -2,6 +2,11 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15 (spät) – Klippe mit Mine
+
+- Klippe + Mineneingang gebaut (DECISIONS „Mine gehört in den Berg“). Offen: Klippen-Oberkante ist eine flache
+  hellgrüne Platte mit sichtbaren Fugen, das Land dahinter liegt optisch nicht höher; Wald/Herbstlaub oben fehlt.
+
 ## 2026-11-15 (spät) – Look-Pass Teil 2
 
 - Pflanzen dichter und schlanker (Raster bis an die Zellkante, Mais 3×3 mit dünnen Stängeln, Karotte/Erdbeere 4×4,

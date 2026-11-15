@@ -395,3 +395,4 @@ STAND_CHEAP	Günstig	Cheap
 STAND_FAIR	Normal	Fair
 STAND_DEAR	Teuer	Dear
 STAND_PUT	Anbieten	Offer
+MINE_LOCKED	Die Mine öffnet ab Level 3	The mine opens at level 3

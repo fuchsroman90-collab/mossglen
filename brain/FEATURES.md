@@ -36,7 +36,7 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 - ⬜ Weitere: Grill, Zuckermühle, Saftpresse, Eismaschine, Kuchenofen, Schmelzofen (Mine)
 
 ## E. Mine (Bild `hd_style_mine_tools`)
-- ✅ Mine als platzierbares Gebäude (Laden → Deko, Level 3), Fenster mit Schaufel/Spitzhacke/Dynamit/TNT-Fass
+- ✅ Mine als Eingang in der Klippe am Westrand (ab Level 3), Fenster mit Schaufel/Spitzhacke/Dynamit/TNT-Fass
 - ✅ Erze im Lager (Kohle, Eisen, Silber, Gold, Platin), verkaufbar; Spitzhacke/TNT als Fund und in Kisten
 - ✅ Schmelzofen (Level 4): Eisen-, Silber-, Gold-, Platinbarren
 - ✅ Schmelzofen neu aus Ziegeln (blaues Dach, Blasebalg, Kohlekiste) · ✅ Minenfels kantig

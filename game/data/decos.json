@@ -220,17 +220,6 @@
   "price": 90,
   "unlock": 4
  },
- "mine": {
-  "sprite": "mine",
-  "price": 400,
-  "unlock": 3,
-  "size": [
-   2,
-   2
-  ],
-  "use": "mine",
-  "max": 1
- },
  "stall": {
   "sprite": "stall",
   "price": 250,

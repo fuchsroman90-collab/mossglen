@@ -655,10 +655,90 @@ def stall():
     return root
 
 
+def cliff(seed=1, gate=False):
+    """Two cells of sandstone cliff running along Y, face towards the camera side of X, grass on top,
+    rubble at the foot (reference hd_ref_cliff_mine). gate=True works the mine entrance into the rock:
+    timber portal, dark tunnel, rails and an ore cart."""
+    rng = random.Random(seed)
+    sx = 1.0 if kit.TO_CAM.x > 0 else -1.0
+    root = kit.empty("cliff")
+    tones = [mat(f"cliff_{i}", c, rough=0.85, spec=0.08, edge=0.5, var=0.05, edge_color="#B98A50")
+             for i, c in enumerate(("#F1D7A0", "#E6C385", "#F7E2B4", "#DDB673"))]
+    H = 1.55
+    # rock face: leaning slabs side by side, each a squashed low-poly boulder -> chiselled vertical facets
+    y = -1.05
+    k = 0
+    while y < 1.05:
+        w = rng.uniform(0.28, 0.46)
+        if gate and abs(y + w / 2) < 0.42:
+            y += w
+            continue
+        # straight slab from the ground up, leaning back a little, turned a few degrees -> flat facets
+        hh = H * rng.uniform(0.96, 1.04)
+        o = kit.box((0.5, w * 1.08, hh), tones[k % 4], loc=(sx * rng.uniform(-0.3, -0.16), y + w / 2, hh / 2 - 0.04),
+                    bevel=0.05, parent=root)
+        o.rotation_euler = (rng.uniform(-0.03, 0.03), sx * rng.uniform(-0.16, -0.07), rng.uniform(-0.3, 0.3))
+        if rng.random() < 0.6:  # a broken ledge half way up
+            lz = rng.uniform(0.35, 0.95)
+            kit.box((0.2, w * 0.8, 0.3), tones[(k + 2) % 4], loc=(sx * -0.02, y + w / 2, lz), bevel=0.05,
+                    rot=(0, sx * -0.3, rng.uniform(-0.3, 0.3)), parent=root)
+        y += w * 0.82
+        k += 1
+    # solid body behind the face and the grass plateau on top
+    kit.box((1.3, 2.1, H - 0.1), tones[1], loc=(sx * -0.95, 0, (H - 0.1) / 2), bevel=0.05, parent=root)
+    turf = mat("cliff_turf", "#62A626", rough=0.85, spec=0.05, edge=0.3, var=0.07)
+    turf2 = mat("cliff_turf2", "#7DBE30", rough=0.85, spec=0.05, edge=0.25, var=0.06)
+    kit.box((1.5, 2.12, 0.14), turf, loc=(sx * -0.92, 0, H - 0.03), bevel=0.06, parent=root)
+    for j in range(16):
+        yy = -1.0 + j * 0.133 + rng.uniform(-0.03, 0.03)
+        kit.sphere(rng.uniform(0.1, 0.16), turf2 if j % 3 == 0 else turf, loc=(sx * rng.uniform(-0.3, -0.16), yy, H + 0.0),
+                   scale=(1, 1, 0.55), seg=10, parent=root)
+        if j % 2 == 0:
+            kit.cyl(0.012, rng.uniform(0.12, 0.2), turf2, loc=(sx * rng.uniform(-0.5, -0.2), yy, H + 0.03), r2=0.002,
+                    rot=(rng.uniform(-0.3, 0.3), rng.uniform(-0.3, 0.3), 0), verts=5, bevel=0.0, parent=root)
+    # rubble and warm earth at the foot
+    earth = mat("cliff_earth", "#C97A3C", rough=0.9, spec=0.03, edge=0.25, var=0.08)
+    for j in range(9):
+        yy = rng.uniform(-1.0, 1.0)
+        if gate and abs(yy) < 0.45:
+            continue
+        kit.sphere(rng.uniform(0.12, 0.22), earth, loc=(sx * rng.uniform(0.02, 0.18), yy, 0.0), scale=(1, 1.3, 0.25),
+                   seg=10, parent=root)
+        r = rng.uniform(0.04, 0.09)
+        kit.ico(r, tones[j % 4], loc=(sx * rng.uniform(0.05, 0.3), yy + rng.uniform(-0.1, 0.1), r * 0.6), sub=1,
+                parent=root)
+    if gate:
+        w = _wood("gate_wood", "#8A5A34")
+        w2 = _wood("gate_wood2", "#A8703E")
+        dark = mat("gate_dark", "#1A110C", rough=1.0, spec=0.0, edge=0.0)
+        kit.box((0.5, 0.74, 0.95), dark, loc=(sx * -0.2, 0, 0.47), bevel=0.02, parent=root)
+        for sy in (-0.43, 0.43):
+            kit.box((0.16, 0.14, 1.08), w, loc=(sx * 0.02, sy, 0.54), rot=(sy * 0.12, 0, 0), bevel=0.03, parent=root)
+        kit.box((0.2, 1.12, 0.17), w2, loc=(sx * 0.03, 0, 1.1), bevel=0.035, parent=root)
+        kit.box((0.06, 0.98, 0.1), w, loc=(sx * 0.1, 0, 0.62), rot=(0.28, 0, 0), bevel=0.02, parent=root)
+        kit.box((0.04, 0.5, 0.2), _wood("gate_sign", "#E8C88A"), loc=(sx * 0.15, 0, 1.1), bevel=0.02, parent=root)
+        iron = mat("gate_rail", "#6A737A", rough=0.4, spec=0.5, edge=0.5, metal=0.5)
+        for sy in (-0.15, 0.15):
+            kit.box((1.0, 0.035, 0.035), iron, loc=(sx * 0.5, sy, 0.03), bevel=0.01, parent=root)
+        for j in range(5):
+            kit.box((0.07, 0.5, 0.03), w, loc=(sx * (0.1 + j * 0.2), 0, 0.012), bevel=0.01, parent=root)
+        kit.box((0.36, 0.4, 0.22), mat("gate_cart", "#5E6A72", rough=0.5, spec=0.4, edge=0.5, metal=0.3),
+                loc=(sx * 0.62, 0, 0.2), bevel=0.04, parent=root)
+        gold = mat("gate_gold", "#FFD23F", rough=0.3, spec=0.7, edge=0.4, metal=0.6)
+        for j in range(7):
+            kit.ico(0.07, gold, loc=(sx * (0.62 + rng.uniform(-0.1, 0.1)), rng.uniform(-0.12, 0.12), 0.33 + rng.uniform(0, 0.05)),
+                    sub=1, parent=root)
+        for dx in (0.5, 0.74):
+            for sy in (-0.19, 0.19):
+                kit.cyl(0.06, 0.03, iron, loc=(sx * dx, sy, 0.06), rot=(math.radians(90), 0, 0), parent=root, verts=12)
+    return root
+
+
 def nature_frames():
     return {
+        "cliff_a": lambda: cliff(1), "cliff_b": lambda: cliff(2), "cliff_c": lambda: cliff(3),
+        "cliff_mine": lambda: cliff(4, gate=True),
         "stall": stall,
-        "mine": mine,
         "scarecrow": scarecrow, "bench": bench, "lantern": lantern,
         "picket_x": lambda: picket("x"), "picket_y": lambda: picket("y"),
         "hedge": hedge, "signpost": signpost, "milk_cans": milk_cans, "leaf_pile": leaf_pile,

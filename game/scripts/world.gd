@@ -312,6 +312,24 @@ func _build_farm() -> void:
 		for y in range(16, 23):
 			occupied[Vector2i(x, y)] = true
 
+	# sandstone cliff along the west edge with the mine worked into the rock, where the farm road ends
+	for x in range(-1, 2):
+		_dirt(Vector2i(x, 9))
+	var ci := 0
+	for y in range(-4, 30, 2):
+		var kind: String = "cliff_mine" if y == 8 else ["cliff_a", "cliff_b", "cliff_c"][ci % 3]
+		ci += 1
+		var cs := _add_prop(kind, Vector2(-2.0, float(y) + 0.5), null)
+		cs.set_meta("cliff", true)
+		if kind == "cliff_mine":
+			cs.set_meta("mine_gate", true)
+			cs.set_meta("squash", 0.02)
+		for yy in range(y, y + 2):
+			for xx in range(-4, -1):
+				occupied[Vector2i(xx, yy)] = true
+
+	_clear_mine_approach.call_deferred()
+
 	# Mossbrook village by the sea in the north
 	for x in range(-10, 40):
 		for y in range(-10, -6):
@@ -998,6 +1016,13 @@ func _tap(world: Vector2) -> void:
 		if best.has_meta("site"):
 			farm.tap_site(best)
 			return
+		if best.has_meta("mine_gate"):
+			Audio.play("click")
+			if Game.level < 3:
+				Game.toast.emit(tr("MINE_LOCKED"), "item_pickaxe.png")
+			else:
+				hud.rewards.open_mine(null)
+			return
 		if best.has_meta("visitor"):
 			Audio.play("click")
 			hud.rewards.open_visitor(best)
@@ -1320,6 +1345,18 @@ func _finish_place(c: Vector2i) -> void:
 	Field.squash(f, 0.2)
 	hud.set_placing(false)
 	Game.mark_dirty()
+
+
+## Scatter trees and bushes must not stand in front of the mine gate or inside the cliff.
+func _clear_mine_approach() -> void:
+	for s: Sprite2D in props.duplicate():
+		if s.has_meta("cliff") or s.has_meta("deco") or s.has_meta("parcel"):
+			continue
+		var c := cell_at(s.position)
+		var in_rock := c.x >= -4 and c.x <= -2 and c.y >= -4 and c.y <= 29
+		if (c.x >= -1 and c.x <= 1 and c.y >= 7 and c.y <= 10) or in_rock:
+			props.erase(s)
+			s.queue_free()
 
 
 # ------------------------------------------------------------------ visiting buyer
@@ -1883,7 +1920,7 @@ func _debug_ui(which: String) -> void:
 					if can_place(wo + Vector2i(fx, fy)):
 						var fld := _add_field(wo + Vector2i(fx, fy))
 						fld.plant("wheat", Time.get_unix_time_from_system() - 99999.0)
-			for it in [["mine", 3, 0], ["path_dirt", 0, 2], ["path_dirt", 1, 2], ["path_dirt", 2, 2], ["path_dirt", 3, 2],
+			for it in [["path_dirt", 0, 2], ["path_dirt", 1, 2], ["path_dirt", 2, 2], ["path_dirt", 3, 2],
 					["path_dirt", 4, 2], ["hay_bale_stack", 0, 3], ["pumpkin_pile", 1, 3], ["scarecrow", 2, 3],
 					["bench", 3, 3], ["lantern", 4, 3], ["picket_x", 0, 0], ["picket_x", 1, 0], ["picket_x", 2, 0],
 					["grass_tuft_b", -1, 3], ["grass_tuft", -1, 2]]:

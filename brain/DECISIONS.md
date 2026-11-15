@@ -76,3 +76,9 @@ Vergleich mit `hd_ref_coherent_farm.png` ergab, warum unser Bild nicht stimmig w
 5. **Laubbäume kleiner** (Sprite-Skalierung 0,72) – Gebäude und Felder tragen das Bild, nicht die Baumkronen.
 Noch offen für die Stimmigkeit: Gebäude-Dächer/Farben angleichen, Landschilder reduzieren, Gras-Details malen,
 übrige Pflanzen fein statt klobig, Zäune dünner, UI v2.
+
+## 2026-11-15 – Mine gehört in den Berg
+- Roman (mit Referenz `hd_ref_cliff_mine.png`): „Die Mine muss in einen Berg eingearbeitet werden wie im Referenzbild.“
+- Umsetzung: Sandstein-Klippe am Westrand (x = −2, y −4…29, Stücke `cliff_a/b/c` je 2 Zellen), Mineneingang
+  `cliff_mine` am Ende der Hofstraße (y = 8–9), Straße bis zum Tor verlängert, Zugang frei von Bäumen.
+  Antippen öffnet die Mine ab Level 3. Die Mine als kaufbarer Felsbrocken ist **gestrichen** (aus `decos.json` entfernt).

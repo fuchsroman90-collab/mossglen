@@ -132,6 +132,8 @@ func build_land(occupied: Dictionary) -> void:
 				continue
 			var id := parcel_at(cell)
 			var density := 0.07 if id in START else 0.2
+			if cell.x <= 3 and absi(cell.y - 9) <= 2:
+				continue  # keep the way to the mine gate in the cliff clear
 			if hash01(cell, 1.0) >= density:
 				continue
 			var r := hash01(cell, 2.0)
