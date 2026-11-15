@@ -871,6 +871,13 @@ func _bar_button(tex: String, icon: String, pos: Vector2) -> TextureButton:
 	return b
 
 
+signal move_deco(s: Sprite2D)
+
+
+func world_move_deco(s: Sprite2D) -> void:
+	move_deco.emit(s)
+
+
 func set_place_hint(key: String) -> void:
 	_hint.text = key
 

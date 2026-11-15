@@ -608,7 +608,55 @@ DINO_EGGS = {
 }
 
 
+def pickaxe():
+    root = _root("pickaxe", yaw=20, tilt=-50)
+    kit.cyl(0.045, 1.1, _wood("pk_h", "#C48D58"), loc=(0, 0, -0.55), verts=12, bevel=0.02, parent=root)
+    head = _metal("pk_m", "#B9C4CC")
+    kit.box((0.2, 0.13, 0.16), head, loc=(0, 0, 0.5), bevel=0.04, parent=root)
+    for sx in (-1, 1):
+        kit.cyl(0.07, 0.5, head, r2=0.012, loc=(sx * 0.08, 0, 0.5), rot=(0, sx * math.radians(75), 0), verts=10,
+                bevel=0.0, parent=root)
+    return _norm(root)
+
+
+def tnt():
+    root = _root("tnt", yaw=-25)
+    red = _glossy("tnt_r", "#D9372B", "#7A1A10")
+    kit.cyl(0.36, 0.78, red, loc=(0, 0, 0), verts=28, bevel=0.05, parent=root)
+    band = _metal("tnt_band", "#5E6A72")
+    for z in (0.1, 0.62):
+        kit.torus(0.365, 0.03, band, loc=(0, 0, z), parent=root)
+    kit.box((0.5, 0.03, 0.2), mat("tnt_label", "#FFF6DC", rough=0.6), loc=(0, -0.355, 0.38), bevel=0.01, parent=root)
+    for k, x in enumerate((-0.15, 0.0, 0.15)):
+        kit.box((0.09, 0.02, 0.12), mat("tnt_ink", "#3A1A10"), loc=(x, -0.375, 0.38), bevel=0.005, parent=root)
+    kit.curve_tube([(0, 0, 0.78), (0.05, 0, 0.95), (0.2, 0, 1.03)], r=0.022, m=mat("tnt_fuse", "#E2C48A", rough=0.8), parent=root)
+    kit.sphere(0.07, mat("tnt_spark", "#FFD23F", emit=2.0), loc=(0.22, 0, 1.04), seg=10, parent=root)
+    return _norm(root)
+
+
+def _ore(name, color, metal=0.7, rough=0.3):
+    import random as _r
+    rng = _r.Random(hash(name) % 1000)
+    root = _root(name, yaw=15)
+    m = mat(name, color, rough=rough, spec=0.7, edge=0.45, metal=metal)
+    for x, y, z, r in ((0, 0, 0.26, 0.3), (0.3, -0.05, 0.18, 0.22), (-0.28, 0.02, 0.17, 0.2), (0.05, -0.25, 0.13, 0.16),
+                       (0.1, 0.1, 0.5, 0.17)):
+        o = kit.ico(r, m, loc=(x, y, z), scale=(1, rng.uniform(0.8, 1.0), rng.uniform(0.85, 1.1)), sub=1, parent=root)
+        o.rotation_euler = (rng.uniform(0, 3), rng.uniform(0, 3), rng.uniform(0, 3))
+    return _norm(root)
+
+
 def item_frames():
+    extra = {"pickaxe": pickaxe, "tnt": tnt,
+             "ore_silver": lambda: _ore("ore_silver", "#DDE6EC"), "ore_gold": lambda: _ore("ore_gold", "#FFC928"),
+             "ore_platinum": lambda: _ore("ore_platinum", "#9FE0E6"), "ore_iron": lambda: _ore("ore_iron", "#8C6A5A", 0.4, 0.5),
+             "coal": lambda: _ore("coal", "#2E3238", 0.1, 0.45)}
+    d = _item_frames()
+    d.update({"uiitem_" + k: v for k, v in extra.items()})
+    return d
+
+
+def _item_frames():
     f = {
         "wheat": wheat, "corn": corn, "carrot": carrot, "tomato": tomato, "strawberry": strawberry, "fern": fern,
         "feed_chicken": lambda: sack("#FFCF3A", "#F2B21E"), "feed_cow": lambda: sack("#6EB4F0", "#E8C26A"),

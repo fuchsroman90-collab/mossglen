@@ -474,13 +474,18 @@ func _fill_shop() -> void:
 			for k in Game.deco_defs:
 				var d: Dictionary = Game.deco_defs[k]
 				var icon: String = "@" + str(d["sprite"]) if d.has("sprite") else "deco_path"
-				_shop_row.add_child(_card(icon, "DECO_" + k, "DECO_PATH_SUB" if d.get("path", false) else "DECO_SUB",
+				var have := 0
+				for e in Game.decos:
+					have += 1 if e["k"] == k else 0
+				var full: bool = d.has("max") and have >= int(d["max"])
+				var sub: String = "DECO_PATH_SUB" if d.get("path", false) else ("DECO_SUB_" + k if d.has("use") else "DECO_SUB")
+				_shop_row.add_child(_card(icon, "DECO_" + k, "OWNED" if full else sub,
 					int(d["price"]), int(d["unlock"]), func() -> void:
 						if Game.coins < int(d["price"]):
 							Game.toast.emit(tr("NOT_ENOUGH_COINS"), "coin.png")
 							return
 						_shop.hide()
-						world.start_place_deco(k)))
+						world.start_place_deco(k), full))
 		"animals":
 			for k in Game.placeables:
 				var d: Dictionary = Game.placeables[k]

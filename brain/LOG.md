@@ -2,6 +2,18 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15 – Fable 5.2: „alles jetzt machen“ – Block 1
+
+- Roman: „okay los gehts alles jetzt machen“ → Bauliste `brain/FEATURES.md` wird der Reihe nach abgearbeitet.
+- 12 weitere Deko-Modelle (Vogelscheuche, Bank, Laterne, Lattenzaun, Hecke, Wegweiser, Milchkannen, Laubhaufen,
+  kahler Baum, Trittsteine, Holzstapel), Grasbüschel dünner. Deko gesamt: 37 Teile.
+- `reward_ui.gd`: **Glücksrad** (8 Felder, gratis 1×/Tag), **tägliches Geschenk** (7-Tage-Reihe), **Mine**-Fenster.
+- **Schatzkisten** erscheinen alle 4 Min auf freiem Land (max. 2), antippen gibt Münzen/Smaragd/Werkzeug.
+- **Mine**: platzierbar (2×2), 4 Werkzeuge (1/2/3/5 Erz), 5 Erze als Lager-Waren, neue 3D-Icons.
+- Smoke-Test deckt Kiste, Rad, Geschenk, Mine, Deko ab. Screenshot-Modi `--ui=wheel|daily|mine`.
+- Nicht von Hand gespielt, nur Selbsttest + Screenshots. Offen: Bearbeiten-Modus, Item-Blasen, Schmelzofen,
+  Schwein/Haustiere, Besucher-Händler, Straßenstand, UI v2 einbauen, Terrain-Grafik.
+
 ## 2026-11-15 – Fable 5.2: Deko-System (Bauliste A)
 
 - 4 neue Zielbilder ausgewertet (REFERENCES.md), Feature-Analyse + Bauliste in `brain/FEATURES.md`.

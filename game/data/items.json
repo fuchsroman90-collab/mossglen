@@ -1,174 +1,202 @@
 {
-	"feed_chicken": {
-		"sell": 4
-	},
-	"feed_cow": {
-		"sell": 9
-	},
-	"egg": {
-		"sell": 8
-	},
-	"milk": {
-		"sell": 16
-	},
-	"bread": {
-		"sell": 14
-	},
-	"corn_bread": {
-		"sell": 40
-	},
-	"carrot_cake": {
-		"sell": 58
-	},
-	"cream": {
-		"sell": 22
-	},
-	"butter": {
-		"sell": 40
-	},
-	"cheese": {
-		"sell": 60
-	},
-	"feed_sheep": {
-		"sell": 6
-	},
-	"feed_pig": {
-		"sell": 10
-	},
-	"wool": {
-		"sell": 22
-	},
-	"truffle": {
-		"sell": 30
-	},
-	"honey": {
-		"sell": 18
-	},
-	"strawberry_jam": {
-		"sell": 98
-	},
-	"honey_jam": {
-		"sell": 80
-	},
-	"cloth": {
-		"sell": 58
-	},
-	"scarf": {
-		"sell": 84
-	},
-	"popcorn": {
-		"sell": 20
-	},
-	"butter_popcorn": {
-		"sell": 65
-	},
-	"tomato_sauce": {
-		"sell": 66
-	},
-	"truffle_sauce": {
-		"sell": 66
-	},
-	"candle": {
-		"sell": 50
-	},
-	"festive_candle": {
-		"sell": 135
-	},
-	"fossil": {
-		"sell": 25
-	},
-	"amber": {
-		"sell": 40
-	},
-	"primeval_egg": {
-		"sell": 45
-	},
-	"giant_pancake": {
-		"sell": 130
-	},
-	"amber_candle": {
-		"sell": 150
-	},
-	"egg_moosaurus": {
-		"sell": 80
-	},
-	"egg_trikeri": {
-		"sell": 80
-	},
-	"egg_stegolino": {
-		"sell": 80
-	},
-	"egg_parasauri": {
-		"sell": 80
-	},
-	"egg_ankyknubbel": {
-		"sell": 100
-	},
-	"egg_segelruecken": {
-		"sell": 100
-	},
-	"egg_pachy": {
-		"sell": 100
-	},
-	"egg_stachelchen": {
-		"sell": 100
-	},
-	"egg_flauschi": {
-		"sell": 120
-	},
-	"egg_brontobeere": {
-		"sell": 140
-	},
-	"axe": {
-		"sell": 15,
-		"kind": "tool"
-	},
-	"saw": {
-		"sell": 15,
-		"kind": "tool"
-	},
-	"dynamite": {
-		"sell": 15,
-		"kind": "tool"
-	},
-	"shovel": {
-		"sell": 15,
-		"kind": "tool"
-	},
-	"stake": {
-		"sell": 20,
-		"kind": "land"
-	},
-	"land_map": {
-		"sell": 20,
-		"kind": "land"
-	},
-	"tape": {
-		"sell": 20,
-		"kind": "land"
-	},
-	"rivet": {
-		"sell": 20,
-		"kind": "silo"
-	},
-	"plank": {
-		"sell": 20,
-		"kind": "silo"
-	},
-	"rope": {
-		"sell": 20,
-		"kind": "silo"
-	},
-	"nail": {
-		"sell": 20,
-		"kind": "barn"
-	},
-	"hinge": {
-		"sell": 20,
-		"kind": "barn"
-	},
-	"paint": {
-		"sell": 20,
-		"kind": "barn"
-	}
+ "feed_chicken": {
+  "sell": 4
+ },
+ "feed_cow": {
+  "sell": 9
+ },
+ "egg": {
+  "sell": 8
+ },
+ "milk": {
+  "sell": 16
+ },
+ "bread": {
+  "sell": 14
+ },
+ "corn_bread": {
+  "sell": 40
+ },
+ "carrot_cake": {
+  "sell": 58
+ },
+ "cream": {
+  "sell": 22
+ },
+ "butter": {
+  "sell": 40
+ },
+ "cheese": {
+  "sell": 60
+ },
+ "feed_sheep": {
+  "sell": 6
+ },
+ "feed_pig": {
+  "sell": 10
+ },
+ "wool": {
+  "sell": 22
+ },
+ "truffle": {
+  "sell": 30
+ },
+ "honey": {
+  "sell": 18
+ },
+ "strawberry_jam": {
+  "sell": 98
+ },
+ "honey_jam": {
+  "sell": 80
+ },
+ "cloth": {
+  "sell": 58
+ },
+ "scarf": {
+  "sell": 84
+ },
+ "popcorn": {
+  "sell": 20
+ },
+ "butter_popcorn": {
+  "sell": 65
+ },
+ "tomato_sauce": {
+  "sell": 66
+ },
+ "truffle_sauce": {
+  "sell": 66
+ },
+ "candle": {
+  "sell": 50
+ },
+ "festive_candle": {
+  "sell": 135
+ },
+ "fossil": {
+  "sell": 25
+ },
+ "amber": {
+  "sell": 40
+ },
+ "primeval_egg": {
+  "sell": 45
+ },
+ "giant_pancake": {
+  "sell": 130
+ },
+ "amber_candle": {
+  "sell": 150
+ },
+ "egg_moosaurus": {
+  "sell": 80
+ },
+ "egg_trikeri": {
+  "sell": 80
+ },
+ "egg_stegolino": {
+  "sell": 80
+ },
+ "egg_parasauri": {
+  "sell": 80
+ },
+ "egg_ankyknubbel": {
+  "sell": 100
+ },
+ "egg_segelruecken": {
+  "sell": 100
+ },
+ "egg_pachy": {
+  "sell": 100
+ },
+ "egg_stachelchen": {
+  "sell": 100
+ },
+ "egg_flauschi": {
+  "sell": 120
+ },
+ "egg_brontobeere": {
+  "sell": 140
+ },
+ "axe": {
+  "sell": 15,
+  "kind": "tool"
+ },
+ "saw": {
+  "sell": 15,
+  "kind": "tool"
+ },
+ "dynamite": {
+  "sell": 15,
+  "kind": "tool"
+ },
+ "shovel": {
+  "sell": 15,
+  "kind": "tool"
+ },
+ "stake": {
+  "sell": 20,
+  "kind": "land"
+ },
+ "land_map": {
+  "sell": 20,
+  "kind": "land"
+ },
+ "tape": {
+  "sell": 20,
+  "kind": "land"
+ },
+ "rivet": {
+  "sell": 20,
+  "kind": "silo"
+ },
+ "plank": {
+  "sell": 20,
+  "kind": "silo"
+ },
+ "rope": {
+  "sell": 20,
+  "kind": "silo"
+ },
+ "nail": {
+  "sell": 20,
+  "kind": "barn"
+ },
+ "hinge": {
+  "sell": 20,
+  "kind": "barn"
+ },
+ "paint": {
+  "sell": 20,
+  "kind": "barn"
+ },
+ "pickaxe": {
+  "sell": 20,
+  "kind": "tool"
+ },
+ "tnt": {
+  "sell": 30,
+  "kind": "tool"
+ },
+ "ore_silver": {
+  "sell": 30,
+  "kind": "barn"
+ },
+ "ore_gold": {
+  "sell": 45,
+  "kind": "barn"
+ },
+ "ore_platinum": {
+  "sell": 70,
+  "kind": "barn"
+ },
+ "ore_iron": {
+  "sell": 25,
+  "kind": "barn"
+ },
+ "coal": {
+  "sell": 15,
+  "kind": "barn"
+ }
 }

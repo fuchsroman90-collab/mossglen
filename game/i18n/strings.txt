@@ -357,3 +357,16 @@ DAILY_TITLE	Tägliches Geschenk	Daily gift
 DAILY_CLAIM	Abholen	Claim
 DAILY_DAY	Tag %d	Day %d
 CHEST_FOUND	Schatzkiste!	Treasure chest!
+DECO_mine	Mine	Mine
+DECO_SUB_mine	Grabe nach Erz und Kohle	Dig for ore and coal
+MINE_TITLE	Mine	Mine
+MINE_INFO	Wähle ein Werkzeug. Stärkere Werkzeuge bringen mehr Erz.	Pick a tool. Stronger tools bring more ore.
+MINE_YIELD	%d Erz	%d ore
+MINE_DIG	Graben	Dig
+ITEM_pickaxe	Spitzhacke	Pickaxe
+ITEM_tnt	TNT-Fass	TNT barrel
+ITEM_ore_silver	Silbererz	Silver ore
+ITEM_ore_gold	Golderz	Gold ore
+ITEM_ore_platinum	Platinerz	Platinum ore
+ITEM_ore_iron	Eisenerz	Iron ore
+ITEM_coal	Kohle	Coal

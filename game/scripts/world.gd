@@ -161,6 +161,7 @@ func _ready() -> void:
 	hud.buy_field.connect(_on_buy_field)
 	hud.place_confirm.connect(_on_place_confirm)
 	hud.place_cancel.connect(_on_place_cancel)
+	hud.move_deco.connect(move_deco)
 	Game.leveled_up.connect(_on_level_up)
 	Game.world_saver = _save_world
 	_build_daylight()
@@ -987,7 +988,10 @@ func _tap(world: Vector2) -> void:
 			return
 		if best.has_meta("deco"):
 			Audio.play("click")
-			hud.land.open_deco(best)
+			if Game.deco_defs[best.get_meta("deco")["k"]].get("use", "") == "mine":
+				hud.rewards.open_mine(best)
+			else:
+				hud.land.open_deco(best)
 			return
 		if best.has_meta("parcel"):
 			Audio.play("click")
@@ -1276,7 +1280,7 @@ func open_chest(s: Sprite2D) -> void:
 	elif roll < 0.7:
 		r = ["emerald", 1]
 	else:
-		r = [["axe", "saw", "shovel", "dynamite", "nail", "plank"].pick_random(), 1]
+		r = [["axe", "saw", "shovel", "dynamite", "nail", "plank", "pickaxe", "pickaxe", "tnt"].pick_random(), 1]
 	Game.grant(r)
 	Audio.play("levelup")
 	_puff(s.position + Vector2(0, -40), "fx_smoke", 4)
@@ -1754,6 +1758,11 @@ func _debug_ui(which: String) -> void:
 			hud.open_shop()
 		"wheel":
 			hud.rewards.open_wheel()
+		"mine":
+			Game.add_item("pickaxe", 3, true)
+			Game.add_item("dynamite", 1, true)
+			Game.add_item("ore_gold", 2, true)
+			hud.rewards.open_mine(null)
 		"daily":
 			Game.daily_streak = 2
 			hud.rewards.open_daily()
@@ -1968,13 +1977,13 @@ func _run_smoke() -> void:
 	# treasure chest, wheel of fortune, daily gift
 	var chest := spawn_chest()
 	var coins0 := Game.coins + Game.emeralds * 1000 + Game.count("axe") + Game.count("saw") + Game.count("shovel") \
-			+ Game.count("dynamite") + Game.count("nail") + Game.count("plank")
+			+ Game.count("dynamite") + Game.count("nail") + Game.count("plank") + Game.count("pickaxe") + Game.count("tnt")
 	if chest == null:
 		errors.append("no chest spawned")
 	else:
 		open_chest(chest)
 		var coins1 := Game.coins + Game.emeralds * 1000 + Game.count("axe") + Game.count("saw") + Game.count("shovel") \
-				+ Game.count("dynamite") + Game.count("nail") + Game.count("plank")
+				+ Game.count("dynamite") + Game.count("nail") + Game.count("plank") + Game.count("pickaxe") + Game.count("tnt")
 		if coins1 <= coins0 or not chests.is_empty():
 			errors.append("chest gave nothing")
 	Game.wheel_day = ""
@@ -1983,6 +1992,14 @@ func _run_smoke() -> void:
 	Game.daily_day = ""
 	if Game.claim_daily().is_empty() or not Game.claim_daily().is_empty():
 		errors.append("daily gift failed")
+	# mine: a pickaxe gives two ores
+	Game.add_item("pickaxe", 1, true)
+	var ores := Game.dig_mine("pickaxe")
+	var ore_n := 0
+	for k in ores:
+		ore_n += int(ores[k])
+	if ore_n != 2 or Game.count("pickaxe") != 0 or not Game.dig_mine("pickaxe").is_empty():
+		errors.append("mining failed")
 	# decorations: place a prop, paint and erase a path, sell the prop
 	Game.add_coins(500)
 	var dspot := _find_spot("field")

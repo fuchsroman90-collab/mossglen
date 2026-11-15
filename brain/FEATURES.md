@@ -14,9 +14,9 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 - ✅ Zaunstücke einzeln setzen; Deko antippen → Verschieben / Verkaufen
 - ⬜ Mehr Wegarten (Kopfsteinpflaster, Trittsteine, Holzsteg), Weg-Ecken sauber
 - ⬜ Bearbeiten-Modus: alles (auch Gebäude, Gehege) verschieben, drehen, einlagern
-- ⬜ Mehr Deko: Vogelscheuche, Windrad, Bank, Laterne, Blumenbeet, Hecke, Steinmauer, weißer Lattenzaun,
-  Teich, Hundehütte, Reifenschaukel, Milchkannen, Leiter, Schubkarre, Heuwagen, Wegweiser, Gartenzwerg
-- ⬜ Saison-Deko (Herbst: Laubhaufen, toter Baum, Kürbislaterne; Winter: Schneemann)
+- ✅ Vogelscheuche, Bank, Laterne, Hecke, weißer Lattenzaun, Milchkannen, Wegweiser, Holzstapel, Trittsteine
+- ⬜ Mehr Deko: Windrad, Blumenbeet, Steinmauer, Teich, Hundehütte, Reifenschaukel, Leiter, Schubkarre, Heuwagen
+- 🟡 Saison-Deko: ✅ Laubhaufen, kahler Baum · ⬜ Kürbislaterne, Schneemann
 
 ## B. Felder & Ernte
 - ✅ Felder kaufen/verschieben, Zieh-Säen, Wisch-Ernte, 5 Pflanzen
@@ -34,8 +34,9 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 - ⬜ Weitere: Grill, Zuckermühle, Saftpresse, Eismaschine, Kuchenofen, Schmelzofen (Mine)
 
 ## E. Mine (Bild `hd_style_mine_tools`)
-- ⬜ Mineneingang im Fels, Werkzeuge: Schaufel, Spitzhacke, Dynamit, TNT-Fass (je Zahlenschild + Pfeil)
-- ⬜ Erze: Silber, Gold, Platin, Eisen, Kohle → Schmelzöfen → Barren → Schmuck
+- ✅ Mine als platzierbares Gebäude (Laden → Deko, Level 3), Fenster mit Schaufel/Spitzhacke/Dynamit/TNT-Fass
+- ✅ Erze im Lager (Kohle, Eisen, Silber, Gold, Platin), verkaufbar; Spitzhacke/TNT als Fund und in Kisten
+- ⬜ Schmelzöfen → Barren → Schmuck; Fels der Mine kantiger + bemoost
 - ⬜ Schienen mit Lore
 
 ## F. Handel & Aufträge
@@ -45,7 +46,8 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 
 ## G. Fortschritt & Belohnungen
 - ✅ Level/XP, Land-Parzellen, Hindernisse mit Werkzeug, Silo/Scheune-Ausbau, Erfolge, Feste
-- ⬜ Glücksrad (täglich), Schatzkisten auf der Farm, tägliche Belohnung, Briefkasten
+- ✅ Glücksrad (1× täglich gratis, sonst 3 Smaragde), Schatzkisten auf der Farm, tägliches Geschenk (7 Tage)
+- ⬜ Briefkasten
 - ⬜ Helfer (sammeln/säen automatisch für eine Zeit), Booster
 
 ## H. Oberfläche
@@ -56,4 +58,4 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 ## I. Grafik (Ziel-Look, siehe REFERENCES.md „Artstyle-Zielbilder“)
 - ⬜ Gras satter + Büschel, Wege weicher, Fels-Kante/Klippe am Kartenrand, Fluss mit Steg
 - ⬜ Gebäude gedrungener mit mehr Kleinteilen (Leitern, Kisten, Milchkannen), Kantenglanz
-- 🟡 Grasbüschel-Modell wirkt noch zu dick („Sellerie“) → dünnere, spitze Halme
+- ✅ Grasbüschel mit dünnen Halmen · ✅ Tannen bleiben im Herbst grün

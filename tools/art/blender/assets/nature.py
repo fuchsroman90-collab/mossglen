@@ -570,8 +570,44 @@ def log_pile():
     return root
 
 
+def mine():
+    """Mine entrance: mossy rock mound with a timber portal, dark tunnel, rails and an ore cart."""
+    rng = random.Random(81)
+    d = Vector((kit.TO_CAM.x, kit.TO_CAM.y, 0)).normalized()
+    ang = math.atan2(d.y, d.x) + math.radians(38)
+    root = kit.empty("mine", rot=(0, 0, ang + math.pi / 2))
+    stone = mat("mine_rock", "#B9A98C", rough=0.85, spec=0.1, edge=0.6, var=0.07)
+    for i, (x, y, r, h) in enumerate(((0, 0.25, 0.95, 0.9), (-0.55, 0.35, 0.6, 0.6), (0.6, 0.4, 0.62, 0.66), (0.1, 0.75, 0.7, 0.7))):
+        o = kit.ico(r, stone, loc=(x, y, h * 0.42), scale=(1.0, 0.9, h / r * 0.95), sub=4, parent=root)
+        kit.displace(o, strength=0.16, scale=0.5, seed=81 + i)
+    w = _wood("mine_wood", "#8A5A34")
+    dark = mat("mine_dark", "#1E1410", rough=1.0, spec=0.0, edge=0.0)
+    kit.box((0.62, 0.5, 0.74), dark, loc=(0, -0.42, 0.37), bevel=0.02, parent=root)
+    for sx in (-0.36, 0.36):
+        kit.box((0.12, 0.14, 0.86), w, loc=(sx, -0.7, 0.43), bevel=0.03, parent=root)
+    kit.box((0.98, 0.16, 0.14), w, loc=(0, -0.7, 0.9), bevel=0.03, parent=root)
+    kit.box((0.5, 0.05, 0.2), _wood("mine_sign", "#E2B87A"), loc=(0, -0.79, 0.9), bevel=0.02, parent=root)
+    iron = mat("mine_rail", "#6A737A", rough=0.4, spec=0.5, edge=0.5, metal=0.5)
+    for sx in (-0.16, 0.16):
+        kit.box((0.035, 0.9, 0.035), iron, loc=(sx, -1.0, 0.03), bevel=0.01, parent=root)
+    for k in range(5):
+        kit.box((0.5, 0.07, 0.03), w, loc=(0, -0.62 - k * 0.19, 0.012), bevel=0.01, parent=root)
+    cart = mat("mine_cart", "#5E6A72", rough=0.5, spec=0.4, edge=0.5, metal=0.3)
+    kit.box((0.42, 0.34, 0.22), cart, loc=(0, -1.15, 0.2), bevel=0.04, parent=root)
+    gold = mat("mine_gold", "#FFD23F", rough=0.3, spec=0.7, edge=0.4, metal=0.6)
+    for k in range(7):
+        kit.ico(0.07, gold, loc=(rng.uniform(-0.13, 0.13), -1.15 + rng.uniform(-0.1, 0.1), 0.33 + rng.uniform(0, 0.05)),
+                sub=1, parent=root)
+    for sx in (-0.2, 0.2):
+        for sy in (-1.27, -1.03):
+            kit.cyl(0.06, 0.03, iron, loc=(sx, sy, 0.06), rot=(0, math.radians(90), 0), parent=root, verts=12)
+    moss_tufts([(0.2, 0.2, 0.86), (-0.3, 0.3, 0.7), (0.5, 0.5, 0.62), (-0.6, 0.4, 0.5)], rng, parent=root, size=0.12)
+    return root
+
+
 def nature_frames():
     return {
+        "mine": mine,
         "scarecrow": scarecrow, "bench": bench, "lantern": lantern,
         "picket_x": lambda: picket("x"), "picket_y": lambda: picket("y"),
         "hedge": hedge, "signpost": signpost, "milk_cans": milk_cans, "leaf_pile": leaf_pile,

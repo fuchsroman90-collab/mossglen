@@ -80,7 +80,7 @@ const LAND_ITEMS := ["stake", "land_map", "tape"]
 const TOOLS := ["axe", "saw", "dynamite", "shovel"]
 ## Random finds while playing: item -> weight
 const DROPS := {"axe": 10, "saw": 7, "dynamite": 7, "shovel": 10, "stake": 6, "land_map": 6, "tape": 6,
-	"rivet": 5, "plank": 5, "rope": 5, "nail": 5, "hinge": 5, "paint": 5}
+	"rivet": 5, "plank": 5, "rope": 5, "nail": 5, "hinge": 5, "paint": 5, "pickaxe": 8, "tnt": 4}
 var placeables: Dictionary = {}  ## data/placeables.json
 var land: Dictionary = {}  ## unlocked parcel id -> true (the start parcels are always open)
 var cleared: Dictionary = {}  ## obstacle key "x,y" -> true
@@ -89,6 +89,8 @@ var daily_day := ""  ## date of the last claimed daily gift
 var daily_streak := 0  ## gifts claimed in a row (0..6 = next tile)
 const WHEEL := [["coins", 50, 24], ["emerald", 1, 14], ["axe", 1, 12], ["coins", 150, 16], ["shovel", 1, 12],
 	["emerald", 3, 6], ["dynamite", 1, 10], ["coins", 500, 6]]  ## [kind, amount, weight]
+const MINE_TOOLS := {"shovel": 1, "pickaxe": 2, "dynamite": 3, "tnt": 5}  ## tool -> ores per use
+const MINE_ORES := {"coal": 30, "ore_iron": 28, "ore_silver": 22, "ore_gold": 14, "ore_platinum": 6}
 const WHEEL_COST := 3  ## emeralds for an extra spin
 const DAILY := [["coins", 50], ["emerald", 1], ["coins", 100], ["saw", 1], ["coins", 200], ["emerald", 3], ["emerald", 10]]
 var decos: Array = []  ## [{"k": deco kind, "x": cell x, "y": cell y}] (data/decos.json)
@@ -497,6 +499,28 @@ func grant(r: Array) -> void:
 		_:
 			add_item(str(r[0]), int(r[1]), true)
 	mark_dirty()
+
+
+## Uses one tool in the mine; returns {ore: amount} (empty if the tool is missing or the barn is full).
+func dig_mine(tool: String) -> Dictionary:
+	if count(tool) < 1 or space("coal") < 1:
+		return {}
+	take_item(tool)
+	var total := 0
+	for k in MINE_ORES:
+		total += int(MINE_ORES[k])
+	var got := {}
+	for i in int(MINE_TOOLS[tool]):
+		var r := randi() % total
+		for k in MINE_ORES:
+			r -= int(MINE_ORES[k])
+			if r < 0:
+				if add_item(k, 1) > 0:
+					got[k] = int(got.get(k, 0)) + 1
+				break
+	add_xp(2 * int(MINE_TOOLS[tool]))
+	mark_dirty()
+	return got
 
 
 func wheel_free() -> bool:

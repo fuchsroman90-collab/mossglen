@@ -15,6 +15,9 @@ var _disc: Control
 var _spin_btn: TextureButton
 var _result: Label
 var _spinning := false
+var _mine: Control
+var _mine_body: Control
+var _mine_sprite: Sprite2D
 var _daily: Control
 var _daily_row: HBoxContainer
 var _daily_btn: TextureButton
@@ -52,6 +55,7 @@ func setup(h: Hud) -> void:
 	_gift_dot = _dot(gift_btn)
 	_build_wheel()
 	_build_daily()
+	_build_mine()
 	refresh()
 
 
@@ -233,3 +237,90 @@ func _fill_daily() -> void:
 		t.add_child(l)
 		_daily_row.add_child(t)
 	_daily_btn.visible = ready
+
+
+# ------------------------------------------------------------------ mine
+
+func _build_mine() -> void:
+	_mine = hud._panel_window(Vector2(1300, 860), "MINE_TITLE")[0]
+	hud.extra_windows.append(_mine)
+	_mine_body = Control.new()
+	_mine.add_child(_mine_body)
+
+
+func open_mine(s: Sprite2D) -> void:
+	_mine_sprite = s
+	_fill_mine()
+	hud._open(_mine)
+
+
+func _fill_mine() -> void:
+	for c in _mine_body.get_children():
+		c.queue_free()
+	var info := hud._dark(hud._label("MINE_INFO", 32))
+	info.position = Vector2(60, 96)
+	info.size = Vector2(1180, 50)
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_mine_body.add_child(info)
+	# tools: one framed tile each, with the amount and what it digs up
+	var x := 70.0
+	for tool in Game.MINE_TOOLS:
+		var have := Game.count(tool)
+		var t := hud._patch("panel.png", 44, 44)
+		t.position = Vector2(x, 160)
+		t.size = Vector2(272, 400)
+		t.self_modulate = Color(1.0, 0.93, 0.7) if have > 0 else Color(0.8, 0.8, 0.8)
+		_mine_body.add_child(t)
+		var ic := hud._item_icon(tool, 150)
+		ic.position = Vector2(61, 24)
+		t.add_child(ic)
+		var n := hud._label("x%d" % have, 44)
+		n.position = Vector2(0, 170)
+		n.size = Vector2(272, 56)
+		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		t.add_child(n)
+		var y := hud._dark(hud._label(tr("MINE_YIELD") % int(Game.MINE_TOOLS[tool]), 28))
+		y.position = Vector2(0, 232)
+		y.size = Vector2(272, 44)
+		y.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		t.add_child(y)
+		var b := hud._pill("MINE_DIG", Vector2(26, 290), 220, have > 0)
+		b.pressed.connect(func() -> void: _dig(tool))
+		t.add_child(b)
+		x += 296.0
+	# ores in stock: a separate cream frame
+	var stock := hud._patch("panel.png", 44, 44)
+	stock.position = Vector2(70, 590)
+	stock.size = Vector2(1160, 210)
+	stock.self_modulate = Color(0.86, 0.93, 1.0)
+	_mine_body.add_child(stock)
+	var ox := 40.0
+	for ore in Game.MINE_ORES:
+		var ic := hud._item_icon(ore, 120)
+		ic.position = Vector2(ox, 20)
+		stock.add_child(ic)
+		var l := hud._label(str(Game.count(ore)), 44)
+		l.position = Vector2(ox, 140)
+		l.size = Vector2(120, 56)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		stock.add_child(l)
+		ox += 180.0
+	if _mine_sprite != null:
+		var mv := hud._pill("DECO_MOVE", Vector2(920, 66), 300)
+		mv.scale = Vector2(0.8, 0.8)
+		mv.position = Vector2(960, 640)
+		mv.pressed.connect(func() -> void:
+			_mine.hide()
+			hud.world_move_deco(_mine_sprite))
+		_mine_body.add_child(mv)
+
+
+func _dig(tool: String) -> void:
+	var got := Game.dig_mine(tool)
+	if got.is_empty():
+		Game.toast.emit(tr("BARN_FULL"), "ico_barn.png")
+		return
+	Audio.play("harvest", 0.8)
+	for k in got:
+		Game.toast.emit("+%d %s" % [int(got[k]), tr("ITEM_" + str(k))], "item_%s.png" % k)
+	_fill_mine()
