@@ -72,3 +72,18 @@ kein Name wird übernommen.
 - **Moos** als Signatur: Dachkanten, Steine, Zäune tragen Moospolster.
 - **Dinos** (Chibi-Fantasy) als Alleinstellung.
 - Eigene Gebäudeformen (z. B. Scheune mit Rundfenster und Moosdach statt klassischer Hay-Day-Scheune).
+
+## 2026-11-15 – Artstyle-Zielbilder (Roman: „bekommst du so ein Artstyle hin?“)
+
+Lokal: `hd_style_harvest_corner.png`, `hd_style_mine_tools.png`, `hd_style_autumn_barn.png`, `hd_style_farm_full.png`.
+Das ist der Ziel-Look für Schritt 3 (Terrain/Grafik). Was den Look ausmacht:
+
+- **Boden:** sattes, warmes Grün mit sichtbaren Grasbüscheln; Erdwege mit weich ausgefransten Rändern, nie harte Kachelkanten.
+- **Weizen:** dichtes, goldgelbes Volumen mit heller Oberkante und dunklerem Fuß – wirkt wie ein Teppich, nicht wie Einzelpflanzen.
+- **Äcker:** rotbraune Bretter-/Furchenstruktur, klar vom Gras abgesetzt.
+- **Objekte:** gedrungene, übertriebene Proportionen, runde Kanten, kräftige Grundfarbe + heller Kantenglanz, weicher Kontaktschatten.
+- **Licht:** warmes Hauptlicht von oben links, kühle Schatten, hohe Sättigung, nichts Graues.
+- **Kleinkram:** Kürbisse, Kisten, Leitern, Steine, Blumen am Rand – jede Ecke erzählt etwas.
+- **Bäume:** Tannen aus gestuften Zweiglagen, Laubbäume als klumpige Kronen mit hellen Blattflecken; Herbst in Orange/Rot.
+- **Item-Blasen:** weißes Zahlenschild + großes 3D-Icon + gelber Pfeil auf das Ziel.
+- **HUD (hd_style_farm_full):** große runde gelbe Knöpfe in den Ecken, Level-Stern an der XP-Leiste, Zahlen groß und weiß mit dunklem Rand.
