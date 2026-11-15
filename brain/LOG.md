@@ -2,6 +2,13 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15 (abends) – Schwein v3.1
+
+- Roman zu v3: „du hast mit deiner Einschätzung recht beim Schwein, änder das“ (Schwanz zu lang, Lächeln unsichtbar).
+- Schwanz jetzt kurzer Kringel direkt am Po. Lächeln neu auf die Kopffläche gelegt – aus der Spielkamera weiterhin
+  vom Rüssel verdeckt (offen). Roman fragte nach Drachen-/Dino-Eiern: Dino-Eier gibt es (Urzeit-Ei + 10 Arten-Eier,
+  Brutnest), Drachen gibt es nicht.
+
 ## 2026-11-15 (abends) – Schwein v3
 
 - Roman zu v2: „Das Schwein sieht schrecklich aus.“ → DISLIKES + `rejected/pig_v2_2026-11-15.png`.

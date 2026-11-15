@@ -708,8 +708,13 @@ def pig(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squ
     for side in (-1, 1):
         kit.sphere(0.028, nos, loc=sn + Vector((0.105, side * 0.05, 0.01)), scale=(0.45, 0.8, 1.25), seg=12, parent=body)
     # smile under the snout and round cheeks
-    kit.curve_tube([tuple(sn + Vector((0.0, -0.1, -0.11))), tuple(sn + Vector((0.05, 0, -0.135))),
-                    tuple(sn + Vector((0.0, 0.1, -0.11)))], r=0.012, m=nos, parent=body)
+    # clear smile: a wide dark curve on the face below the snout, corners turned up
+    sm = []
+    for k in range(7):
+        t = k / 6 - 0.5
+        q = on_head((0.85, t * 1.5, -0.62 + abs(t) * 0.55))
+        sm.append(tuple(q + (q - head_c).normalized() * 0.006))
+    kit.curve_tube(sm, r=0.02, m=nos, parent=body)
     for side in (-1, 1):
         ck = on_head((0.75, side * 0.75, -0.25))
         kit.sphere(0.06, dark, loc=ck - (ck - head_c).normalized() * 0.035, scale=(1, 1, 0.8), seg=16, parent=body)
@@ -728,11 +733,12 @@ def pig(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, squ
         kit.cyl(0.1, 0.2, hide, r2=0.018, loc=(0, 0, 0), bevel=0.0, verts=20, parent=ear, scale=(0.4, 1.0, 1.0))
         kit.cyl(0.07, 0.15, dark, r2=0.012, loc=(0.028, 0, 0.015), bevel=0.0, verts=16, parent=ear, scale=(0.22, 0.85, 1.0))
     # curly tail
-    pts = []
-    for k in range(10):
-        a = k * 0.95
-        pts.append((-0.6 - 0.012 * k - 0.035 * math.sin(a), 0.04 * math.cos(a) - 0.04, 0.5 + 0.012 * k))
-    kit.curve_tube([(-0.5, 0, 0.5)] + pts, r=0.02, m=hide, parent=body)
+    # short, tight curl sitting right on the rump
+    pts = [(-0.52, 0, 0.5)]
+    for k in range(1, 9):
+        a = k * 0.9
+        pts.append((-0.6 - 0.03 * math.sin(a), 0.03 * math.cos(a) - 0.03, 0.53 + 0.03 - 0.03 * math.cos(a) + 0.004 * k))
+    kit.curve_tube(pts, r=0.021, m=hide, parent=body)
     # short blob legs with dark trotters (cow blueprint, shorter)
     hoof = mat("pig_hoof", "#7A4A44", rough=0.5, edge=0.3)
     for (lx, ly, ang) in ((0.2, -0.16, legs[0]), (0.2, 0.16, legs[1]), (-0.28, -0.16, legs[1]),
