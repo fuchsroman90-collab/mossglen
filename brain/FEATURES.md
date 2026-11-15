@@ -13,7 +13,8 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 - ✅ Grasbüschel, Kürbisse, Strohballen (einzeln + Stapel) als neue Modelle
 - ✅ Zaunstücke einzeln setzen; Deko antippen → Verschieben / Verkaufen
 - ⬜ Mehr Wegarten (Kopfsteinpflaster, Trittsteine, Holzsteg), Weg-Ecken sauber
-- ⬜ Bearbeiten-Modus: alles (auch Gebäude, Gehege) verschieben, drehen, einlagern
+- ✅ Gebäude und Gehege verschieben: gedrückt halten → neuer Platz → Haken (Hof wird aus dem Spielstand neu aufgebaut, Kamera springt dabei zurück)
+- ⬜ Drehen, Einlagern; Verschieben ohne Neuaufbau
 - ✅ Vogelscheuche, Bank, Laterne, Hecke, weißer Lattenzaun, Milchkannen, Wegweiser, Holzstapel, Trittsteine
 - ⬜ Mehr Deko: Windrad, Blumenbeet, Steinmauer, Teich, Hundehütte, Reifenschaukel, Leiter, Schubkarre, Heuwagen
 - 🟡 Saison-Deko: ✅ Laubhaufen, kahler Baum · ⬜ Kürbislaterne, Schneemann
@@ -36,11 +37,13 @@ Legende: ✅ im Spiel · 🟡 teilweise · ⬜ offen. Reihenfolge = Bau-Reihenfo
 ## E. Mine (Bild `hd_style_mine_tools`)
 - ✅ Mine als platzierbares Gebäude (Laden → Deko, Level 3), Fenster mit Schaufel/Spitzhacke/Dynamit/TNT-Fass
 - ✅ Erze im Lager (Kohle, Eisen, Silber, Gold, Platin), verkaufbar; Spitzhacke/TNT als Fund und in Kisten
-- ⬜ Schmelzöfen → Barren → Schmuck; Fels der Mine kantiger + bemoost
+- ✅ Schmelzofen (Level 4): Eisen-, Silber-, Gold-, Platinbarren
+- ⬜ Schmuck aus Barren; Fels der Mine kantiger + bemoost
 - ⬜ Schienen mit Lore
 
 ## F. Handel & Aufträge
-- ✅ Auftragstafel + Lieferwagen · ⬜ Besucher-Händler (Layout 05) · ⬜ Straßenstand (eigene Waren zum Preis einstellen)
+- ✅ Auftragstafel + Lieferwagen · ✅ Besucher an der Auftragstafel (alle 5 Min, zahlt 1,6× Lagerpreis; nutzt vorerst die Figur von Händler Pip)
+- ⬜ Eigene Besucher-Figuren · ⬜ Straßenstand (eigene Waren zum Preis einstellen)
 - ⬜ Schiff am Steg (Kisten füllen, Frist), Zug/Stadt-Besucher, Zeitung mit Angeboten
 - ⬜ Freunde: Hof von Elli besuchen, helfen, handeln (braucht Supabase – Entscheidung offen)
 

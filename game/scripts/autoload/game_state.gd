@@ -84,6 +84,7 @@ const DROPS := {"axe": 10, "saw": 7, "dynamite": 7, "shovel": 10, "stake": 6, "l
 var placeables: Dictionary = {}  ## data/placeables.json
 var land: Dictionary = {}  ## unlocked parcel id -> true (the start parcels are always open)
 var cleared: Dictionary = {}  ## obstacle key "x,y" -> true
+var skip_intro := false  ## set before a scene reload (moving a building)
 var wheel_day := ""  ## date of the last free wheel spin
 var daily_day := ""  ## date of the last claimed daily gift
 var daily_streak := 0  ## gifts claimed in a row (0..6 = next tile)

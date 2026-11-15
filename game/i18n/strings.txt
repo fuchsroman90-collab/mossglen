@@ -381,3 +381,4 @@ VISITOR_ASK	Hallo! Hast du das für mich? Ich zahle gut.	Hello! Do you have this
 VISITOR_HAVE	Du hast: %d× %s	You have: %d× %s
 VISITOR_YES	Ja, bitte sehr!	Yes, here you go!
 VISITOR_NO	Heute leider nicht	Not today, sorry
+MOVE_HINT	Gedrückt halten, um Gebäude zu verschieben	Hold to move buildings

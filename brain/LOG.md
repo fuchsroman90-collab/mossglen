@@ -2,6 +2,15 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15 – Fable 5.2: Block 2 („komplett weitermachen“)
+
+- **Schmelzofen** (Produktionsgebäude, Level 4, 700 Münzen): Erz + Kohle → Eisen-/Silber-/Gold-/Platinbarren, neue Icons.
+- **Besucher**: erscheint ab Level 2 alle 5 Min neben der Auftragstafel mit Waren-Blase; Fenster mit Angebot,
+  „Ja, bitte sehr!“ / „Heute leider nicht“. Zahlt 1,6× Lagerpreis. Figur vorerst `npc_pip_0`.
+- **Gebäude/Gehege verschieben**: lange drücken → Geist mit Grundfläche → Haken. Umsetzung: Eintrag in
+  `Game.placed` ändern, speichern, Szene neu laden (`Game.skip_intro`). Real getestet mit `--ui=movetest`.
+- Smoke-Test deckt Besucher-Handel und Verschieben (ohne Reload) ab.
+
 ## 2026-11-15 – Fable 5.2: „alles jetzt machen“ – Block 1
 
 - Roman: „okay los gehts alles jetzt machen“ → Bauliste `brain/FEATURES.md` wird der Reihe nach abgearbeitet.

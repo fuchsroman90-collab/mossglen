@@ -86,6 +86,8 @@ var chests: Array[Sprite2D] = []  ## treasure chests waiting to be tapped
 var _chest_t := 200.0
 var visitor: Sprite2D  ## wandering buyer waiting at the order board
 var _visitor_t := 230.0
+var _move_entry: Dictionary = {}  ## building/pen being moved (entry in Game.placed)
+var _press_entry: Dictionary = {}
 var _deco_kind := ""  ## decoration being placed (data/decos.json)
 var _deco_moving: Dictionary = {}  ## entry being moved (restored on cancel)
 var _deco_erase := false
@@ -744,6 +746,7 @@ func _on_press(pos: Vector2) -> void:
 		Field.squash(pressed.sprite if pressed is ProductionBuilding else pressed, 0.05)
 	var f: Field = fields.get(cell_at(screen_to_world(pos)))
 	_press_field = f
+	_press_entry = _placed_at(cell_at(screen_to_world(pos))) if f == null else {}
 	if f == null:
 		_mode = Mode.PAN
 	elif f.state == Field.State.RIPE:
@@ -820,6 +823,13 @@ func _on_release(pos: Vector2) -> void:
 
 
 func _check_long_press(delta: float) -> void:
+	if _mode == Mode.PAN and not _press_entry.is_empty() and not _touches.is_empty():
+		_press_time += delta
+		if _press_time >= LONG_PRESS and _moved < TAP_SLOP:
+			start_move_placed(_press_entry)
+			_press_entry = {}
+			_mode = Mode.PLACE
+		return
 	if _mode != Mode.SOW_PENDING and _mode != Mode.GROW_PENDING:
 		return
 	_press_time += delta
@@ -1179,7 +1189,53 @@ func _update_kind_ghost() -> void:
 	_ghost_floor.color = Color(0.45, 1.0, 0.4, 0.35) if ok else Color(1.0, 0.3, 0.25, 0.4)
 
 
+## The bought building or pen whose footprint covers this cell ({} if none).
+func _placed_at(cell: Vector2i) -> Dictionary:
+	for e in Game.placed:
+		if Game.placeables.get(e["k"], {}).get("fixed", false):
+			continue
+		if Farm.footprint(e["k"], Vector2i(int(e["x"]), int(e["y"]))).has_point(cell):
+			return e
+	return {}
+
+
+## Long press on a building or pen: pick it up and choose a new spot.
+func start_move_placed(e: Dictionary) -> void:
+	hud.close_menus()
+	_move_entry = e
+	_set_entry_cells(e, false)
+	start_place_kind(e["k"])
+	_place_cell = Vector2i(int(e["x"]), int(e["y"]))
+	_update_kind_ghost()
+	Audio.play("pop", 1.2)
+
+
+func _set_entry_cells(e: Dictionary, on: bool) -> void:
+	var r := Farm.footprint(e["k"], Vector2i(int(e["x"]), int(e["y"])))
+	for x in range(r.position.x, r.end.x):
+		for y in range(r.position.y, r.end.y):
+			if on:
+				occupied[Vector2i(x, y)] = true
+			else:
+				occupied.erase(Vector2i(x, y))
+
+
+## Writes the new position and rebuilds the farm from the save (everything else stays as it is).
+func _apply_move(e: Dictionary, cell: Vector2i, reload := true) -> void:
+	e["x"] = cell.x
+	e["y"] = cell.y
+	_move_entry = {}
+	_end_place_kind()
+	if reload:
+		Game.save_game()
+		Game.skip_intro = true
+		get_tree().reload_current_scene()
+
+
 func _end_place_kind() -> void:
+	if not _move_entry.is_empty():
+		_set_entry_cells(_move_entry, true)
+		_move_entry = {}
 	_place_kind = ""
 	if _ghost:
 		_ghost.queue_free()
@@ -1203,6 +1259,9 @@ func _on_place_confirm() -> void:
 		if not can_place_rect(r):
 			Audio.play("pop", 0.7)
 			Field.squash(_ghost, 0.15)
+			return
+		if not _move_entry.is_empty():
+			_apply_move(_move_entry, _place_cell)
 			return
 		var price := int(Game.placeables[_place_kind].get("price", 0))
 		if not Game.spend_coins(price):
@@ -1811,6 +1870,20 @@ func _debug_ui(which: String) -> void:
 			hud.open_shop()
 		"wheel":
 			hud.rewards.open_wheel()
+		"movetest":
+			if not Game.skip_intro:
+				if Game.placed_count("coop") == 0:
+					var sp := _find_spot("coop")
+					Game.placed.append({"k": "coop", "x": sp.x - 6, "y": sp.y - 5, "n": 2, "done": 1.0})
+				for pe in Game.placed:
+					if pe["k"] == "coop":
+						start_move_placed(pe)
+						_place_cell = Vector2i(int(pe["x"]) + 6, int(pe["y"]) + 5)
+						print("move coop ok=", can_place_rect(Farm.footprint("coop", _place_cell)))
+						_on_place_confirm()
+						return
+			else:
+				print("reloaded after move")
 		"visitor":
 			Game.add_item("egg", 6, true)
 			hud.rewards.open_visitor(spawn_visitor())
@@ -2048,6 +2121,27 @@ func _run_smoke() -> void:
 	Game.daily_day = ""
 	if Game.claim_daily().is_empty() or not Game.claim_daily().is_empty():
 		errors.append("daily gift failed")
+	# moving a bought pen: pick up, choose a free 4x4 spot, drop (without the scene reload)
+	var coop: Dictionary = {}
+	for pe in Game.placed:
+		if pe["k"] == "coop":
+			coop = pe
+	if not coop.is_empty():
+		start_move_placed(coop)
+		var spot := Vector2i(-1, -1)
+		for yy in range(3, 20):
+			for xx in range(3, 20):
+				if spot.x < 0 and can_place_rect(Farm.footprint("coop", Vector2i(xx, yy))) \
+						and Vector2i(xx, yy) != Vector2i(int(coop["x"]), int(coop["y"])):
+					spot = Vector2i(xx, yy)
+		var old_cell := Vector2i(int(coop["x"]), int(coop["y"]))
+		_place_cell = spot
+		_apply_move(coop, spot, false)
+		if int(coop["x"]) != spot.x or _place_kind != "":
+			errors.append("moving a pen failed")
+		coop["x"] = old_cell.x
+		coop["y"] = old_cell.y
+		_set_entry_cells(coop, true)
 	# visiting buyer: sells goods for more than the barn price
 	Game.add_item("egg", 5, true)
 	var vis := spawn_visitor()
