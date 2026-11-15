@@ -602,16 +602,20 @@ def sheep(yaw: float, body_z=0.0, head=(0.0, 0.0), legs=(0.0, 0.0), blink=0.0, s
         p, _n = surf.toward(hw, kit.world(root, d) - o_w)
         return (to_local @ p) if p is not None else head_c + Vector(d).normalized() * 0.12
 
+    # wool hood: the wool hump grows over the back and top of the head, only the face stays brown
+    hood_c = head_c + Vector((-0.1, 0, 0.07))
+    kit.sphere(0.175, wool, loc=hood_c, scale=(1.0, 1.05, 0.9), seg=40, parent=body)
+    kit.sphere(0.17, wool, loc=(head_c + Vector((-0.2, 0, 0.0))), scale=(1.0, 0.95, 0.95), seg=40, parent=body)
     look = _rotz(kit.TO_CAM, -yaw)
     for side in (-1, 1):
-        dl = Vector((0.35, side * 0.55, 0.75))
+        dl = Vector((0.75, side * 0.55, 0.35))
         p, n = surf.toward(hw, kit.world(root, dl) - o_w)
         if p is not None:
             hr = (to_local @ p - head_c).length
             eye(head_c, hr, dl, 0.08, body, look=look, lid=blink, lid_color="#7A5236", droop=0.17)
         # cream ears held out sideways, just behind the eyes
-        ear_p = on_head((-0.55, side * 1.0, 0.15))
-        ear = kit.empty("ear", loc=ear_p, rot=(side * 1.35, 0.5, 0), parent=body)
+        ear_p = hood_c + Vector((0.0, side * 0.17, -0.06))
+        ear = kit.empty("ear", loc=ear_p, rot=(side * 1.35, 0.35, 0), parent=body)
         kit.sphere(0.09, wool_c, loc=(0, 0, 0.07), scale=(0.55, 0.3, 1.25), seg=16, parent=ear)
         kit.sphere(0.045, mat("sheep_ear_in", "#E8A898", rough=0.6, edge=0.3), loc=(0.012, side * -0.01, 0.06),
                    scale=(0.45, 0.2, 1.0), seg=12, parent=ear)

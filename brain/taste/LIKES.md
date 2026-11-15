@@ -2,6 +2,10 @@
 
 Neueste oben. Format: Datum – was – Anlass/Zitat – Folge.
 
+- **2026-11-15 – Schaf Prototyp 4 „deutlich besser“** (am Referenz-Schaf ausgerichtet). Korrektur: Der Woll-Buckel
+  muss den Kopf mit einschließen – „aktuell hat der eine Glatze hahaha“ → Wolle als Kapuze über Hinterkopf und
+  Stirn, nur das Gesicht vorne braun.
+
 - **2026-11-13 (23:34) – Kuh freigegeben: „so ist dass okay“.** Bild: `taste/cow_approved.png` (flache Flecken im
   Material, kompakter Körper, großes Maul, Teile per Raycast, Kontrastlicht).
 
