@@ -49,6 +49,7 @@ var fishing: FishingUI = null
 var story: StoryUI
 var extra_windows: Array[Control] = []
 var meta: MetaUI
+var rewards: RewardUI
 var land: LandUI
 var tutorial: Tutorial
 var _pedia: Control
@@ -122,6 +123,9 @@ func _ready() -> void:
 	land = LandUI.new()
 	add_child(land)
 	land.setup(self)
+	rewards = RewardUI.new()
+	add_child(rewards)
+	rewards.setup(self)
 	_settings = meta._settings
 	story = StoryUI.new()
 	add_child(story)

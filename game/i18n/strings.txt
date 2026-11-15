@@ -337,3 +337,23 @@ DECO_hay_bale	Strohballen	Straw bale
 DECO_hay_bale_stack	Strohballen-Stapel	Straw bale stack
 DECO_pumpkin	Kürbis	Pumpkin
 DECO_pumpkin_pile	Kürbisse	Pumpkins
+DECO_stepping_stones	Trittsteine	Stepping stones
+DECO_picket_x	Lattenzaun quer	Picket fence across
+DECO_picket_y	Lattenzaun längs	Picket fence along
+DECO_hedge	Hecke	Hedge
+DECO_log_pile	Holzstapel	Log pile
+DECO_milk_cans	Milchkannen	Milk cans
+DECO_signpost	Wegweiser	Signpost
+DECO_bench	Bank	Bench
+DECO_lantern	Laterne	Lantern
+DECO_scarecrow	Vogelscheuche	Scarecrow
+DECO_leaf_pile	Laubhaufen	Leaf pile
+DECO_dead_tree	Kahler Baum	Bare tree
+WHEEL_TITLE	Glücksrad	Wheel of fortune
+WHEEL_FREE	Gratis drehen!	Free spin!
+WHEEL_PAID	Nochmal für %d Smaragde	Spin again for %d emeralds
+NOT_ENOUGH_EMERALDS	Nicht genug Smaragde	Not enough emeralds
+DAILY_TITLE	Tägliches Geschenk	Daily gift
+DAILY_CLAIM	Abholen	Claim
+DAILY_DAY	Tag %d	Day %d
+CHEST_FOUND	Schatzkiste!	Treasure chest!

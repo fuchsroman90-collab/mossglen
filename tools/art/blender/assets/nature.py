@@ -340,7 +340,7 @@ def cycad(seed=92, height=0.9):
     return root
 
 
-def grass_tuft(seed=95, n=22, height=0.34):
+def grass_tuft(seed=95, n=46, height=0.36):
     """Placeable grass tuft: a fan of bent blades, darker at the foot, bright tips."""
     rng = random.Random(seed)
     root = kit.empty("grass_tuft")
@@ -357,7 +357,7 @@ def grass_tuft(seed=95, n=22, height=0.34):
             t = j / 4
             out = lean * h * (t ** 1.8) * 1.6
             pts.append((base[0] + math.cos(yaw) * out, base[1] + math.sin(yaw) * out, h * (t - 0.18 * t * t)))
-        kit.curve_tube(pts, r=rng.uniform(0.016, 0.024), m=light if rng.random() < 0.45 else dark, parent=root)
+        kit.curve_tube(pts, r=rng.uniform(0.007, 0.011), m=light if rng.random() < 0.45 else dark, parent=root)
     return root
 
 
@@ -417,10 +417,167 @@ def hay_bale(seed=97, stack=1):
     return root
 
 
+def _wood(name, color):
+    return mat(name, color, rough=0.8, spec=0.15, edge=0.5, var=0.07)
+
+
+def scarecrow():
+    root = kit.empty("scarecrow")
+    w = _wood("sc_wood", "#9C6539")
+    kit.cyl(0.035, 1.25, w, loc=(0, 0, 0), parent=root, verts=12)
+    kit.box((0.9, 0.06, 0.06), w, loc=(0, 0, 0.82), bevel=0.02, parent=root)
+    shirt = mat("sc_shirt", "#D9483A", rough=0.8, edge=0.5, var=0.06)
+    kit.box((0.42, 0.2, 0.46), shirt, loc=(0, 0, 0.68), bevel=0.08, parent=root)
+    for sx in (-1, 1):
+        kit.box((0.26, 0.15, 0.15), shirt, loc=(sx * 0.3, 0, 0.82), bevel=0.05, parent=root)
+        for k in range(5):
+            kit.curve_tube([(sx * 0.44, 0, 0.82), (sx * (0.52 + 0.01 * k), (k - 2) * 0.03, 0.78 - 0.02 * k)], r=0.012,
+                           m=mat("sc_straw", "#F2C230", rough=0.9, edge=0.4), parent=root)
+    kit.box((0.36, 0.17, 0.1), mat("sc_patch", "#3E7FC4", rough=0.8, edge=0.4), loc=(0, 0, 0.47), bevel=0.03, parent=root)
+    sack = mat("sc_sack", "#E9CF9A", rough=0.9, edge=0.5, var=0.05)
+    kit.sphere(0.19, sack, loc=(0, 0, 1.08), scale=(1, 0.95, 1.05), parent=root)
+    hat = mat("sc_hat", "#7A4A24", rough=0.85, edge=0.5)
+    kit.cyl(0.3, 0.035, hat, loc=(0, 0, 1.2), parent=root)
+    kit.cyl(0.17, 0.2, hat, loc=(0, 0, 1.22), r2=0.11, parent=root)
+    eye = mat("sc_eye", "#3A2A1A", rough=0.4)
+    d = kit.TO_CAM.normalized()
+    side = Vector((-d.y, d.x, 0)).normalized()
+    for sx in (-1, 1):
+        kit.sphere(0.028, eye, loc=Vector((0, 0, 1.1)) + d * 0.18 + side * sx * 0.07, seg=10, parent=root)
+    kit.sphere(0.035, mat("sc_nose", "#F28A1E", rough=0.5), loc=Vector((0, 0, 1.05)) + d * 0.2, seg=10, parent=root)
+    return root
+
+
+def bench():
+    root = kit.empty("bench")
+    w = _wood("bench_wood", "#C98A52")
+    leg = _wood("bench_leg", "#7A4A24")
+    for k in range(3):
+        kit.box((0.86, 0.1, 0.035), w, loc=(0, -0.11 + k * 0.11, 0.26), bevel=0.012, parent=root)
+    for k in range(2):
+        kit.box((0.86, 0.035, 0.1), w, loc=(0, 0.17, 0.4 + k * 0.13), bevel=0.012, parent=root)
+    for sx in (-0.36, 0.36):
+        kit.box((0.05, 0.3, 0.25), leg, loc=(sx, 0, 0.125), bevel=0.015, parent=root)
+        kit.box((0.05, 0.05, 0.36), leg, loc=(sx, 0.17, 0.4), bevel=0.015, parent=root)
+    return root
+
+
+def lantern():
+    root = kit.empty("lantern")
+    iron = mat("lamp_iron", "#3E4A52", rough=0.5, spec=0.4, edge=0.5, metal=0.4)
+    kit.cyl(0.09, 0.06, iron, loc=(0, 0, 0), parent=root)
+    kit.cyl(0.03, 0.95, iron, loc=(0, 0, 0.05), parent=root, verts=12)
+    kit.box((0.2, 0.2, 0.04), iron, loc=(0, 0, 1.0), bevel=0.01, parent=root)
+    kit.box((0.15, 0.15, 0.2), mat("lamp_glass", "#FFE27A", rough=0.3, emit=1.6, edge=0.2), loc=(0, 0, 1.12),
+            bevel=0.02, parent=root)
+    kit.cyl(0.16, 0.12, iron, loc=(0, 0, 1.22), r2=0.03, parent=root, verts=4, rot=(0, 0, math.radians(45)))
+    return root
+
+
+def picket(axis="x"):
+    root = kit.empty("picket", rot=(0, 0, 0 if axis == "x" else math.radians(90)))
+    w = mat("picket", "#FAF6EC", rough=0.6, spec=0.2, edge=0.5, edge_color="#B9B4A6")
+    for z in (0.14, 0.3):
+        kit.box((1.0, 0.03, 0.05), w, loc=(0, 0.02, z), bevel=0.01, parent=root)
+    for k in range(6):
+        x = -0.42 + k * 0.168
+        kit.box((0.085, 0.03, 0.4), w, loc=(x, 0, 0.2), bevel=0.012, parent=root)
+        kit.cyl(0.06, 0.07, w, loc=(x, 0, 0.4), r2=0.005, verts=4, rot=(0, 0, math.radians(45)), parent=root,
+                scale=(1, 0.36, 1))
+    return root
+
+
+def hedge(seed=71):
+    rng = random.Random(seed)
+    root = kit.empty("hedge")
+    fm = foliage_mat("hedge_leaf", "#7CC43A", "#2C7A2C")
+    for x in (-0.3, 0.0, 0.3):
+        for y in (-0.12, 0.12):
+            leaf_clump((x, y, 0.2), 0.24, fm, rng, parent=root, squash=1.0, bumps=0.16)
+            leaf_clump((x + 0.05, y, 0.42), 0.2, fm, rng, parent=root, squash=0.9, bumps=0.16)
+    return root
+
+
+def signpost():
+    root = kit.empty("signpost")
+    w = _wood("sign_wood", "#9C6539")
+    pl = _wood("sign_plank", "#E2B87A")
+    kit.cyl(0.04, 0.95, w, loc=(0, 0, 0), parent=root, verts=12)
+    for z, r, dx in ((0.78, 0.12, 0.12), (0.58, -0.1, -0.1)):
+        kit.box((0.5, 0.04, 0.15), pl, loc=(dx, -0.045, z), rot=(0, r, 0), bevel=0.015, parent=root)
+    return root
+
+
+def milk_cans():
+    root = kit.empty("milk_cans")
+    steel = mat("can_steel", "#C9D2DA", rough=0.3, spec=0.6, edge=0.5, metal=0.6)
+    for x, y, sc in ((-0.14, 0.0, 1.0), (0.16, -0.08, 0.85)):
+        kit.cyl(0.13 * sc, 0.3 * sc, steel, loc=(x, y, 0), parent=root)
+        kit.cyl(0.13 * sc, 0.1 * sc, steel, loc=(x, y, 0.3 * sc), r2=0.075 * sc, parent=root)
+        kit.cyl(0.075 * sc, 0.08 * sc, steel, loc=(x, y, 0.4 * sc), parent=root)
+        kit.cyl(0.095 * sc, 0.03 * sc, steel, loc=(x, y, 0.48 * sc), parent=root)
+    return root
+
+
+def leaf_pile(seed=72):
+    rng = random.Random(seed)
+    root = kit.empty("leaf_pile")
+    cols = ["#F28A1E", "#E0453A", "#FFC84A", "#C8641E"]
+    ms = [mat(f"pile_{c}", c, rough=0.7, edge=0.45, var=0.08) for c in cols]
+    for k in range(70):
+        a = rng.uniform(0, 2 * math.pi)
+        r = rng.uniform(0, 0.36) ** 0.8
+        z = max(0.02, 0.24 * (1 - (r / 0.36) ** 1.5)) + rng.uniform(-0.02, 0.03)
+        kit.sphere(0.07, ms[k % 4], loc=(math.cos(a) * r, math.sin(a) * r, z), scale=(1.3, 0.8, 0.22),
+                   rot=(rng.uniform(-0.6, 0.6), rng.uniform(-0.6, 0.6), rng.uniform(0, 3)), seg=8, parent=root)
+    return root
+
+
+def dead_tree(seed=73):
+    rng = random.Random(seed)
+    root = kit.empty("dead_tree")
+    bark = mat("dead_bark", "#7B6A5C", rough=0.9, edge=0.55, var=0.08)
+    kit.cyl(0.13, 0.75, bark, loc=(0, 0, 0), r2=0.08, parent=root, verts=14)
+    for k in range(6):
+        a = k / 6 * 2 * math.pi + rng.uniform(-0.3, 0.3)
+        l = rng.uniform(0.35, 0.6)
+        z0 = rng.uniform(0.45, 0.75)
+        mid = (math.cos(a) * l * 0.55, math.sin(a) * l * 0.55, z0 + l * 0.5)
+        tip = (math.cos(a + 0.3) * l, math.sin(a + 0.3) * l, z0 + l * 1.05)
+        kit.curve_tube([(0, 0, z0), mid, tip], r=0.035, m=bark, parent=root)
+        kit.curve_tube([mid, (mid[0] + math.cos(a - 0.9) * 0.2, mid[1] + math.sin(a - 0.9) * 0.2, mid[2] + 0.22)],
+                       r=0.018, m=bark, parent=root)
+    return root
+
+
+def stepping_stones(seed=74):
+    rng = random.Random(seed)
+    root = kit.empty("stepping_stones")
+    st = mat("step_stone", "#C9C2B4", rough=0.85, edge=0.5, var=0.1)
+    for x, y, r in ((-0.22, 0.12, 0.2), (0.2, 0.18, 0.17), (0.05, -0.2, 0.21), (-0.3, -0.22, 0.12), (0.34, -0.12, 0.13)):
+        kit.sphere(r, st, loc=(x, y, 0.012), scale=(1.0, rng.uniform(0.75, 0.95), 0.16), rot=(0, 0, rng.uniform(0, 3)),
+                   seg=16, parent=root)
+    return root
+
+
+def log_pile():
+    root = kit.empty("log_pile")
+    bark = mat("log_bark", "#8A5A34", rough=0.9, edge=0.5, var=0.08)
+    cut = mat("log_cut", "#F0D29A", rough=0.8, edge=0.3)
+    for x, z in ((-0.2, 0.1), (0.0, 0.1), (0.2, 0.1), (-0.1, 0.27), (0.1, 0.27), (0.0, 0.44)):
+        kit.cyl(0.1, 0.6, bark, loc=(x, -0.3, z), rot=(math.radians(-90), 0, 0), parent=root, verts=14)
+        kit.cyl(0.085, 0.612, cut, loc=(x, -0.306, z), rot=(math.radians(-90), 0, 0), parent=root, verts=14, bevel=0.0)
+    return root
+
+
 def nature_frames():
     return {
+        "scarecrow": scarecrow, "bench": bench, "lantern": lantern,
+        "picket_x": lambda: picket("x"), "picket_y": lambda: picket("y"),
+        "hedge": hedge, "signpost": signpost, "milk_cans": milk_cans, "leaf_pile": leaf_pile,
+        "dead_tree": dead_tree, "stepping_stones": stepping_stones, "log_pile": log_pile,
         "grass_tuft": lambda: grass_tuft(95),
-        "grass_tuft_b": lambda: grass_tuft(98, n=30, height=0.42),
+        "grass_tuft_b": lambda: grass_tuft(98, n=64, height=0.46),
         "pumpkin": lambda: pumpkin(96),
         "pumpkin_pile": lambda: pumpkin(99, pile=True),
         "hay_bale": lambda: hay_bale(97),

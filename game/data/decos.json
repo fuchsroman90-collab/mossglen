@@ -147,5 +147,77 @@
    2,
    2
   ]
+ },
+ "stepping_stones": {
+  "sprite": "stepping_stones",
+  "price": 6,
+  "unlock": 1,
+  "free": true
+ },
+ "picket_x": {
+  "sprite": "picket_x",
+  "price": 6,
+  "unlock": 2,
+  "off": [
+   0,
+   -0.5
+  ],
+  "free": true
+ },
+ "picket_y": {
+  "sprite": "picket_y",
+  "price": 6,
+  "unlock": 2,
+  "off": [
+   -0.5,
+   0
+  ],
+  "free": true
+ },
+ "hedge": {
+  "sprite": "hedge",
+  "price": 35,
+  "unlock": 2,
+  "sway": "bush"
+ },
+ "log_pile": {
+  "sprite": "log_pile",
+  "price": 30,
+  "unlock": 2
+ },
+ "milk_cans": {
+  "sprite": "milk_cans",
+  "price": 35,
+  "unlock": 3
+ },
+ "signpost": {
+  "sprite": "signpost",
+  "price": 40,
+  "unlock": 2
+ },
+ "bench": {
+  "sprite": "bench",
+  "price": 80,
+  "unlock": 3
+ },
+ "lantern": {
+  "sprite": "lantern",
+  "price": 120,
+  "unlock": 4
+ },
+ "scarecrow": {
+  "sprite": "scarecrow",
+  "price": 150,
+  "unlock": 3
+ },
+ "leaf_pile": {
+  "sprite": "leaf_pile",
+  "price": 25,
+  "unlock": 2
+ },
+ "dead_tree": {
+  "sprite": "dead_tree",
+  "price": 90,
+  "unlock": 4
  }
 }

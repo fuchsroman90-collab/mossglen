@@ -1074,6 +1074,19 @@ def m95_images() -> dict:
                                   f'cy="{44 + 22 * __import__("math").sin(a * 1.2566):.1f}" r="15" fill="#FF7FA8" {o}/>'
                                   for a in range(5))
                         + f'<circle cx="54" cy="44" r="13" fill="#FFD23F" {o}/>'),
+        "ico_wheel": render('<circle cx="48" cy="50" r="38" fill="#FFF6DC" stroke="#5A3410" stroke-width="6"/>'
+                            + "".join(f'<path d="M48 50 L{48 + 35 * __import__("math").cos(a * 1.0472):.1f} '
+                                      f'{50 + 35 * __import__("math").sin(a * 1.0472):.1f} A35 35 0 0 1 '
+                                      f'{48 + 35 * __import__("math").cos((a + 1) * 1.0472):.1f} '
+                                      f'{50 + 35 * __import__("math").sin((a + 1) * 1.0472):.1f} Z" fill="{c}"/>'
+                                      for a, c in enumerate(["#E8402E", "#FFD23F", "#3FA535", "#3D8FE0", "#F27A9E", "#FF9A3C"]))
+                            + '<circle cx="48" cy="50" r="9" fill="#5A3410"/>'
+                              '<path d="M38 4 L58 4 L48 24 Z" fill="#E8402E" stroke="#5A3410" stroke-width="5" stroke-linejoin="round"/>', 96, 96),
+        "ico_gift": render('<rect x="14" y="40" width="68" height="46" rx="8" fill="#E8402E" stroke="#5A3410" stroke-width="6"/>'
+                           '<rect x="8" y="26" width="80" height="22" rx="8" fill="#FF6A55" stroke="#5A3410" stroke-width="6"/>'
+                           '<rect x="40" y="26" width="16" height="60" fill="#FFD23F" stroke="#5A3410" stroke-width="5"/>'
+                           '<path d="M48 26 C30 4 14 16 28 26 Z M48 26 C66 4 82 16 68 26 Z" fill="#FFD23F" '
+                           'stroke="#5A3410" stroke-width="5" stroke-linejoin="round"/>', 96, 96),
         "deco_path": render(f'<path d="M20 150 L130 40 L190 70 L80 180 Z" fill="#C89A62" {o}/>'
                             f'<path d="M44 150 L134 62 M70 164 L160 76" stroke="#A97B48" stroke-width="6" '
                             f'stroke-linecap="round" stroke-dasharray="14 18"/>', 210, 210),

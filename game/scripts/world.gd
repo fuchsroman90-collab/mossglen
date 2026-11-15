@@ -82,6 +82,8 @@ var _picker_field: Field = null
 var _no_seed_warned := false
 var _placing: Field = null
 var _placing_new := false
+var chests: Array[Sprite2D] = []  ## treasure chests waiting to be tapped
+var _chest_t := 200.0
 var _deco_kind := ""  ## decoration being placed (data/decos.json)
 var _deco_moving: Dictionary = {}  ## entry being moved (restored on cancel)
 var _deco_erase := false
@@ -980,6 +982,9 @@ func _tap(world: Vector2) -> void:
 		if best.has_meta("site"):
 			farm.tap_site(best)
 			return
+		if best.has_meta("chest"):
+			open_chest(best)
+			return
 		if best.has_meta("deco"):
 			Audio.play("click")
 			hud.land.open_deco(best)
@@ -1240,6 +1245,48 @@ func _finish_place(c: Vector2i) -> void:
 	Field.squash(f, 0.2)
 	hud.set_placing(false)
 	Game.mark_dirty()
+
+
+# ------------------------------------------------------------------ treasure chests
+
+## Puts a treasure chest on a free cell of the open land (at most two at a time).
+func spawn_chest() -> Sprite2D:
+	if chests.size() >= 2:
+		return null
+	for attempt in 40:
+		var c := Vector2i(randi_range(1, 22), randi_range(2, 21))
+		if can_place(c):
+			var s := _add_prop("coin_crate", Vector2(c), null)
+			s.set_meta("chest", true)
+			s.set_meta("squash", 0.2)
+			chests.append(s)
+			var tw := create_tween().set_loops()
+			tw.tween_property(s, "scale", Vector2(1.06, 0.94), 0.5).set_trans(Tween.TRANS_SINE)
+			tw.tween_property(s, "scale", Vector2(0.96, 1.05), 0.5).set_trans(Tween.TRANS_SINE)
+			s.set_meta("tween", tw)
+			return s
+	return null
+
+
+func open_chest(s: Sprite2D) -> void:
+	var r: Array
+	var roll := randf()
+	if roll < 0.55:
+		r = ["coins", randi_range(20, 80)]
+	elif roll < 0.7:
+		r = ["emerald", 1]
+	else:
+		r = [["axe", "saw", "shovel", "dynamite", "nail", "plank"].pick_random(), 1]
+	Game.grant(r)
+	Audio.play("levelup")
+	_puff(s.position + Vector2(0, -40), "fx_smoke", 4)
+	var icon := "coin.png" if r[0] == "coins" else ("gem.png" if r[0] == "emerald" else "item_%s.png" % r[0])
+	_float_reward(s.position + Vector2(0, -60), int(r[1]), icon)
+	Game.toast.emit(tr("CHEST_FOUND"), icon)
+	(s.get_meta("tween") as Tween).kill()
+	chests.erase(s)
+	props.erase(s)
+	s.queue_free()
 
 
 # ------------------------------------------------------------------ decorations
@@ -1705,6 +1752,11 @@ func _debug_ui(which: String) -> void:
 			hud.open_barn()
 		"shop":
 			hud.open_shop()
+		"wheel":
+			hud.rewards.open_wheel()
+		"daily":
+			Game.daily_streak = 2
+			hud.rewards.open_daily()
 		"deco":
 			Game.level = maxi(Game.level, 5)
 			hud.land.open_shop("deco")
@@ -1913,6 +1965,24 @@ func _run_smoke() -> void:
 	_on_place_confirm()
 	if not fields.has(to) or fields.has(free):
 		errors.append("moving a field failed")
+	# treasure chest, wheel of fortune, daily gift
+	var chest := spawn_chest()
+	var coins0 := Game.coins + Game.emeralds * 1000 + Game.count("axe") + Game.count("saw") + Game.count("shovel") \
+			+ Game.count("dynamite") + Game.count("nail") + Game.count("plank")
+	if chest == null:
+		errors.append("no chest spawned")
+	else:
+		open_chest(chest)
+		var coins1 := Game.coins + Game.emeralds * 1000 + Game.count("axe") + Game.count("saw") + Game.count("shovel") \
+				+ Game.count("dynamite") + Game.count("nail") + Game.count("plank")
+		if coins1 <= coins0 or not chests.is_empty():
+			errors.append("chest gave nothing")
+	Game.wheel_day = ""
+	if not Game.wheel_free() or Game.spin_wheel() < 0 or Game.wheel_free():
+		errors.append("free wheel spin failed")
+	Game.daily_day = ""
+	if Game.claim_daily().is_empty() or not Game.claim_daily().is_empty():
+		errors.append("daily gift failed")
 	# decorations: place a prop, paint and erase a path, sell the prop
 	Game.add_coins(500)
 	var dspot := _find_spot("field")
@@ -2171,6 +2241,11 @@ func _setup_bench() -> void:
 
 
 func _process(delta: float) -> void:
+	_chest_t += delta
+	if _chest_t > 240.0:
+		_chest_t = 0.0
+		if not _args.has("smoke"):
+			spawn_chest()
 	_check_long_press(delta)
 	_move_swimmers(delta)
 	_update_npcs(delta)

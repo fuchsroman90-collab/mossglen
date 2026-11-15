@@ -84,6 +84,13 @@ const DROPS := {"axe": 10, "saw": 7, "dynamite": 7, "shovel": 10, "stake": 6, "l
 var placeables: Dictionary = {}  ## data/placeables.json
 var land: Dictionary = {}  ## unlocked parcel id -> true (the start parcels are always open)
 var cleared: Dictionary = {}  ## obstacle key "x,y" -> true
+var wheel_day := ""  ## date of the last free wheel spin
+var daily_day := ""  ## date of the last claimed daily gift
+var daily_streak := 0  ## gifts claimed in a row (0..6 = next tile)
+const WHEEL := [["coins", 50, 24], ["emerald", 1, 14], ["axe", 1, 12], ["coins", 150, 16], ["shovel", 1, 12],
+	["emerald", 3, 6], ["dynamite", 1, 10], ["coins", 500, 6]]  ## [kind, amount, weight]
+const WHEEL_COST := 3  ## emeralds for an extra spin
+const DAILY := [["coins", 50], ["emerald", 1], ["coins", 100], ["saw", 1], ["coins", 200], ["emerald", 3], ["emerald", 10]]
 var decos: Array = []  ## [{"k": deco kind, "x": cell x, "y": cell y}] (data/decos.json)
 var deco_defs: Dictionary = {}
 var placed: Array = []  ## [{"k": kind, "x": cell x, "y": cell y, "done": unix time the build finishes}]
@@ -474,6 +481,65 @@ func next_field_price() -> int:
 	return 0 if n < 3 else 10 + (n - 3) * 15 + (n - 3) * (n - 3) * 2
 
 
+# ------------------------------------------------------------------ wheel of fortune, daily gift
+
+func today() -> String:
+	return Time.get_date_string_from_system()
+
+
+## Gives a reward [kind, amount]: coins, emerald or an item id.
+func grant(r: Array) -> void:
+	match str(r[0]):
+		"coins":
+			add_coins(int(r[1]))
+		"emerald":
+			add_emeralds(int(r[1]))
+		_:
+			add_item(str(r[0]), int(r[1]), true)
+	mark_dirty()
+
+
+func wheel_free() -> bool:
+	return wheel_day != today()
+
+
+## Spins the wheel; returns the segment index, or -1 if it cannot be paid.
+func spin_wheel() -> int:
+	if wheel_free():
+		wheel_day = today()
+	elif emeralds >= WHEEL_COST:
+		add_emeralds(-WHEEL_COST)
+	else:
+		return -1
+	var total := 0
+	for w in WHEEL:
+		total += int(w[2])
+	var roll := randi() % total
+	var idx := 0
+	for i in WHEEL.size():
+		roll -= int(WHEEL[i][2])
+		if roll < 0:
+			idx = i
+			break
+	grant(WHEEL[idx])
+	return idx
+
+
+func daily_ready() -> bool:
+	return daily_day != today()
+
+
+## Claims today's gift; returns [kind, amount] (empty if already claimed).
+func claim_daily() -> Array:
+	if not daily_ready():
+		return []
+	var r: Array = DAILY[daily_streak % DAILY.size()]
+	daily_day = today()
+	daily_streak = (daily_streak + 1) % DAILY.size()
+	grant(r)
+	return r
+
+
 # ------------------------------------------------------------------ seasonal festival
 
 ## Key of the running festival, e.g. "autumn_2026" (winter Jan/Feb belongs to the winter that began in December).
@@ -854,7 +920,7 @@ func save_game() -> void:
 		"meadow": meadow, "dino_seen": dino_seen, "digs": digs,
 		"quest": {"i": quest_index, "p": quest_progress, "s": quest_stage}, "restored": restored,
 		"museum_fossils": museum_fossils,
-		"stats": stats, "ach_claimed": ach_claimed, "tutorial": tutorial_step, "festival": festival,
+		"wheel_day": wheel_day, "daily_day": daily_day, "daily_streak": daily_streak, "stats": stats, "ach_claimed": ach_claimed, "tutorial": tutorial_step, "festival": festival,
 		"silo_level": silo_level, "barn_level": barn_level, "land": land, "cleared": cleared, "placed": placed, "decos": decos,
 		"truck": {"back": truck_back_at, "cargo": truck_cargo, "xp": truck_xp},
 		"locale": TranslationServer.get_locale().substr(0, 2),
@@ -925,6 +991,9 @@ func load_game() -> bool:
 	cleared = parsed.get("cleared", {})
 	placed = parsed.get("placed", [])
 	decos = parsed.get("decos", [])
+	wheel_day = str(parsed.get("wheel_day", ""))
+	daily_day = str(parsed.get("daily_day", ""))
+	daily_streak = int(parsed.get("daily_streak", 0))
 	var tr_d: Dictionary = parsed.get("truck", {})
 	truck_back_at = float(tr_d.get("back", 0.0))
 	truck_cargo = int(tr_d.get("cargo", 0))
