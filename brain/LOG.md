@@ -4,7 +4,9 @@ Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
 ## 2026-11-15
 - Schaf freigegeben (aus einem Guss, Kapuze), alle Frames im Spiel. Schwein-Prototyp nach Referenz begonnen
-  (ein Guss, Rüsselscheibe, Grinsen mit Zähnen, Spitzohren) – noch nicht gezeigt.
+  (ein Guss, Rüsselscheibe, Grinsen mit Zähnen, Spitzohren) – noch nicht gezeigt, **noch fehlerhaft**: Beine
+  hängen unter dem Körper ab (Hüfte zu tief), Rüsselscheibe/Nasenlöcher schweben in der NE-Ansicht (place_on mit
+  Weltnormale bei gedrehtem Root), Grinsen kaum sichtbar.
 - Roman: Übergabe an Claude Fable 5.2 → Auftrag in `brain/HANDOFF_FABLE.md`.
 
 - Schaf Prototyp 3 (Skin-Mesh) abgelehnt („noch schlimmer“). Prototyp 4 direkt am Referenz-Schaf aus
