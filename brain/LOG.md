@@ -2,6 +2,18 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-15 – Fable 5.2: UI v2 Layouts (Schritt 1, wartet auf Romans OK)
+
+- Brain + alle 26 Referenzbilder gelesen. UI komplett neu entworfen, **noch nichts im Spiel geändert**.
+- 7 Layouts 1600×900: 01 HUD, 02 Laden (Reiter oben, Karten unten), 03 Scheune (Inhalt / Verkaufen / Lagerplatz
+  als drei getrennte Rahmen), 04 Ausbau-Dialog, 05 Besucher-Händler, 06 Neues Land, 07 Ladebildschirm.
+- Figma: Datei „Mossglen UI v2“ (https://www.figma.com/design/zm0UwtMpk8NHiM1r1zMR8D), Seite „UI v2 Layouts“ –
+  editierbare Rahmen mit Bild-Platzhaltern (Schrift Fredoka). Der HTML-Import nach Figma ging aus der
+  Cloud-Umgebung nicht (403), daher per Plugin-API gebaut.
+- Vorschau mit echten Spiel-Grafiken: `python3 tools/ui_mockup/build.py <welt.png> <out.html>` (Welt-Bild per
+  `--shot=… --nohud`, neuer Schalter in `world.gd`).
+- Offen: Romans Urteil zu den Layouts → dann Bildschirm für Bildschirm in Godot bauen.
+
 ## 2026-11-15
 - Schaf freigegeben (aus einem Guss, Kapuze), alle Frames im Spiel. Schwein-Prototyp nach Referenz begonnen
   (ein Guss, Rüsselscheibe, Grinsen mit Zähnen, Spitzohren) – noch nicht gezeigt, **noch fehlerhaft**: Beine

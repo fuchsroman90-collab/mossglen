@@ -168,6 +168,8 @@ func _ready() -> void:
 	Audio.play_music()
 	if _args.has("settings"):
 		hud._toggle_settings.call_deferred()
+	if _args.has("nohud"):  # clean world shot, used as a backdrop for UI mockups
+		hud.visible = false
 	if _args.has("ui"):
 		_debug_ui.call_deferred(str(_args["ui"]))
 	if _args.has("shot"):
