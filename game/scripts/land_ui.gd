@@ -303,7 +303,7 @@ func open_parcel(id: String) -> void:
 			Game.toast.emit(tr("LAND_DONE"), "ico_build.png")
 			_popup.hide())
 	_popup.add_child(go)
-	if why != "":
+	if why != "" and go.visible:
 		var wl := hud._dark(hud._label(why, 30))
 		wl.position = Vector2(60, 420)
 		wl.size = Vector2(780, 40)

@@ -1131,6 +1131,7 @@ func _tap(world: Vector2) -> void:
 	var pid := Farm.parcel_at(cell_at(world))
 	if pid != "" and not Farm.is_open_parcel(pid):
 		Audio.play("click")
+		highlight_parcel(pid)
 		if Farm.on_frontier(pid):
 			hud.land.open_parcel(pid)
 		else:
@@ -1382,6 +1383,23 @@ func _clear_mine_approach() -> void:
 		if (c.x >= -1 and c.x <= 1 and c.y >= 7 and c.y <= 10) or in_rock:
 			props.erase(s)
 			s.queue_free()
+
+
+## The tapped plot of locked land lights up for a moment (reference hd2_locked_land_selected).
+func highlight_parcel(pid: String) -> void:
+	var r := Farm.parcel_rect(pid)
+	var poly := Polygon2D.new()
+	poly.polygon = PackedVector2Array([grid_to_world(Vector2(r.position) - Vector2(0.5, 0.5)),
+		grid_to_world(Vector2(r.end.x, r.position.y) - Vector2(0.5, 0.5)), grid_to_world(Vector2(r.end) - Vector2(0.5, 0.5)),
+		grid_to_world(Vector2(r.position.x, r.end.y) - Vector2(0.5, 0.5))])
+	poly.color = Color(1.0, 1.0, 0.85, 0.0)
+	add_child(poly)
+	move_child(poly, ground.get_index() + 1)  # on the grass, under trees and buildings
+	var tw := create_tween()
+	tw.tween_property(poly, "color:a", 0.38, 0.2)
+	tw.tween_interval(3.0)
+	tw.tween_property(poly, "color:a", 0.0, 0.6)
+	tw.tween_callback(poly.queue_free)
 
 
 # ------------------------------------------------------------------ tool bubble over obstacles
@@ -2017,6 +2035,25 @@ func _debug_ui(which: String) -> void:
 					var de := {"k": it[0], "x": dc.x, "y": dc.y}
 					Game.decos.append(de)
 					_add_deco(de)
+		"parcel":
+			for pid2 in Farm.all_parcels():
+				if not Farm.is_open_parcel(pid2) and Farm.on_frontier(pid2):
+					highlight_parcel(pid2)
+					hud.land.open_parcel(pid2)
+					break
+		"parcellock":
+			Game.level = 1
+			for pid4 in Farm.all_parcels():
+				if not Farm.is_open_parcel(pid4) and Farm.on_frontier(pid4):
+					hud.land.open_parcel(pid4)
+					break
+		"parcelhl":
+			for pid3 in Farm.all_parcels():
+				if not Farm.is_open_parcel(pid3) and Farm.on_frontier(pid3):
+					highlight_parcel(pid3)
+					var pr := Farm.parcel_rect(pid3)
+					cam.position = grid_to_world(Vector2(pr.position) + Vector2(pr.size) * 0.5)
+					break
 		"bubble":
 			for key in farm.obstacles:
 				var ob: Sprite2D = farm.obstacles[key]

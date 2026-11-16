@@ -18,7 +18,8 @@ Auftrag: Klippe bleibt im Westen; Berg fertig; 15 Bilder selbst einordnen (REFER
 - **Ambiente** (`ambient.gd`): 12 Schmetterlinge (nicht im Winter), 5 Nebelschwaden.
 - **Straßenstand-Fenster**: rot-cremefarbene Markise mit Bogenkante, Plätze als „Neues Angebot“-Kisten.
 - Screenshot-Modi: `--ui=sites`, `--ui=bubble`. Nicht von Hand gespielt.
-- Nicht geschafft: echte Dreh-Animation der Rührarme (nur Wippen), Auswahl-Aufhellung der Parzelle,
+- Angetipptes gesperrtes Feld leuchtet 3 s hell auf (`highlight_parcel`). Screenshot-Modi `--ui=parcel|parcellock|parcelhl`.
+- Nicht geschafft: echte Dreh-Animation der Rührarme (nur Wippen),
   Land-Fenster mit Bild im roten Band, Zeitbalken für Tiere/Produktion, HUD-Spalte wie Referenz, UI v2.
 
 ## 2026-11-15 (spät) – Klippe mit Mine
