@@ -87,3 +87,20 @@ Das ist der Ziel-Look für Schritt 3 (Terrain/Grafik). Was den Look ausmacht:
 - **Bäume:** Tannen aus gestuften Zweiglagen, Laubbäume als klumpige Kronen mit hellen Blattflecken; Herbst in Orange/Rot.
 - **Item-Blasen:** weißes Zahlenschild + großes 3D-Icon + gelber Pfeil auf das Ziel.
 - **HUD (hd_style_farm_full):** große runde gelbe Knöpfe in den Ecken, Level-Stern an der XP-Leiste, Zahlen groß und weiß mit dunklem Rand.
+
+## 2026-11-16 – 15 Bilder „so hat es auszusehen“ (lokal `hd2_*.png`)
+Roman: selbstständig analysieren, einordnen, einbauen. Einordnung → Bauauftrag:
+
+| Bild | Was es zeigt | Bauauftrag |
+|---|---|---|
+| `hd2_prod_anim_1..3` | Produktionsgebäude **arbeiten sichtbar**: Rührarme drehen, Staubwölkchen steigen auf | Arbeitende Gebäude wippen im Takt und stoßen Wölkchen aus; stehende sind ruhig |
+| `hd2_butterflies_visitor` | Schmetterlinge über dem Hof, Besucher mit Sprechblase + Ware | Schmetterlinge als Ambiente; Besucher-Blase (haben wir) |
+| `hd2_build_clouds_xp` | Bau fertig: Staubwolken mit Glitzern, blauer Stern „+17“ | Enthüllen = Wolken + XP-Stern |
+| `hd2_build_tarp` | Baustelle = weiße geflickte Plane über 4 Stangen | Baustellen-Modell „Plane“ |
+| `hd2_build_gift` | Fertig, noch nicht enthüllt = Plane mit roter Schleife | Fertig-Zustand „Geschenk“, Antippen enthüllt |
+| `hd2_timer_bar_bubbles` | Unten: Name, blauer Zeitbalken, Blitz-Knopf mit Edelstein-Preis; oben Werkzeug-Blasen mit Zahlenschild + Pfeil + Lichtkegel | Zeitbalken mit Beschleunigen; Blasen-Stil |
+| `hd2_roadside_shop_ui` | Stand-Fenster: gestreifte Markise, Holzschild als Titel, Holzkisten als Plätze | Straßenstand-Fenster so gestalten |
+| `hd2_tool_bubble_axe/saw` | Baum antippen → Blase: Zahl, Plus-Knopf, Werkzeug, Pfeil, Lichtkegel | Hindernis-Blase statt Fenster |
+| `hd2_locked_land_walls/edge/selected` | Gesperrtes Land: olivgelbe Wiese, niedrige bemooste Steinmauern als Raster, Herbstbäume, Tümpel; gewähltes Feld heller | Mauern-Raster + Olivton; Antippen wählt Feld |
+| `hd2_locked_land_popup` | „Erweiterungen ab Level 22“: Bild im roten Band-Rahmen, blaues Banner, Schloss an der Schleife | Land-Popup so gestalten |
+| alle | HUD: Stern + Balken links oben, runde Knöpfe links als Spalte, Münzen/Edelsteine rechts oben, runde Knöpfe rechts unten; leichte Nebelschwaden | HUD-Anordnung, Nebel |

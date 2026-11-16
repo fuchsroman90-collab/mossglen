@@ -20,7 +20,8 @@ const TRUCK_ROUTE := [Vector2(14.3, 8.1), Vector2(13.4, 8.4), Vector2(13.4, 1.0)
 
 var w: Node  ## world.gd
 var obstacles: Dictionary = {}  ## "x,y" -> Sprite2D
-var signs: Dictionary = {}  ## parcel id -> Sprite2D
+var signs: Dictionary = {}  ## parcel id -> hidden marker (locked frontier parcels)
+var walls: Array[Sprite2D] = []  ## dry-stone walls around locked plots
 var sites: Dictionary = {}  ## index in Game.placed -> Sprite2D (construction site)
 var fixed: Dictionary = {}  ## kind -> Sprite2D
 var truck: Sprite2D
@@ -192,17 +193,42 @@ func _place_signs() -> void:
 	signs.clear()
 	if w.ground:
 		(w.ground.material as ShaderMaterial).set_shader_parameter("land_tex", land_texture())
+	for wl in walls:
+		wl.queue_free()
+	walls.clear()
+	var seen := {}
 	for id in all_parcels():
-		if is_open_parcel(id) or not on_frontier(id):
+		if is_open_parcel(id):
 			continue
 		var r := parcel_rect(id)
-		var s: Sprite2D = w._add_prop("sign_parcel", Vector2(r.position) + Vector2(r.size) * 0.5 - Vector2(0.5, 0.5), null)
-		s.set_meta("parcel", id)
-		s.scale = Vector2(0.72, 0.72)  # look pass: quieter meadow
-		s.set_meta("squash", 0.1)
-		s.z_index = 1
+		# low stone walls along the plot border; a shared border gets one wall only
+		for x in range(r.position.x, r.end.x):
+			_wall("x", Vector2(x, r.position.y - 0.5), seen)
+			_wall("x", Vector2(x, r.end.y - 0.5), seen)
+		for y in range(r.position.y, r.end.y):
+			_wall("y", Vector2(r.position.x - 0.5, y), seen)
+			_wall("y", Vector2(r.end.x - 0.5, y), seen)
+		if not on_frontier(id):
+			continue
+		# no sign posts any more (the land itself is tapped); a hidden marker keeps the buy effect position
+		var s := Sprite2D.new()
+		s.position = w.grid_to_world(Vector2(r.position) + Vector2(r.size) * 0.5 - Vector2(0.5, 0.5))
+		s.visible = false
+		w.add_child(s)
 		signs[id] = s
 	_shade_locked()
+
+
+func _wall(axis: String, g: Vector2, seen: Dictionary) -> void:
+	var key := "%s%.1f_%.1f" % [axis, g.x, g.y]
+	if seen.has(key):
+		return
+	seen[key] = true
+	var cell := Vector2i(int(round(g.x + 0.01)), int(round(g.y + 0.01)))
+	if w.occupied.has(cell) and not obstacles.has(cell):
+		return  # no wall across roads, water or buildings
+	var variant := "" if int(hash01(cell, 7.0) * 2.0) == 0 else "_b"
+	walls.append(w._add_static("stone_wall_%s%s" % [axis, variant], g))
 
 
 ## Locked land is drawn a little darker and greyer, so the open farm reads at a glance.

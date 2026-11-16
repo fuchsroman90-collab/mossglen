@@ -1110,6 +1110,15 @@ func _tap(world: Vector2) -> void:
 		Audio.play(best.get_meta("sound", "pop"), 1.0, 0.1)
 		if n.begins_with("tree") or n.begins_with("bush") or n.begins_with("flowers"):
 			_puff(best.position + Vector2(0, -Atlas.anchor(n).y * 0.6), "fx_leaf", 5)
+		return
+	# nothing hit: a tap on locked land selects that plot
+	var pid := Farm.parcel_at(cell_at(world))
+	if pid != "" and not Farm.is_open_parcel(pid):
+		Audio.play("click")
+		if Farm.on_frontier(pid):
+			hud.land.open_parcel(pid)
+		else:
+			Game.toast.emit(tr("LAND_FAR"), "ico_lock.png")
 
 
 func _opaque_at(s: Sprite2D, world: Vector2) -> bool:

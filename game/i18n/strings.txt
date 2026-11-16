@@ -396,3 +396,5 @@ STAND_FAIR	Normal	Fair
 STAND_DEAR	Teuer	Dear
 STAND_PUT	Anbieten	Offer
 MINE_LOCKED	Die Mine öffnet ab Level 3	The mine opens at level 3
+LAND_FAR	Erst das angrenzende Land freischalten	Unlock the neighbouring land first
+LAND_LEVEL	Erweiterung ab Level %d verfügbar	Expansion available from level %d

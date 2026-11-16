@@ -84,6 +84,8 @@ void fragment() {
 	// land that is not yours yet: a little darker and greyer, with a soft edge
 	float own = smoothstep(0.25, 0.75, texture(land_tex, (g - mask_origin + 0.5) / mask_size).r);
 	float lum = dot(col, vec3(0.3, 0.59, 0.11));
-	col = mix(mix(col, vec3(lum), 0.18) * vec3(0.9, 0.92, 0.9), col, own);
+	// locked land: dry olive-yellow meadow (reference hd2_locked_land_*), the own farm stays fresh green
+	vec3 locked = mix(col, vec3(lum) * vec3(1.18, 1.02, 0.36), 0.55);
+	col = mix(locked, col, own);
 	COLOR = vec4(col, 1.0);
 }

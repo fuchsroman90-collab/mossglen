@@ -674,8 +674,9 @@ def cliff(seed=1, gate=False):
             y += w
             continue
         # straight slab from the ground up, leaning back a little, turned a few degrees -> flat facets
-        hh = H * rng.uniform(0.96, 1.04)
-        o = kit.box((0.5, w * 1.08, hh), tones[k % 4], loc=(sx * rng.uniform(-0.3, -0.16), y + w / 2, hh / 2 - 0.04),
+        hh = H * (rng.uniform(0.98, 1.03) if k % 3 else rng.uniform(0.62, 0.8))  # every third slab is a low step
+        o = kit.box((0.5, w * 1.08, hh), tones[k % 4],
+                    loc=(sx * (rng.uniform(-0.3, -0.16) if k % 3 else rng.uniform(-0.1, 0.02)), y + w / 2, hh / 2 - 0.04),
                     bevel=0.05, parent=root)
         o.rotation_euler = (rng.uniform(-0.03, 0.03), sx * rng.uniform(-0.16, -0.07), rng.uniform(-0.3, 0.3))
         if rng.random() < 0.6:  # a broken ledge half way up
@@ -685,10 +686,23 @@ def cliff(seed=1, gate=False):
         y += w * 0.82
         k += 1
     # solid body behind the face and the grass plateau on top
-    kit.box((1.3, 2.1, H - 0.1), tones[1], loc=(sx * -0.95, 0, (H - 0.1) / 2), bevel=0.05, parent=root)
-    turf = mat("cliff_turf", "#62A626", rough=0.85, spec=0.05, edge=0.3, var=0.07)
-    turf2 = mat("cliff_turf2", "#7DBE30", rough=0.85, spec=0.05, edge=0.25, var=0.06)
-    kit.box((1.5, 2.12, 0.14), turf, loc=(sx * -0.92, 0, H - 0.03), bevel=0.06, parent=root)
+    kit.box((2.3, 2.0, H - 0.1), tones[1], loc=(sx * -1.45, 0, (H - 0.1) / 2), bevel=0.0, parent=root)
+    # plateau: one even green without per-piece variation and without bevel, so the pieces join seamlessly
+    turf = mat("cliff_turf", "#579620", rough=0.9, spec=0.0, edge=0.0, var=0.0)
+    turf2 = mat("cliff_turf2", "#7DBE30", rough=0.85, spec=0.05, edge=0.2, var=0.05)
+    kit.box((2.5, 2.08, 0.14), turf, loc=(sx * -1.42, 0, H - 0.03), bevel=0.0, parent=root)
+    # autumn wood on the plateau (reference: dense red-orange canopy above the cliff)
+    trunk = mat("cliff_trunk", "#7A5236", rough=0.9, edge=0.4)
+    cols = [("#F0802A", "#B8431E"), ("#E8502E", "#9C2A1C"), ("#F7B32E", "#C2761A"), ("#D9642A", "#8E3A1A")]
+    for j in range(5):
+        tx = sx * rng.uniform(-2.3, -1.0)
+        ty = -0.85 + j * 0.42 + rng.uniform(-0.1, 0.1)
+        th = rng.uniform(0.35, 0.6)
+        kit.cyl(0.05, th, trunk, loc=(tx, ty, H), verts=8, parent=root)
+        c = cols[(j + seed) % 4]
+        fm = foliage_mat(f"cliff_leaf_{(j + seed) % 4}", c[0], c[1])
+        r = rng.uniform(0.3, 0.42)
+        leaf_clump((tx, ty, H + th + r * 0.55), r, fm, rng, parent=root, squash=0.9, bumps=0.16)
     for j in range(16):
         yy = -1.0 + j * 0.133 + rng.uniform(-0.03, 0.03)
         kit.sphere(rng.uniform(0.1, 0.16), turf2 if j % 3 == 0 else turf, loc=(sx * rng.uniform(-0.3, -0.16), yy, H + 0.0),
@@ -734,8 +748,31 @@ def cliff(seed=1, gate=False):
     return root
 
 
+def stone_wall(axis="x", seed=31):
+    """One cell of low dry-stone wall with moss caps - the plots of locked land are fenced with these."""
+    rng = random.Random(seed)
+    root = kit.empty("stone_wall", rot=(0, 0, 0 if axis == "x" else math.radians(90)))
+    tones = [mat(f"wall_{i}", c, rough=0.85, spec=0.1, edge=0.5, var=0.05) for i, c in
+             enumerate(("#BEBAAE", "#A9A598", "#CFCBC0"))]
+    moss = mat("wall_moss", "#7FA83A", rough=0.9, spec=0.03, edge=0.3, var=0.1)
+    x = -0.5
+    k = 0
+    while x < 0.5:
+        w = rng.uniform(0.18, 0.3)
+        h = rng.uniform(0.13, 0.21)
+        o = kit.box((w, rng.uniform(0.2, 0.28), h), tones[k % 3], loc=(x + w / 2, rng.uniform(-0.03, 0.03), h / 2),
+                    rot=(0, 0, rng.uniform(-0.25, 0.25)), bevel=0.035, parent=root)
+        if rng.random() < 0.45:
+            kit.sphere(rng.uniform(0.05, 0.08), moss, loc=(x + w / 2, 0, h), scale=(1.2, 1, 0.45), seg=10, parent=root)
+        x += w * 0.92
+        k += 1
+    return root
+
+
 def nature_frames():
     return {
+        "stone_wall_x": lambda: stone_wall("x", 31), "stone_wall_x_b": lambda: stone_wall("x", 32),
+        "stone_wall_y": lambda: stone_wall("y", 33), "stone_wall_y_b": lambda: stone_wall("y", 34),
         "cliff_a": lambda: cliff(1), "cliff_b": lambda: cliff(2), "cliff_c": lambda: cliff(3),
         "cliff_mine": lambda: cliff(4, gate=True),
         "stall": stall,

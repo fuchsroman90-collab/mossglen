@@ -278,7 +278,25 @@ func open_parcel(id: String) -> void:
 			l.add_theme_color_override("font_color", Color("FF8A7A"))
 		_popup.add_child(l)
 	var why: String = world.farm.can_buy_parcel(id)
+	if Game.level < int(c.get("level", 1)):
+		# level gate: blue banner and a padlock, like a wrapped present that cannot be opened yet
+		var ban := ColorRect.new()
+		ban.color = Color("3D8FE0")
+		ban.position = Vector2(40, 96)
+		ban.size = Vector2(820, 70)
+		_popup.add_child(ban)
+		var bl := hud._label(tr("LAND_LEVEL") % int(c["level"]), 38)
+		bl.size = Vector2(820, 70)
+		bl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		bl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		ban.add_child(bl)
+		info.visible = false
+		var lock := hud._tex("lock.png")
+		lock.position = Vector2(410, 440)
+		lock.scale = Vector2(1.4, 1.4)
+		_popup.add_child(lock)
 	var go := hud._pill("", Vector2(250, 460), 400, why == "")
+	go.visible = Game.level >= int(c.get("level", 1))
 	(go.get_child(0) as Label).text = "%s  %s" % [tr("LAND_BUY"), Hud.fmt(int(c["coins"]))]
 	go.pressed.connect(func() -> void:
 		if world.farm.buy_parcel(id):
