@@ -22,6 +22,15 @@ var _stand: Control
 var _stand_body: Control
 var _stand_sprite: Sprite2D
 var _stand_pick := ""
+var _timer: Control
+var _timer_fill: ColorRect
+var _timer_title: Label
+var _timer_time: Label
+var _timer_cost: Label
+var _timer_left: Callable
+var _timer_total := 1.0
+var _timer_speed: Callable
+var _timer_hide := 0.0
 var _vis: Control
 var _vis_body: Control
 var _daily: Control
@@ -66,6 +75,29 @@ func setup(h: Hud) -> void:
 	hud.extra_windows.append(_stand)
 	_stand_body = Control.new()
 	_stand.add_child(_stand_body)
+	# market awning over the window: red and cream stripes with a scalloped edge
+	var aw := Control.new()
+	aw.position = Vector2(-40, -150)
+	aw.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stand.add_child(aw)
+	_stand.move_child(aw, 0)
+	for i in 12:
+		var col := Color("E0302A") if i % 2 == 0 else Color("FFF4E2")
+		var stripe := Polygon2D.new()
+		stripe.polygon = PackedVector2Array([Vector2(60 + i * 110, 0), Vector2(60 + (i + 1) * 110, 0),
+			Vector2(20 + (i + 1) * 123.3, 150), Vector2(20 + i * 123.3 - 20, 150)])
+		stripe.polygon = PackedVector2Array([Vector2(80 + i * 110, 0), Vector2(80 + (i + 1) * 110, 0),
+			Vector2((i + 1) * 123.3, 150), Vector2(i * 123.3, 150)])
+		stripe.color = col
+		aw.add_child(stripe)
+		var scallop := Polygon2D.new()
+		var pts := PackedVector2Array()
+		for k in 13:
+			var a := PI * k / 12.0
+			pts.append(Vector2(i * 123.3 + 61.65 - cos(a) * 61.65, 150 + sin(a) * 44.0))
+		scallop.polygon = pts
+		scallop.color = col
+		aw.add_child(scallop)
 	_vis = hud._panel_window(Vector2(1320, 760), "VISITOR_TITLE")[0]
 	hud.extra_windows.append(_vis)
 	_vis_body = Control.new()
@@ -416,9 +448,86 @@ func open_stand(s: Sprite2D) -> void:
 	hud._open(_stand)
 
 
-func _process(_d: float) -> void:
+func _process(d: float) -> void:
 	if _stand != null and _stand.visible and Engine.get_process_frames() % 30 == 0:
 		_fill_stand()
+	if _timer != null and _timer.visible:
+		var left: float = _timer_left.call()
+		_timer_hide -= d
+		if left <= 0.0 or _timer_hide <= 0.0:
+			_timer.visible = false
+			return
+		_timer_fill.size.x = 820.0 * clampf(1.0 - left / maxf(_timer_total, 1.0), 0.03, 1.0)
+		_timer_time.text = Hud._fmt_time(int(ceil(left)))
+		_timer_cost.text = str(speed_cost(left))
+
+
+# ------------------------------------------------------------------ time bar with speed-up
+
+static func speed_cost(left: float) -> int:
+	return 1 + int(left / 180.0)
+
+
+## Bottom bar: what is being made, how long it still takes, and a lightning button that finishes it for emeralds.
+func show_timer(title: String, left_fn: Callable, total: float, speed_fn: Callable) -> void:
+	if _timer == null:
+		_timer = hud._patch("panel.png", 44, 44)
+		_timer.size = Vector2(900, 150)
+		hud._root.add_child(_timer)
+		var track := ColorRect.new()
+		track.color = Color("1F4F9E")
+		track.position = Vector2(40, 52)
+		track.size = Vector2(820, 46)
+		_timer.add_child(track)
+		_timer_fill = ColorRect.new()
+		_timer_fill.color = Color("4FB4F5")
+		_timer_fill.position = Vector2(40, 52)
+		_timer_fill.size = Vector2(10, 46)
+		_timer.add_child(_timer_fill)
+		_timer_title = hud._label("", 44)
+		_timer_title.position = Vector2(0, -34)
+		_timer_title.size = Vector2(900, 60)
+		_timer_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_timer.add_child(_timer_title)
+		_timer_time = hud._label("", 40)
+		_timer_time.position = Vector2(0, 92)
+		_timer_time.size = Vector2(900, 56)
+		_timer_time.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_timer.add_child(_timer_time)
+		var b := hud._round_button("ico_bolt.png", Vector2(900, -6), 160)
+		hud._root.remove_child(b)
+		_timer.add_child(b)
+		b.pressed.connect(_speed_up)
+		var tag := hud._patch("panel.png", 44, 44)
+		tag.position = Vector2(1050, 34)
+		tag.size = Vector2(170, 86)
+		_timer.add_child(tag)
+		_timer_cost = hud._dark(hud._label("1", 44))
+		_timer_cost.position = Vector2(20, 12)
+		tag.add_child(_timer_cost)
+		var gem := hud._tex("gem.png")
+		gem.position = Vector2(86, 14)
+		gem.scale = Vector2(0.6, 0.6)
+		tag.add_child(gem)
+	_timer.position = Vector2(hud._root.size.x * 0.5 - 560.0, hud._root.size.y - 340.0)
+	_timer_title.text = title
+	_timer_left = left_fn
+	_timer_total = total
+	_timer_speed = speed_fn
+	_timer_hide = 6.0
+	_timer.visible = true
+
+
+func _speed_up() -> void:
+	var left: float = _timer_left.call()
+	var cost := speed_cost(left)
+	if Game.emeralds < cost:
+		Game.toast.emit(tr("NOT_ENOUGH_EMERALDS"), "gem.png")
+		return
+	Game.add_emeralds(-cost)
+	_timer_speed.call()
+	_timer.visible = false
+	Audio.play("levelup", 1.3)
 
 
 func _fill_stand() -> void:
@@ -432,7 +541,7 @@ func _fill_stand() -> void:
 		t.size = Vector2(300, 330)
 		_stand_body.add_child(t)
 		if i >= Game.stand.size():
-			t.self_modulate = Color(0.9, 0.88, 0.8)
+			t.self_modulate = Color(1.0, 0.82, 0.42)
 			var e := hud._dark(hud._label("STAND_EMPTY", 30))
 			e.position = Vector2(0, 140)
 			e.size = Vector2(300, 44)

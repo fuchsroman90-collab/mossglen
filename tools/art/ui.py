@@ -1087,6 +1087,8 @@ def m95_images() -> dict:
                            '<rect x="40" y="26" width="16" height="60" fill="#FFD23F" stroke="#5A3410" stroke-width="5"/>'
                            '<path d="M48 26 C30 4 14 16 28 26 Z M48 26 C66 4 82 16 68 26 Z" fill="#FFD23F" '
                            'stroke="#5A3410" stroke-width="5" stroke-linejoin="round"/>', 96, 96),
+        "ico_bolt": render('<path d="M56 6 L22 54 L44 54 L36 90 L76 38 L52 38 Z" fill="#FFFFFF" stroke="#8A5A14" '
+                           'stroke-width="6" stroke-linejoin="round"/>', 96, 96),
         "deco_path": render(f'<path d="M20 150 L130 40 L190 70 L80 180 Z" fill="#C89A62" {o}/>'
                             f'<path d="M44 150 L134 62 M70 164 L160 76" stroke="#A97B48" stroke-width="6" '
                             f'stroke-linecap="round" stroke-dasharray="14 18"/>', 210, 210),

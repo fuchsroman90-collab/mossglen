@@ -88,6 +88,9 @@ var visitor: Sprite2D  ## wandering buyer waiting at the order board
 var _visitor_t := 230.0
 var _move_entry: Dictionary = {}  ## building/pen being moved (entry in Game.placed)
 var _press_entry: Dictionary = {}
+var _tool_bubble: Node2D  ## count tag + tool + arrow over the obstacle that was tapped
+var _tool_target: Sprite2D
+var ambient: Ambient
 var _deco_kind := ""  ## decoration being placed (data/decos.json)
 var _deco_moving: Dictionary = {}  ## entry being moved (restored on cancel)
 var _deco_erase := false
@@ -329,6 +332,10 @@ func _build_farm() -> void:
 				occupied[Vector2i(xx, yy)] = true
 
 	_clear_mine_approach.call_deferred()
+	ambient = Ambient.new()
+	add_child(ambient)
+	ambient.setup(cam)
+	ambient.set_active(Game.season() != "winter" and not _args.has("smoke"), not _args.has("smoke"))
 
 	# Mossbrook village by the sea in the north
 	for x in range(-10, 40):
@@ -836,8 +843,11 @@ func _on_release(pos: Vector2) -> void:
 		Mode.GROW_PENDING:
 			if tap and _press_field != null:
 				var f := _press_field
-				hud.show_field_info(get_viewport().get_canvas_transform() * f.position, f.crop, f.seconds_left(),
-						f.progress())
+				hud.rewards.show_timer(tr("CROP_" + f.crop) if tr("CROP_" + f.crop) != "CROP_" + f.crop else tr("ITEM_" + f.crop),
+						func() -> float: return float(f.seconds_left()) if is_instance_valid(f) else 0.0, f.grow_time(),
+						func() -> void:
+							if is_instance_valid(f):
+								f.planted_at -= float(f.seconds_left()) + 1.0)
 	_mode = Mode.NONE
 	_press_field = null
 
@@ -1046,7 +1056,13 @@ func _tap(world: Vector2) -> void:
 			return
 		if best.has_meta("obstacle"):
 			Audio.play("click")
-			hud.land.open_obstacle(best)
+			if not Farm.cell_open(cell_at(best.position)):
+				Game.toast.emit(tr("LAND_LOCKED"), "ico_lock.png")
+			elif _tool_target == best:
+				_hide_tool_bubble()
+				farm.clear_obstacle(best)
+			else:
+				_show_tool_bubble(best)
 			return
 		if best.has_meta("fixed"):
 			match str(best.get_meta("fixed")):
@@ -1366,6 +1382,69 @@ func _clear_mine_approach() -> void:
 		if (c.x >= -1 and c.x <= 1 and c.y >= 7 and c.y <= 10) or in_rock:
 			props.erase(s)
 			s.queue_free()
+
+
+# ------------------------------------------------------------------ tool bubble over obstacles
+
+## First tap on a tree or rock: a bubble shows the tool it needs, how many are in the barn and an arrow
+## onto the obstacle. Tapping the obstacle again uses the tool.
+func _show_tool_bubble(s: Sprite2D) -> void:
+	_hide_tool_bubble()
+	_tool_target = s
+	var tool: String = s.get_meta("tool")
+	var top := -Atlas.anchor(s.get_meta("sprite", "rock")).y * s.scale.y
+	var b := Node2D.new()
+	b.position = s.position + Vector2(-150, top - 150)
+	b.z_index = 60
+	fx.add_child(b)
+	var cone := Polygon2D.new()
+	cone.polygon = PackedVector2Array([Vector2(10, 40), Vector2(150, -top * 0.55 + 150), Vector2(150 + 150, 40)])
+	cone.color = Color(1, 1, 1, 0.22)
+	b.add_child(cone)
+	var tag := Sprite2D.new()
+	tag.texture = load(Hud.UI + "slot.png")
+	tag.scale = Vector2(0.7, 0.46)
+	tag.position = Vector2(-10, 0)
+	b.add_child(tag)
+	var n := Label.new()
+	n.text = str(Game.count(tool))
+	n.add_theme_font_size_override("font_size", 46)
+	n.add_theme_color_override("font_color", Color("5A3410") if Game.count(tool) > 0 else Color("E0402E"))
+	n.position = Vector2(-46, -34)
+	n.size = Vector2(72, 60)
+	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_child(n)
+	var icon := Sprite2D.new()
+	icon.texture = Hud.item_texture(tool)
+	icon.position = Vector2(110, -6)
+	icon.scale = Vector2(1.25, 1.25)
+	b.add_child(icon)
+	var arrow := Polygon2D.new()
+	arrow.polygon = PackedVector2Array([Vector2(0, -18), Vector2(46, -18), Vector2(46, -40), Vector2(96, 0), Vector2(46, 40),
+		Vector2(46, 18), Vector2(0, 18)])
+	arrow.color = Color("FFC928")
+	arrow.position = Vector2(120, 50)
+	arrow.rotation = 0.75
+	b.add_child(arrow)
+	var edge := Line2D.new()
+	edge.points = arrow.polygon
+	edge.closed = true
+	edge.width = 5
+	edge.default_color = Color("8A5A14")
+	arrow.add_child(edge)
+	b.scale = Vector2(0.4, 0.4)
+	create_tween().tween_property(b, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_tool_bubble = b
+	get_tree().create_timer(5.0).timeout.connect(func() -> void:
+		if _tool_bubble == b:
+			_hide_tool_bubble())
+
+
+func _hide_tool_bubble() -> void:
+	if _tool_bubble != null and is_instance_valid(_tool_bubble):
+		_tool_bubble.queue_free()
+	_tool_bubble = null
+	_tool_target = null
 
 
 # ------------------------------------------------------------------ visiting buyer
@@ -1938,6 +2017,19 @@ func _debug_ui(which: String) -> void:
 					var de := {"k": it[0], "x": dc.x, "y": dc.y}
 					Game.decos.append(de)
 					_add_deco(de)
+		"bubble":
+			for key in farm.obstacles:
+				var ob: Sprite2D = farm.obstacles[key]
+				if Farm.cell_open(cell_at(ob.position)):
+					Game.add_item(ob.get_meta("tool"), 2, true)
+					_show_tool_bubble(ob)
+					cam.position = ob.position + Vector2(0, -80)
+					break
+			if not fields.is_empty():
+				var tf: Field = fields.values()[0]
+				tf.plant("wheat")
+				hud.rewards.show_timer(tr("ITEM_wheat"), func() -> float: return float(tf.seconds_left()), tf.grow_time(),
+						func() -> void: pass)
 		"sites":
 			# three building sites: under the tarpaulin, wrapped as a present, just unwrapped
 			Game.add_coins(5000)

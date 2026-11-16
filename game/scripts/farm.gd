@@ -337,7 +337,9 @@ func tap_site(s: Sprite2D) -> void:
 	var i: int = s.get_meta("site")
 	var left := site_left(i)
 	if left > 0.0:
-		Game.toast.emit(tr("BUILD_LEFT") % Hud._fmt_time(int(left)), "ico_build.png")
+		var total := float(Game.placeables[Game.placed[i]["k"]].get("build", 10))
+		w.hud.rewards.show_timer(tr("PLACE_" + str(Game.placed[i]["k"])), func() -> float: return site_left(i), total,
+				func() -> void: Game.placed[i]["done"] = Time.get_unix_time_from_system())
 		return
 	var p: Dictionary = Game.placed[i]
 	p["done"] = 0.0

@@ -385,7 +385,7 @@ MOVE_HINT	Gedrückt halten, um Gebäude zu verschieben	Hold to move buildings
 DECO_stall	Straßenstand	Roadside stand
 DECO_SUB_stall	Verkaufe Waren zu deinem Preis	Sell goods at your price
 STAND_TITLE	Straßenstand	Roadside stand
-STAND_EMPTY	Frei	Free
+STAND_EMPTY	Neues Angebot	New offer
 STAND_COLLECT	Kassieren	Collect
 STAND_WAIT	noch %d:%02d	%d:%02d left
 STAND_FULL	Alle Plätze belegt – erst kassieren	All slots taken – collect first

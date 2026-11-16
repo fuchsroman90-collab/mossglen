@@ -162,13 +162,22 @@ func _process(delta: float) -> void:
 	if is_working():
 		if _sails != null:
 			_sails.rotation += delta * 1.6
+		# a working building visibly works: it chugs in a steady rhythm and puffs little clouds
+		var tt := Time.get_ticks_msec() * 0.001
+		var k := sin(tt * 8.0) * 0.014
+		sprite.scale = Vector2(1.0 + k, 1.0 - k)
 		_fx_t += delta
 		var fx: Dictionary = def.get("fx", {})
-		if fx.has("smoke") and _fx_t > 0.6:
+		if _fx_t > 0.6:
 			_fx_t = 0.0
-			_smoke(Vector2(fx["smoke"][0], fx["smoke"][1]))
-	elif _sails != null:
-		_sails.rotation += delta * 0.25  # idle breeze
+			if fx.has("smoke"):
+				_smoke(Vector2(fx["smoke"][0], fx["smoke"][1]))
+			else:
+				_smoke(Vector2(randf_range(-60.0, 60.0), -Atlas.anchor(id).y * 0.75))
+	else:
+		sprite.scale = Vector2.ONE
+		if _sails != null:
+			_sails.rotation += delta * 0.25  # idle breeze
 
 
 func _smoke(at: Vector2) -> void:

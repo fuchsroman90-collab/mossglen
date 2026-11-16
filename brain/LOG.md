@@ -2,6 +2,25 @@
 
 Neueste oben. Jede Sitzung: Datum, Rechner, was gemacht, was offen.
 
+## 2026-11-16 (Nacht) – Fable 5.2: Berg fertig + 15 Referenzen umgesetzt (Roman schläft, ohne Rückfrage)
+
+Auftrag: Klippe bleibt im Westen; Berg fertig; 15 Bilder selbst einordnen (REFERENCES.md „hd2_*“) und einbauen.
+- **Berg**: Plateau durchgehend (Stücke überlappen), Herbstwald oben, jede dritte Felsplatte als niedrige Stufe.
+- **Gesperrtes Land**: Trockenmauern mit Moos als Raster um jede Parzelle (`stone_wall_x/y`), olivgelbe Wiese
+  (Shader), Schilder entfernt – Antippen des Landes öffnet das Fenster; blaues Banner + Schloss, wenn das Level fehlt.
+- **Baustelle**: geflickte Plane (`tarp_*`), fertig = rote Schleife (`gift_*`, `farm.tick_sites`), Enthüllen mit
+  Staubwolken und blauem Stern mit XP (XP jetzt 5 + Preis/60).
+- **Zeitbalken** unten (`reward_ui.show_timer`): Name, blauer Balken, Restzeit, Blitz-Knopf für Smaragde
+  (1 + je 3 Min 1). Für wachsende Felder und Baustellen.
+- **Werkzeug-Blase** über Hindernissen (Zahl, Werkzeug, gelber Pfeil, Lichtkegel); zweites Antippen benutzt es.
+  Das alte Hindernis-Fenster wird nicht mehr geöffnet.
+- **Produktionsgebäude** wippen beim Arbeiten und stoßen Wölkchen aus.
+- **Ambiente** (`ambient.gd`): 12 Schmetterlinge (nicht im Winter), 5 Nebelschwaden.
+- **Straßenstand-Fenster**: rot-cremefarbene Markise mit Bogenkante, Plätze als „Neues Angebot“-Kisten.
+- Screenshot-Modi: `--ui=sites`, `--ui=bubble`. Nicht von Hand gespielt.
+- Nicht geschafft: echte Dreh-Animation der Rührarme (nur Wippen), Auswahl-Aufhellung der Parzelle,
+  Land-Fenster mit Bild im roten Band, Zeitbalken für Tiere/Produktion, HUD-Spalte wie Referenz, UI v2.
+
 ## 2026-11-15 (spät) – Klippe mit Mine
 
 - Klippe + Mineneingang gebaut (DECISIONS „Mine gehört in den Berg“). Offen: Klippen-Oberkante ist eine flache
