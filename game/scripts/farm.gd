@@ -287,9 +287,13 @@ func _spawn(k: String, cell: Vector2i, p: Dictionary) -> void:
 func _add_site(i: int) -> void:
 	var p: Dictionary = Game.placed[i]
 	var size: Vector2i = footprint(p["k"], Vector2i(int(p["x"]), int(p["y"]))).size
-	var spr := "site_small" if size.x <= 2 else "site_big"
-	var s: Sprite2D = w._add_prop(spr, Vector2(int(p["x"]), int(p["y"])), null)
+	var big := size.x > 2
+	var ready := site_left(i) <= 0.0
+	var spr := ("gift_" if ready else "tarp_") + ("big" if big else "small")
+	var s: Sprite2D = w._add_prop(spr, Vector2(int(p["x"]), int(p["y"])) + Vector2(size - Vector2i.ONE) * 0.5, null)
 	s.set_meta("site", i)
+	s.set_meta("gift", ready)
+	s.set_meta("big", big)
 	s.set_meta("squash", 0.06)
 	w._dirt_rect(footprint(p["k"], Vector2i(int(p["x"]), int(p["y"]))), 0.6)
 	sites[i] = s
@@ -312,6 +316,18 @@ func start_build(kind: String, cell: Vector2i) -> void:
 	Game.mark_dirty()
 
 
+## Called a few times a second: a site whose time is up turns from tarpaulin into a wrapped present.
+func tick_sites() -> void:
+	for i in sites:
+		var s: Sprite2D = sites[i]
+		if not s.get_meta("gift", false) and site_left(i) <= 0.0:
+			s.set_meta("gift", true)
+			Atlas.apply(s, "gift_big" if s.get_meta("big", false) else "gift_small")
+			Field.squash(s, 0.25)
+			w._puff(s.position + Vector2(0, -80), "fx_sparkle" if Atlas.has("fx_sparkle_0") else "fx_smoke", 6)
+			Audio.play("pop", 1.3)
+
+
 func site_left(i: int) -> float:
 	return maxf(0.0, float(Game.placed[i]["done"]) - Time.get_unix_time_from_system())
 
@@ -329,9 +345,13 @@ func tap_site(s: Sprite2D) -> void:
 	w.props.erase(s)
 	s.queue_free()
 	_spawn(p["k"], Vector2i(int(p["x"]), int(p["y"])), p)
-	w._puff(w.grid_to_world(Vector2(int(p["x"]), int(p["y"]))), "fx_smoke", 10)
+	# unwrapping: a burst of dust clouds and a blue star with the experience gained
+	var xp := 5 + int(Game.placeables[p["k"]].get("price", 0)) / 60
+	for off in [Vector2(-90, -30), Vector2(80, -50), Vector2(0, -110), Vector2(-40, 10), Vector2(60, 20)]:
+		w._puff(s.position + off, "fx_smoke", 5)
+	w._float_reward(s.position + Vector2(0, -120), xp, "star.png")
 	Audio.play("levelup", 1.2)
-	Game.add_xp(5)
+	Game.add_xp(xp)
 	Game.event("build", p["k"])
 	Game.toast.emit(tr("BUILD_DONE") % tr("PLACE_" + p["k"]), "ico_build.png")
 	Game.mark_dirty()

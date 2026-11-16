@@ -1938,6 +1938,18 @@ func _debug_ui(which: String) -> void:
 					var de := {"k": it[0], "x": dc.x, "y": dc.y}
 					Game.decos.append(de)
 					_add_deco(de)
+		"sites":
+			# three building sites: under the tarpaulin, wrapped as a present, just unwrapped
+			Game.add_coins(5000)
+			Game.level = maxi(Game.level, 6)
+			var now := Time.get_unix_time_from_system()
+			for it in [["bakery", 999.0], ["bakery", -1.0], ["popcorn", -1.0]]:
+				var sp := _find_spot(it[0])
+				if sp.x >= 0:
+					farm.start_build(it[0], sp)
+					Game.placed[Game.placed.size() - 1]["done"] = now + float(it[1])
+					print("site at ", sp)
+			farm.tick_sites()
 		"movetest":
 			if not Game.skip_intro:
 				if Game.placed_count("coop") == 0:
@@ -2513,6 +2525,8 @@ func _process(delta: float) -> void:
 		_visitor_t = 0.0
 		if not _args.has("smoke") and Game.level >= 2:
 			spawn_visitor()
+	if Engine.get_process_frames() % 20 == 0:
+		farm.tick_sites()
 	_chest_t += delta
 	if _chest_t > 240.0:
 		_chest_t = 0.0

@@ -769,8 +769,50 @@ def stone_wall(axis="x", seed=31):
     return root
 
 
+def tarp(w=1.7, h=1.25, gift=False, seed=41):
+    """Construction site: a patched white tarpaulin thrown over four poles. gift=True ties a red ribbon
+    with a bow around it - the building is finished and waits to be unwrapped."""
+    rng = random.Random(seed)
+    root = kit.empty("tarp")
+    cloth = mat("tarp_cloth", "#F4EFE4", rough=0.75, spec=0.1, edge=0.4, var=0.03, edge_color="#B9B09C")
+    patch = mat("tarp_patch", "#DDD3C0", rough=0.8, edge=0.35, edge_color="#A39884")
+    pole = mat("tarp_pole", "#8E969C", rough=0.4, spec=0.5, edge=0.4, metal=0.4)
+    o = kit.box((w, w, h), cloth, loc=(0, 0, h / 2 - 0.02), bevel=0.16, parent=root)
+    kit.displace(o, strength=0.07, scale=0.45, seed=seed)
+    # the cloth sags between the poles and rises to a point at each of them
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = sx * w * 0.36, sy * w * 0.36
+            kit.cyl(w * 0.22, 0.24, cloth, loc=(x, y, h - 0.1), r2=0.03, verts=14, parent=root)
+            kit.cyl(0.022, 0.22, pole, loc=(x, y, h + 0.08), verts=8, parent=root)
+    kit.cyl(w * 0.2, 0.26, cloth, loc=(0, 0, h - 0.06), r2=0.03, verts=14, parent=root)
+    kit.cyl(0.022, 0.22, pole, loc=(0, 0, h + 0.16), verts=8, parent=root)
+    d = Vector((kit.TO_CAM.x, kit.TO_CAM.y, 0))
+    fx = 1.0 if d.x > 0 else -1.0
+    fy = 1.0 if d.y > 0 else -1.0
+    for (px, py, pz, ax) in ((fx * (w / 2 + 0.005), rng.uniform(-0.3, 0.3), h * 0.55, "x"),
+                             (rng.uniform(-0.3, 0.3), fy * (w / 2 + 0.005), h * 0.4, "y")):
+        size = (0.02, 0.24, 0.2) if ax == "x" else (0.24, 0.02, 0.2)
+        kit.box(size, patch, loc=(px, py, pz), rot=(0.1, 0.1, 0.0), bevel=0.008, parent=root)
+    if gift:
+        red = mat("gift_red", "#E0302A", rough=0.4, spec=0.4, edge=0.5, edge_color="#7A1410")
+        kit.box((0.26, w + 0.05, h + 0.03), red, loc=(0, 0, h / 2), bevel=0.05, parent=root)
+        kit.box((w + 0.05, 0.26, h + 0.03), red, loc=(0, 0, h / 2), bevel=0.05, parent=root)
+        b = w / 1.5
+        for a in (0.6, -0.6, 2.5, -2.5):
+            kit.sphere(0.34 * b, red, loc=(math.cos(a) * 0.36 * b, math.sin(a) * 0.36 * b, h + 0.2 * b),
+                       scale=(1.0, 0.5, 0.62), rot=(0, 0, a), seg=18, parent=root)
+        kit.sphere(0.17 * b, red, loc=(0, 0, h + 0.18 * b), seg=14, parent=root)
+        for a in (0.9, -2.2):
+            kit.box((0.5 * b, 0.16 * b, 0.03), red, loc=(math.cos(a) * 0.45 * b, math.sin(a) * 0.45 * b, h + 0.02),
+                    rot=(0, 0.5, a), bevel=0.01, parent=root)
+    return root
+
+
 def nature_frames():
     return {
+        "tarp_small": lambda: tarp(1.5, 1.1), "tarp_big": lambda: tarp(2.5, 1.5, seed=42),
+        "gift_small": lambda: tarp(1.5, 1.1, gift=True), "gift_big": lambda: tarp(2.5, 1.5, gift=True, seed=42),
         "stone_wall_x": lambda: stone_wall("x", 31), "stone_wall_x_b": lambda: stone_wall("x", 32),
         "stone_wall_y": lambda: stone_wall("y", 33), "stone_wall_y_b": lambda: stone_wall("y", 34),
         "cliff_a": lambda: cliff(1), "cliff_b": lambda: cliff(2), "cliff_c": lambda: cliff(3),
